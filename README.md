@@ -2,10 +2,13 @@
 
 # Roadmap
 
-1. AI
 1. Collision
-1. Impulse & Force
+1. Goals
+1. AI
+1. Score
+1. Menu
 1. Add units (meters, seconds, etc.)
+1. Release (macOS, Windows, Linux)
 
 # Useful Links
 

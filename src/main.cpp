@@ -24,7 +24,7 @@ float DeltaTime() {
 class GameObject {
     public:
         virtual void FixedUpdate(float deltaTime, float worldWidth, float worldHeight) {};
-        virtual void Update(float deltaTime, float worldWidth, float worldHeight) {};
+        virtual void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {};
         virtual void Render(float deltaTime, float worldWidth, float worldHeight) {};
 };
 
@@ -37,33 +37,38 @@ struct Character {
     float speed;
 };
 
+class CharacterHolder {
+    public:
+        Character character;
+};
+
 void CharacterApplyFriction(Character *c) {
     c->velocity.y *= .80f;
     c->velocity.x *= .80f;
 }
 
 void CharacterApplyWorldBoundaries(Character *c, float worldWidth, float worldHeight) {
-    auto playerNewPositionY = c->position.y + c->velocity.y;
-    auto playerNewPositionX = c->position.x + c->velocity.x;
+    auto charNewPositionY = c->position.y + c->velocity.y;
+    auto charNewPositionX = c->position.x + c->velocity.x;
 
-    if (playerNewPositionX - c->size.width/2 < 0) {
-        playerNewPositionX = c->size.width/2;
+    if (charNewPositionX - c->size.width/2 < 0) {
+        charNewPositionX = c->size.width/2;
         c->velocity.x = 0;
-    } else if (playerNewPositionX + c->size.width/2 > worldWidth) {
-        playerNewPositionX = worldWidth - c->size.width/2;
+    } else if (charNewPositionX + c->size.width/2 > worldWidth) {
+        charNewPositionX = worldWidth - c->size.width/2;
         c->velocity.x = 0;
     }
 
-    if (playerNewPositionY - c->size.height/2 < 0) {
-        playerNewPositionY = c->size.height/2;
+    if (charNewPositionY - c->size.height/2 < 0) {
+        charNewPositionY = c->size.height/2;
         c->velocity.y = 0;
-    } else if (playerNewPositionY + c->size.height/2 > worldHeight) {
-        playerNewPositionY = worldHeight - c->size.height/2;
+    } else if (charNewPositionY + c->size.height/2 > worldHeight) {
+        charNewPositionY = worldHeight - c->size.height/2;
         c->velocity.y = 0;
     }
 
-    c->position.x = playerNewPositionX;
-    c->position.y = playerNewPositionY;
+    c->position.x = charNewPositionX;
+    c->position.y = charNewPositionY;
 }
 
 void CharacterApplyVelocityToPosition(Character *c) {
@@ -72,19 +77,18 @@ void CharacterApplyVelocityToPosition(Character *c) {
 }
 
 // # Player
-class Player: public GameObject {
+class Player: public GameObject, public CharacterHolder {
     public:
-        Character character;
         Player(Character c) {
             this->character = c;
         }
 
-        void Update(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
         void Render(float deltaTime, float worldWidth, float worldHeight) override;
 };
 
 // # Player Update function
-void Player::Update(float deltaTime, float worldWidth, float worldHeight) {
+void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
     auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
@@ -122,25 +126,99 @@ void Player::Render(float deltaTime, float worldWidth, float worldHeight) {
 }
 
 // # Ball
-class Ball: public GameObject {
+class Ball: public GameObject, public CharacterHolder {
     public:
         float radius;
-        Character character;
         Ball(float radius, Character c) {
             this->character = c;
             this->radius = radius;
         }
 
-        void Update(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
         void Render(float deltaTime, float worldWidth, float worldHeight) override;
 };
 
-void Ball::Update(float deltaTime, float worldWidth, float worldHeight) {
-    // # World Boundaries
-    CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
+struct CollisionData {
+    float penetration;
+    Vector2 normal;
+};
+
+CollisionData CircleRectangleCollision(
+    Vector2 circlePosition,
+    float circleRadius,
+    Vector2 rectPosition,
+    Size rectSize
+) {
+    Vector2 closest = {
+        fmaxf(rectPosition.x - rectSize.width/2, fminf(circlePosition.x, rectPosition.x + rectSize.width/2)),
+        fmaxf(rectPosition.y - rectSize.height/2, fminf(circlePosition.y, rectPosition.y + rectSize.height/2))
+    };
+
+    Vector2 distance = Vector2Subtract(circlePosition, closest);
+    float distanceLength = Vector2Length(distance);
+
+    if (distanceLength < circleRadius) {
+        return {
+            circleRadius - distanceLength,
+            Vector2Normalize(distance)
+        };
+    }
+
+    return {
+        0,
+        Vector2Zero()
+    };
+}
+
+void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
+    // Vector2 nextPosition = Vector2Add(this->character.position, Vector2Scale(this->character.velocity, deltaTime));
+    // Vector2 nextPosition = this->character.position;
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
+
+    // # World Boundaries
+    if (this->character.position.x - this->radius < 0) {
+        this->character.position.x = this->radius;
+        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){1, 0});
+    } else if (this->character.position.x + this->radius > worldWidth) {
+        this->character.position.x = worldWidth - this->radius;
+        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){-1, 0});
+    }
+
+    if (this->character.position.y - this->radius < 0) {
+        this->character.position.y = this->radius;
+        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){0, -1});
+    } else if (this->character.position.y + this->radius > worldHeight) {
+        this->character.position.y = worldHeight - this->radius;
+        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){0, 1});
+    }
+
+    // # Collide and bounce
+    for (auto go: gos) {
+        if (go == this) {
+            continue;
+        }
+
+        CharacterHolder *ch = dynamic_cast<CharacterHolder*>(go);
+        if (ch == nullptr) {
+            continue;
+        }
+
+        Character *c = &ch->character;
+
+        auto collision = CircleRectangleCollision(
+            this->character.position,
+            this->radius,
+            c->position,
+            c->size
+        );
+
+        if (collision.penetration > 0) {
+            this->character.velocity = Vector2Reflect(this->character.velocity, collision.normal);
+            this->character.position = Vector2Add(this->character.position, Vector2Scale(collision.normal, collision.penetration));
+        }
+    }
 }
 
 void Ball::Render(float deltaTime, float worldWidth, float worldHeight) {
@@ -148,18 +226,17 @@ void Ball::Render(float deltaTime, float worldWidth, float worldHeight) {
 }
 
 // # Ball
-class Enemy: public GameObject {
+class Enemy: public GameObject, public CharacterHolder {
     public:
-        Character character;
         Enemy(Character c) {
             this->character = c;
         }
 
-        void Update(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
         void Render(float deltaTime, float worldWidth, float worldHeight) override;
 };
 
-void Enemy::Update(float deltaTime, float worldWidth, float worldHeight) {
+void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
     // # World Boundaries
     CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
 
@@ -221,7 +298,7 @@ int main() {
         {
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             (Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ 1.0f, 0.0f },
+            (Vector2){ 15.0f, 0.0f },
             3.0f
         }
     };
@@ -239,7 +316,7 @@ int main() {
         float deltaTime = DeltaTime();
 
         for (auto go: gameObjects) {
-            go->Update(deltaTime, screenWidth, screenHeight);
+            go->Update(gameObjects, deltaTime, screenWidth, screenHeight);
         }
 
         //----------------------------------------------------------------------------------
