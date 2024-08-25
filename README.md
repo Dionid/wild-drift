@@ -2,11 +2,12 @@
 
 # Roadmap
 
-1. Collision
-1. Goals
 1. AI
+1. Debug (memory, performance)
+1. Goals
 1. Score
 1. Menu
+1. Collider Body
 1. Add units (meters, seconds, etc.)
 1. Release (macOS, Windows, Linux)
 

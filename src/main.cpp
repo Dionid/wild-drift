@@ -111,10 +111,10 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
     CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
 
     // # Field boundaries
-    if (this->character.position.x + this->character.size.width/2 > worldWidth/2) {
-        this->character.position.x = worldWidth/2 - this->character.size.width/2;
-        this->character.velocity.x = 0;
-    }
+    // if (this->character.position.x + this->character.size.width/2 > worldWidth/2) {
+    //     this->character.position.x = worldWidth/2 - this->character.size.width/2;
+    //     this->character.velocity.x = 0;
+    // }
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
@@ -122,7 +122,7 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
 
 void Player::Render(float deltaTime, float worldWidth, float worldHeight) {
     Rectangle playerRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
-    DrawRectangleRec(playerRect, BLUE);
+    DrawRectangleRec(playerRect, WHITE);
 }
 
 // # Ball
@@ -171,9 +171,6 @@ CollisionData CircleRectangleCollision(
 }
 
 void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
-    // Vector2 nextPosition = Vector2Add(this->character.position, Vector2Scale(this->character.velocity, deltaTime));
-    // Vector2 nextPosition = this->character.position;
-
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
 
@@ -215,10 +212,40 @@ void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidt
         );
 
         if (collision.penetration > 0) {
-            this->character.velocity = Vector2Reflect(this->character.velocity, collision.normal);
-            this->character.position = Vector2Add(this->character.position, Vector2Scale(collision.normal, collision.penetration));
+            // # Resolve penetration
+            this->character.position = Vector2Add(
+                this->character.position,
+                Vector2Scale(collision.normal, collision.penetration)
+            );
+
+            // TODO: return this
+            // # Add paddle velocity to ball
+            // this->character.velocity = Vector2Add(
+            //     this->character.velocity,
+            //     Vector2Scale(c->velocity, 0.7f)
+            // );
+
+            // # Resolve velocity
+            // ## Calculate velocity separation
+            float velocitySeparation = Vector2DotProduct(
+                Vector2Subtract(c->velocity, this->character.velocity),
+                collision.normal
+            );
+
+            // ## Apply velocity separation
+            this->character.velocity = Vector2Add(
+                this->character.velocity,
+                Vector2Scale(collision.normal, 2.0f * velocitySeparation)
+            );
         }
     }
+
+    // # Clamp velocity
+    this->character.velocity = Vector2Clamp(
+        this->character.velocity,
+        (Vector2){-12.0f, -12.0f},
+        (Vector2){12.0f, 12.0f}
+    );
 }
 
 void Ball::Render(float deltaTime, float worldWidth, float worldHeight) {
@@ -252,7 +279,7 @@ void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWid
 
 void Enemy::Render(float deltaTime, float worldWidth, float worldHeight) {
     Rectangle enemyRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
-    DrawRectangleRec(enemyRect, RED);
+    DrawRectangleRec(enemyRect, WHITE);
 }
 
 int main() {
@@ -298,7 +325,7 @@ int main() {
         {
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             (Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ 15.0f, 0.0f },
+            (Vector2){ 10.0f, 0.0f },
             3.0f
         }
     };
@@ -324,7 +351,7 @@ int main() {
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground(LIGHTGRAY);
+            ClearBackground(BLACK);
             for (auto go: gameObjects) {
                 go->Render(deltaTime, screenWidth, screenHeight);
             }
