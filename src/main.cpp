@@ -8,27 +8,12 @@
 
 using namespace std;
 
-// # Character
-
-struct Character {
-    Vector2 position;
-    Size size;
-    Vector2 velocity;
-    float speed;
-    float maxVelocity;
-};
-
-class CharacterHolder {
-    public:
-        Character character;
-};
-
-void CharacterApplyFriction(Character *c) {
+void CharacterApplyFriction(CharacterBody2D *c) {
     c->velocity.y *= .80f;
     c->velocity.x *= .80f;
 }
 
-void CharacterApplyWorldBoundaries(Character *c, float worldWidth, float worldHeight) {
+void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float worldHeight) {
     auto charNewPositionY = c->position.y + c->velocity.y;
     auto charNewPositionX = c->position.x + c->velocity.x;
 
@@ -52,31 +37,7 @@ void CharacterApplyWorldBoundaries(Character *c, float worldWidth, float worldHe
     c->position.y = charNewPositionY;
 }
 
-void CharacterApplyWorldBoundaries2(CharacterBody2D *c, float worldWidth, float worldHeight) {
-    auto charNewPositionY = c->position.y + c->velocity.y;
-    auto charNewPositionX = c->position.x + c->velocity.x;
-
-    if (charNewPositionX - c->size.width/2 < 0) {
-        charNewPositionX = c->size.width/2;
-        c->velocity.x = 0;
-    } else if (charNewPositionX + c->size.width/2 > worldWidth) {
-        charNewPositionX = worldWidth - c->size.width/2;
-        c->velocity.x = 0;
-    }
-
-    if (charNewPositionY - c->size.height/2 < 0) {
-        charNewPositionY = c->size.height/2;
-        c->velocity.y = 0;
-    } else if (charNewPositionY + c->size.height/2 > worldHeight) {
-        charNewPositionY = worldHeight - c->size.height/2;
-        c->velocity.y = 0;
-    }
-
-    c->position.x = charNewPositionX;
-    c->position.y = charNewPositionY;
-}
-
-void CharacterApplyVelocityToPosition(Character *c) {
+void CharacterApplyVelocityToPosition(CharacterBody2D *c) {
     c->position.x += c->velocity.x;
     c->position.y += c->velocity.y;
 }
@@ -127,11 +88,10 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     }
 
     // # Friction
-    this->velocity.y *= .80f;
-    this->velocity.x *= .80f;
+    CharacterApplyFriction(this);
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries2(this, ctx->worldWidth, ctx->worldHeight);
+    CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Field boundaries
     if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
@@ -140,8 +100,7 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     }
 
     // # Velocity -> Position
-    this->position.x += this->velocity.x;
-    this->position.y += this->velocity.y;
+    CharacterApplyVelocityToPosition(this);
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -150,12 +109,20 @@ void Player::Render(GameContext* ctx, GameObject* thisGO) {
 }
 
 // # Ball
-class Ball: public Node, public CharacterHolder {
+class Ball: public CharacterBody2D {
     public:
         float radius;
-        Ball(float radius, Character c) {
-            this->character = c;
+        float maxVelocity;
+        Ball(
+            float radius,
+            Vector2 position,
+            Size size,
+            Vector2 velocity = Vector2{},
+            float maxVelocity = 10.0f
+        ) : CharacterBody2D(position, size, velocity)
+        {
             this->radius = radius;
+            this->maxVelocity = maxVelocity;
         }
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
@@ -200,23 +167,23 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     auto gos = ctx->gos;
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(&this->character);
+    CharacterApplyVelocityToPosition(this);
 
     // # World Boundaries
-    if (this->character.position.x - this->radius < 0) {
-        this->character.position.x = this->radius;
-        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){1, 0});
-    } else if (this->character.position.x + this->radius > worldWidth) {
-        this->character.position.x = worldWidth - this->radius;
-        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){-1, 0});
+    if (this->position.x - this->radius < 0) {
+        this->position.x = this->radius;
+        this->velocity = Vector2Reflect(this->velocity, (Vector2){1, 0});
+    } else if (this->position.x + this->radius > worldWidth) {
+        this->position.x = worldWidth - this->radius;
+        this->velocity = Vector2Reflect(this->velocity, (Vector2){-1, 0});
     }
 
-    if (this->character.position.y - this->radius < 0) {
-        this->character.position.y = this->radius;
-        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){0, -1});
-    } else if (this->character.position.y + this->radius > worldHeight) {
-        this->character.position.y = worldHeight - this->radius;
-        this->character.velocity = Vector2Reflect(this->character.velocity, (Vector2){0, 1});
+    if (this->position.y - this->radius < 0) {
+        this->position.y = this->radius;
+        this->velocity = Vector2Reflect(this->velocity, (Vector2){0, -1});
+    } else if (this->position.y + this->radius > worldHeight) {
+        this->position.y = worldHeight - this->radius;
+        this->velocity = Vector2Reflect(this->velocity, (Vector2){0, 1});
     }
 
     // # Collide and bounce
@@ -225,15 +192,13 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
             continue;
         }
 
-        auto ch = dynamic_pointer_cast<CharacterHolder>(go->rootNode);
-        if (ch == nullptr) {
+        auto character = dynamic_pointer_cast<CharacterBody2D>(go->rootNode);
+        if (character == nullptr) {
             continue;
         }
 
-        Character *character = &ch->character;
-
         auto collision = CircleRectangleCollision(
-            this->character.position,
+            this->position,
             this->radius,
             character->position,
             character->size
@@ -241,48 +206,59 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
 
         if (collision.penetration > 0) {
             // # Resolve penetration
-            this->character.position = Vector2Add(
-                this->character.position,
+            this->position = Vector2Add(
+                this->position,
                 Vector2Scale(collision.normal, collision.penetration)
             );
 
             // TODO: return this
             // # Add paddle velocity to ball
-            // this->character.velocity = Vector2Add(
-            //     this->character.velocity,
+            // this->velocity = Vector2Add(
+            //     this->velocity,
             //     Vector2Scale(character->velocity, 0.7f)
             // );
 
             // # Resolve velocity
             // ## Calculate velocity separation
             float velocitySeparation = Vector2DotProduct(
-                Vector2Subtract(character->velocity, this->character.velocity),
+                Vector2Subtract(character->velocity, this->velocity),
                 collision.normal
             );
 
             // ## Apply velocity separation
-            this->character.velocity = Vector2Add(
-                this->character.velocity,
+            this->velocity = Vector2Add(
+                this->velocity,
                 Vector2Scale(collision.normal, 2.0f * velocitySeparation)
             );
         }
     }
 
     // # Limit and normalize velocity
-    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
-        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
 }
 
 void Ball::Render(GameContext* ctx, GameObject* thisGO) {
-    DrawCircleV(this->character.position, this->radius, WHITE);
+    DrawCircleV(this->position, this->radius, WHITE);
 }
 
 // # Ball
-class Enemy: public Node, public CharacterHolder {
+class Enemy: public CharacterBody2D {
     public:
-        Enemy(Character c) {
-            this->character = c;
+        float maxVelocity;
+        float speed;
+
+        Enemy(
+            Vector2 position,
+            Size size,
+            Vector2 velocity = Vector2{},
+            float speed = 5.0f,
+            float maxVelocity = 10.0f
+        ) : CharacterBody2D(position, size, velocity)
+        {
+            this->speed = speed;
+            this->maxVelocity = maxVelocity;
         }
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
@@ -308,56 +284,56 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
             continue;
         }
 
-        if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
+        if (this->position.y > ball->position.y + ball->radius + 50) {
             directionY = -1;
-        } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
+        } else if (this->position.y < ball->position.y - ball->radius - 50) {
             directionY = 1;
         }
 
-        if (ball->character.position.x < worldWidth/2) {
+        if (ball->position.x < worldWidth/2) {
             directionX = 1;
         } else {
             directionX = -1;
         }
 
-        if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
+        if (ball->position.x + ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
             directionX = 1;
         }
     }
 
     Vector2 newSpeed = Vector2Scale(
         Vector2Normalize({
-            this->character.speed * directionX,
-            this->character.speed * directionY,
+            this->speed * directionX,
+            this->speed * directionY,
         }),
-        this->character.speed
+        this->speed
     );
 
-    this->character.velocity.y += newSpeed.y * deltaTime;
-    this->character.velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y * deltaTime;
+    this->velocity.x += newSpeed.x * deltaTime;
 
-    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
-        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
 
     // # Friction
-    CharacterApplyFriction(&this->character);
+    CharacterApplyFriction(this);
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
+    CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Field boundaries
-    if (this->character.position.x - this->character.size.width/2 < worldWidth/2) {
-        this->character.position.x = worldWidth/2 + this->character.size.width/2;
-        this->character.velocity.x = 0;
+    if (this->position.x - this->size.width/2 < worldWidth/2) {
+        this->position.x = worldWidth/2 + this->size.width/2;
+        this->velocity.x = 0;
     }
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(&this->character);
+    CharacterApplyVelocityToPosition(this);
 }
 
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
-    Rectangle enemyRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
+    Rectangle enemyRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
     DrawRectangleRec(enemyRect, RED);
 }
 
@@ -393,13 +369,11 @@ int main() {
 
     GameObject enemy {
         make_shared<Enemy>(
-            (Character){
-                (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-                (Size){ 40.0f, 120.0f },
-                (Vector2){ 0.0f, 0.0f },
-                .3f,
-                10.0f
-            }
+            (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
+            (Size){ 40.0f, 120.0f },
+            (Vector2){ 0.0f, 0.0f },
+            .3f,
+            10.0f
         )
     };
 
@@ -407,13 +381,10 @@ int main() {
     GameObject ball {
         make_shared<Ball>(
             ballRadius,
-            (Character){
-                (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-                (Size){ ballRadius*2, ballRadius*2 },
-                (Vector2){ 3.0f, 0.0f },
-                3.0f,
-                3.0f
-            }
+            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+            (Size){ ballRadius*2, ballRadius*2 },
+            (Vector2){ 3.0f, 0.0f },
+            3.0f
         )
     };
 
