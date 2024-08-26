@@ -185,7 +185,7 @@ void Ball::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        std::shared_ptr<CharacterHolder> ch = dynamic_pointer_cast<CharacterHolder>(go->rootNode);
+        auto ch = dynamic_pointer_cast<CharacterHolder>(go->rootNode);
         if (ch == nullptr) {
             continue;
         }
@@ -263,7 +263,7 @@ void Enemy::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        std::shared_ptr<Ball> ball = dynamic_pointer_cast<Ball>(go->rootNode);
+        auto ball = dynamic_pointer_cast<Ball>(go->rootNode);
         if (ball == nullptr) {
             continue;
         }
@@ -400,6 +400,7 @@ int main() {
     const float sixthScreen = screenWidth/6.0f;
 
     // # Player
+
     GameObject player {
         make_shared<Player>(
             (Character){
@@ -435,7 +436,7 @@ int main() {
                 3.0f,
                 3.0f
             }
-        ),
+        )
     };
 
     GameObject line {
@@ -444,7 +445,7 @@ int main() {
             (Vector2){ screenWidth/2.0f, screenHeight - 80 },
             WHITE,
             0.5f
-        )
+        ),
     };
 
     GameObject circle {

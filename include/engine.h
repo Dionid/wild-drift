@@ -8,6 +8,12 @@ class Node;
 class GameObject {
     public:
         std::shared_ptr<Node> rootNode;
+        GameObject(std::shared_ptr<Node> rootNode) {
+            this->rootNode = rootNode;
+        }
+        ~GameObject() {
+            this->rootNode.reset();
+        }
 };
 
 struct GameContext {
@@ -29,6 +35,13 @@ class Updater {
 class Node: public Renderer, public Updater {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
+        virtual void Render(GameContext ctx, GameObject* thisGO) override {};
+        virtual void Update(GameContext ctx, GameObject* thisGO) override {};
+        ~Node() {
+            for (auto node: this->nodes) {
+                node.reset();
+            }
+        }
 };
 
 // # Types
