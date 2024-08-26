@@ -52,16 +52,51 @@ void CharacterApplyWorldBoundaries(Character *c, float worldWidth, float worldHe
     c->position.y = charNewPositionY;
 }
 
+void CharacterApplyWorldBoundaries2(CharacterBody2D *c, float worldWidth, float worldHeight) {
+    auto charNewPositionY = c->position.y + c->velocity.y;
+    auto charNewPositionX = c->position.x + c->velocity.x;
+
+    if (charNewPositionX - c->size.width/2 < 0) {
+        charNewPositionX = c->size.width/2;
+        c->velocity.x = 0;
+    } else if (charNewPositionX + c->size.width/2 > worldWidth) {
+        charNewPositionX = worldWidth - c->size.width/2;
+        c->velocity.x = 0;
+    }
+
+    if (charNewPositionY - c->size.height/2 < 0) {
+        charNewPositionY = c->size.height/2;
+        c->velocity.y = 0;
+    } else if (charNewPositionY + c->size.height/2 > worldHeight) {
+        charNewPositionY = worldHeight - c->size.height/2;
+        c->velocity.y = 0;
+    }
+
+    c->position.x = charNewPositionX;
+    c->position.y = charNewPositionY;
+}
+
 void CharacterApplyVelocityToPosition(Character *c) {
     c->position.x += c->velocity.x;
     c->position.y += c->velocity.y;
 }
 
 // # Player
-class Player: public Node, public CharacterHolder {
+class Player: public CharacterBody2D {
     public:
-        Player(Character c) {
-            this->character = c;
+        float speed;
+        float maxVelocity;
+
+        Player(
+            Vector2 position,
+            Size size,
+            Vector2 velocity = Vector2{},
+            float speed = 5.0f,
+            float maxVelocity = 10.0f
+        ) : CharacterBody2D(position, size, velocity)
+        {
+            this->speed = speed;
+            this->maxVelocity = maxVelocity;   
         }
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
@@ -78,37 +113,39 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
 
     Vector2 newSpeed = Vector2Scale(
         Vector2Normalize({
-            this->character.speed * directionX,
-            this->character.speed * directionY,
+            this->speed * directionX,
+            this->speed * directionY,
         }),
-        this->character.speed
+        this->speed
     );
 
-    this->character.velocity.y += newSpeed.y * deltaTime;
-    this->character.velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y * deltaTime;
+    this->velocity.x += newSpeed.x * deltaTime;
 
-    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
-        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
 
     // # Friction
-    CharacterApplyFriction(&this->character);
+    this->velocity.y *= .80f;
+    this->velocity.x *= .80f;
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(&this->character, ctx->worldWidth, ctx->worldHeight);
+    CharacterApplyWorldBoundaries2(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Field boundaries
-    if (this->character.position.x + this->character.size.width/2 > ctx->worldWidth/2) {
-        this->character.position.x = ctx->worldWidth/2 - this->character.size.width/2;
-        this->character.velocity.x = 0;
+    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
+        this->position.x = ctx->worldWidth/2 - this->size.width/2;
+        this->velocity.x = 0;
     }
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(&this->character);
+    this->position.x += this->velocity.x;
+    this->position.y += this->velocity.y;
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
-    Rectangle playerRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
+    Rectangle playerRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
     DrawRectangleRec(playerRect, BLUE);
 }
 
@@ -346,13 +383,11 @@ int main() {
 
     GameObject player {
         make_shared<Player>(
-            (Character){
-                (Vector2){ sixthScreen, screenHeight/2.0f },
-                (Size){ 40.0f, 120.0f },
-                (Vector2){ 0.0f, 0.0f },
-                .3f,
-                10.0f
-            }
+            (Vector2){ sixthScreen, screenHeight/2.0f },
+            (Size){ 40.0f, 120.0f },
+            (Vector2){ 0.0f, 0.0f },
+            .3f,
+            10.0f
         )
     };
 
