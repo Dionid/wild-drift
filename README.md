@@ -2,7 +2,6 @@
 
 # Roadmap
 
-1. AI
 1. Draw debug lines
 1. Fix collision "slide"
 1. Randomize ball direction

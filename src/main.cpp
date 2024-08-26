@@ -2,6 +2,7 @@
 #include <raymath.h>
 #include <iostream>
 #include <vector>
+#include "engine.h"
 using namespace std;
 
 // # Types
@@ -18,15 +19,6 @@ const float secondsPerFrame = 1.0f / FPS;
 float DeltaTime() {
     return GetFrameTime() / secondsPerFrame;
 }
-
-// # GO
-
-class GameObject {
-    public:
-        virtual void FixedUpdate(float deltaTime, float worldWidth, float worldHeight) {};
-        virtual void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {};
-        virtual void Render(float deltaTime, float worldWidth, float worldHeight) {};
-};
 
 // # Character
 
@@ -78,18 +70,20 @@ void CharacterApplyVelocityToPosition(Character *c) {
 }
 
 // # Player
-class Player: public GameObject, public CharacterHolder {
+class Player: public Component, public CharacterHolder {
     public:
         Player(Character c) {
             this->character = c;
         }
 
-        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
-        void Render(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(GameContext ctx, GameObject* thisGO) override;
+        void Render(GameContext ctx, GameObject* thisGO) override;
 };
 
 // # Player Update function
-void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
+void Player::Update(GameContext ctx, GameObject* thisGO) {
+    float deltaTime = DeltaTime();
+
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
     auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
@@ -113,11 +107,11 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
     CharacterApplyFriction(&this->character);
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
+    CharacterApplyWorldBoundaries(&this->character, ctx.worldWidth, ctx.worldHeight);
 
     // # Field boundaries
-    if (this->character.position.x + this->character.size.width/2 > worldWidth/2) {
-        this->character.position.x = worldWidth/2 - this->character.size.width/2;
+    if (this->character.position.x + this->character.size.width/2 > ctx.worldWidth/2) {
+        this->character.position.x = ctx.worldWidth/2 - this->character.size.width/2;
         this->character.velocity.x = 0;
     }
 
@@ -125,13 +119,13 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
     CharacterApplyVelocityToPosition(&this->character);
 }
 
-void Player::Render(float deltaTime, float worldWidth, float worldHeight) {
+void Player::Render(GameContext ctx, GameObject* thisGO) {
     Rectangle playerRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
     DrawRectangleRec(playerRect, BLUE);
 }
 
 // # Ball
-class Ball: public GameObject, public CharacterHolder {
+class Ball: public Component, public CharacterHolder {
     public:
         float radius;
         Ball(float radius, Character c) {
@@ -139,8 +133,8 @@ class Ball: public GameObject, public CharacterHolder {
             this->radius = radius;
         }
 
-        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
-        void Render(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(GameContext ctx, GameObject* thisGO) override;
+        void Render(GameContext ctx, GameObject* thisGO) override;
 };
 
 struct CollisionData {
@@ -175,7 +169,11 @@ CollisionData CircleRectangleCollision(
     };
 }
 
-void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
+void Ball::Update(GameContext ctx, GameObject* thisGO) {
+    auto worldWidth = ctx.worldWidth;
+    auto worldHeight = ctx.worldHeight;
+    auto gos = ctx.gos;
+
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
 
@@ -197,51 +195,53 @@ void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidt
     }
 
     // # Collide and bounce
-    for (auto go: gos) {
-        if (go == this) {
+    for (auto go: gos) { 
+        if (go == thisGO) {
             continue;
         }
 
-        CharacterHolder *ch = dynamic_cast<CharacterHolder*>(go);
-        if (ch == nullptr) {
-            continue;
-        }
+        for (auto c: go->components) {
+            std::shared_ptr<CharacterHolder> ch = dynamic_pointer_cast<CharacterHolder>(c);
+            if (ch == nullptr) {
+                continue;
+            }
 
-        Character *c = &ch->character;
+            Character *character = &ch->character;
 
-        auto collision = CircleRectangleCollision(
-            this->character.position,
-            this->radius,
-            c->position,
-            c->size
-        );
-
-        if (collision.penetration > 0) {
-            // # Resolve penetration
-            this->character.position = Vector2Add(
+            auto collision = CircleRectangleCollision(
                 this->character.position,
-                Vector2Scale(collision.normal, collision.penetration)
+                this->radius,
+                character->position,
+                character->size
             );
 
-            // TODO: return this
-            // # Add paddle velocity to ball
-            // this->character.velocity = Vector2Add(
-            //     this->character.velocity,
-            //     Vector2Scale(c->velocity, 0.7f)
-            // );
+            if (collision.penetration > 0) {
+                // # Resolve penetration
+                this->character.position = Vector2Add(
+                    this->character.position,
+                    Vector2Scale(collision.normal, collision.penetration)
+                );
 
-            // # Resolve velocity
-            // ## Calculate velocity separation
-            float velocitySeparation = Vector2DotProduct(
-                Vector2Subtract(c->velocity, this->character.velocity),
-                collision.normal
-            );
+                // TODO: return this
+                // # Add paddle velocity to ball
+                // this->character.velocity = Vector2Add(
+                //     this->character.velocity,
+                //     Vector2Scale(character->velocity, 0.7f)
+                // );
 
-            // ## Apply velocity separation
-            this->character.velocity = Vector2Add(
-                this->character.velocity,
-                Vector2Scale(collision.normal, 2.0f * velocitySeparation)
-            );
+                // # Resolve velocity
+                // ## Calculate velocity separation
+                float velocitySeparation = Vector2DotProduct(
+                    Vector2Subtract(character->velocity, this->character.velocity),
+                    collision.normal
+                );
+
+                // ## Apply velocity separation
+                this->character.velocity = Vector2Add(
+                    this->character.velocity,
+                    Vector2Scale(collision.normal, 2.0f * velocitySeparation)
+                );
+            }
         }
     }
 
@@ -251,49 +251,56 @@ void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidt
     }
 }
 
-void Ball::Render(float deltaTime, float worldWidth, float worldHeight) {
+void Ball::Render(GameContext ctx, GameObject* thisGO) {
     DrawCircleV(this->character.position, this->radius, WHITE);
 }
 
 // # Ball
-class Enemy: public GameObject, public CharacterHolder {
+class Enemy: public Component, public CharacterHolder {
     public:
         Enemy(Character c) {
             this->character = c;
         }
 
-        void Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) override;
-        void Render(float deltaTime, float worldWidth, float worldHeight) override;
+        void Update(GameContext ctx, GameObject* thisGO) override;
+        void Render(GameContext ctx, GameObject* thisGO) override;
 };
 
-void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
+void Enemy::Update(GameContext ctx, GameObject* thisGO) {
+    auto worldWidth = ctx.worldWidth;
+    auto worldHeight = ctx.worldHeight;
+    auto gos = ctx.gos;
+    float deltaTime = DeltaTime();
+
     float directionX = 0;
     float directionY = 0;
 
     for (auto go: gos) {
-        if (go == this) {
+        if (go == thisGO) {
             continue;
         }
 
-        Ball *ball = dynamic_cast<Ball*>(go);
-        if (ball == nullptr) {
-            continue;
-        }
+        for (auto c: go->components) {
+            std::shared_ptr<Ball> ball = dynamic_pointer_cast<Ball>(c);
+            if (ball == nullptr) {
+                continue;
+            }
 
-        if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
-            directionY = -1;
-        } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
-            directionY = 1;
-        }
+            if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
+                directionY = -1;
+            } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
+                directionY = 1;
+            }
 
-        if (ball->character.position.x < worldWidth/2) {
-            directionX = 1;
-        } else {
-            directionX = -1;
-        }
+            if (ball->character.position.x < worldWidth/2) {
+                directionX = 1;
+            } else {
+                directionX = -1;
+            }
 
-        if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
-            directionX = 1;
+            if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
+                directionX = 1;
+            }
         }
     }
 
@@ -324,17 +331,16 @@ void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWid
         this->character.velocity.x = 0;
     }
 
-
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
 }
 
-void Enemy::Render(float deltaTime, float worldWidth, float worldHeight) {
+void Enemy::Render(GameContext ctx, GameObject* thisGO) {
     Rectangle enemyRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
     DrawRectangleRec(enemyRect, RED);
 }
 
-class Line: public GameObject {
+class Line: public Component {
     public:
         Vector2 start;
         Vector2 end;
@@ -348,12 +354,12 @@ class Line: public GameObject {
             this->color = color;
         }
 
-        void Render(float deltaTime, float worldWidth, float worldHeight) override {
+        void Render(GameContext ctx, GameObject* thisGO) override {
             DrawLineV(this->start, this->end, ColorAlpha(this->color, this->alpha));
         }
 };
 
-class Circle: public GameObject {
+class Circle: public Component {
     public:
         Vector2 center;
         float radius;
@@ -368,7 +374,7 @@ class Circle: public GameObject {
             this->color = color;
         }
 
-        void Render(float deltaTime, float worldWidth, float worldHeight) override {
+        void Render(GameContext ctx, GameObject* thisGO) override {
             DrawCircleLinesV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
         }
 };
@@ -392,54 +398,78 @@ int main() {
     const float sixthScreen = screenWidth/6.0f;
 
     // # Player
-    Player player = {
-        {
-            (Vector2){ sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            .3f,
-            10.0f
-        },
-    };
+    GameObject player;
 
-    Enemy enemy = {
-        {
-            (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            .3f,
-            10.0f
-        }
-    };
+    player.components.push_back(
+        make_shared<Player>(
+            (Character){
+                (Vector2){ sixthScreen, screenHeight/2.0f },
+                (Size){ 40.0f, 120.0f },
+                (Vector2){ 0.0f, 0.0f },
+                .3f,
+                10.0f
+            }
+        )
+    );
+
+    GameObject enemy;
+
+    enemy.components.push_back(
+        make_shared<Enemy>(
+            (Character){
+                (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
+                (Size){ 40.0f, 120.0f },
+                (Vector2){ 0.0f, 0.0f },
+                .3f,
+                10.0f
+            }
+        )
+    );
 
     float ballRadius = 15.0f;
-    Ball ball = {
-        ballRadius,
-        {
+    GameObject ball;
+
+    ball.components.push_back(
+        make_shared<Ball>(
+            ballRadius,
+            (Character){
+                (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+                (Size){ ballRadius*2, ballRadius*2 },
+                (Vector2){ 3.0f, 0.0f },
+                3.0f,
+                3.0f
+            }
+        )
+    );
+
+    GameObject line;
+
+    line.components.push_back(
+        make_shared<Line>(
+            (Vector2){ screenWidth/2.0f, 80 },
+            (Vector2){ screenWidth/2.0f, screenHeight - 80 },
+            WHITE,
+            0.5f
+        )
+    );
+
+    GameObject circle;
+
+    circle.components.push_back(
+        make_shared<Circle>(
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-            (Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ 3.0f, 0.0f },
-            3.0f,
-            3.0f
-        }
-    };
-
-    Line line = {
-        (Vector2){ screenWidth/2.0f, 80 },
-        (Vector2){ screenWidth/2.0f, screenHeight - 80 },
-        WHITE,
-        0.5f
-    };
-
-    Circle circle = {
-        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-        50.0f,
-        WHITE,
-        0.5f
-    };
+            80,
+            WHITE,
+            0.5f
+        )
+    );
 
     // # Game Objects
-    std::vector<GameObject*> gameObjects = { &player, &ball, &enemy, &line, &circle };
+    GameContext ctx = {
+        { &player, &ball, &enemy, &line, &circle },
+        screenWidth,
+        screenHeight
+    };
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -448,10 +478,10 @@ int main() {
         //----------------------------------------------------------------------------------
 
         // # Initial
-        float deltaTime = DeltaTime();
-
-        for (auto go: gameObjects) {
-            go->Update(gameObjects, deltaTime, screenWidth, screenHeight);
+        for (auto go: ctx.gos) {
+            for (auto component: go->components) {
+                component->Update(ctx, go);
+            }
         }
 
         //----------------------------------------------------------------------------------
@@ -460,8 +490,10 @@ int main() {
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            for (auto go: gameObjects) {
-                go->Render(deltaTime, screenWidth, screenHeight);
+            for (auto go: ctx.gos) {
+                for (auto component: go->components) {
+                    component->Render(ctx, go);
+                }
             }
         EndDrawing();
         //----------------------------------------------------------------------------------

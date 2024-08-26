@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(raylib)
 
 # Adding our source files
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/") # Define PROJECT_INCLUDE to be the path to the include directory of the project
+set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 
 # Declaring our executable
 add_executable(${PROJECT_NAME} src/main.cpp)
