@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include "engine.h"
+#include "view.h"
+
 using namespace std;
 
 // # Character
@@ -61,12 +63,12 @@ class Player: public Node, public CharacterHolder {
             this->character = c;
         }
 
-        void Update(GameContext ctx, GameObject* thisGO) override;
-        void Render(GameContext ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Render(GameContext* ctx, GameObject* thisGO) override;
 };
 
 // # Player Update function
-void Player::Update(GameContext ctx, GameObject* thisGO) {
+void Player::Update(GameContext* ctx, GameObject* thisGO) {
     float deltaTime = DeltaTime();
 
     // # Calc velocity
@@ -92,11 +94,11 @@ void Player::Update(GameContext ctx, GameObject* thisGO) {
     CharacterApplyFriction(&this->character);
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(&this->character, ctx.worldWidth, ctx.worldHeight);
+    CharacterApplyWorldBoundaries(&this->character, ctx->worldWidth, ctx->worldHeight);
 
     // # Field boundaries
-    if (this->character.position.x + this->character.size.width/2 > ctx.worldWidth/2) {
-        this->character.position.x = ctx.worldWidth/2 - this->character.size.width/2;
+    if (this->character.position.x + this->character.size.width/2 > ctx->worldWidth/2) {
+        this->character.position.x = ctx->worldWidth/2 - this->character.size.width/2;
         this->character.velocity.x = 0;
     }
 
@@ -104,7 +106,7 @@ void Player::Update(GameContext ctx, GameObject* thisGO) {
     CharacterApplyVelocityToPosition(&this->character);
 }
 
-void Player::Render(GameContext ctx, GameObject* thisGO) {
+void Player::Render(GameContext* ctx, GameObject* thisGO) {
     Rectangle playerRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
     DrawRectangleRec(playerRect, BLUE);
 }
@@ -118,8 +120,8 @@ class Ball: public Node, public CharacterHolder {
             this->radius = radius;
         }
 
-        void Update(GameContext ctx, GameObject* thisGO) override;
-        void Render(GameContext ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Render(GameContext* ctx, GameObject* thisGO) override;
 };
 
 struct CollisionData {
@@ -154,10 +156,10 @@ CollisionData CircleRectangleCollision(
     };
 }
 
-void Ball::Update(GameContext ctx, GameObject* thisGO) {
-    auto worldWidth = ctx.worldWidth;
-    auto worldHeight = ctx.worldHeight;
-    auto gos = ctx.gos;
+void Ball::Update(GameContext* ctx, GameObject* thisGO) {
+    auto worldWidth = ctx->worldWidth;
+    auto worldHeight = ctx->worldHeight;
+    auto gos = ctx->gos;
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
@@ -234,7 +236,7 @@ void Ball::Update(GameContext ctx, GameObject* thisGO) {
     }
 }
 
-void Ball::Render(GameContext ctx, GameObject* thisGO) {
+void Ball::Render(GameContext* ctx, GameObject* thisGO) {
     DrawCircleV(this->character.position, this->radius, WHITE);
 }
 
@@ -245,14 +247,14 @@ class Enemy: public Node, public CharacterHolder {
             this->character = c;
         }
 
-        void Update(GameContext ctx, GameObject* thisGO) override;
-        void Render(GameContext ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Render(GameContext* ctx, GameObject* thisGO) override;
 };
 
-void Enemy::Update(GameContext ctx, GameObject* thisGO) {
-    auto worldWidth = ctx.worldWidth;
-    auto worldHeight = ctx.worldHeight;
-    auto gos = ctx.gos;
+void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
+    auto worldWidth = ctx->worldWidth;
+    auto worldHeight = ctx->worldHeight;
+    auto gos = ctx->gos;
     float deltaTime = DeltaTime();
 
     float directionX = 0;
@@ -316,70 +318,10 @@ void Enemy::Update(GameContext ctx, GameObject* thisGO) {
     CharacterApplyVelocityToPosition(&this->character);
 }
 
-void Enemy::Render(GameContext ctx, GameObject* thisGO) {
+void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
     Rectangle enemyRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
     DrawRectangleRec(enemyRect, RED);
 }
-
-// # Views
-
-class LineView: public Node {
-    public:
-        Vector2 start;
-        Vector2 end;
-        float alpha;
-        Color color;
-
-        LineView(Vector2 start, Vector2 end, Color color = WHITE, float alpha = 1.0f) {
-            this->start = start;
-            this->end = end;
-            this->alpha = alpha;
-            this->color = color;
-        }
-
-        void Render(GameContext ctx, GameObject* thisGO) override {
-            DrawLineV(this->start, this->end, ColorAlpha(this->color, this->alpha));
-        }
-};
-
-class CircleView: public Node {
-    public:
-        Vector2 center;
-        float radius;
-        float alpha;
-        Color color;
-
-
-        CircleView(Vector2 center, float radius, Color color = WHITE, float alpha = 1.0f) {
-            this->center = center;
-            this->radius = radius;
-            this->alpha = alpha;
-            this->color = color;
-        }
-
-        void Render(GameContext ctx, GameObject* thisGO) override {
-            DrawCircleLinesV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
-        }
-};
-
-class RectangleView: public Node {
-    public:
-        Vector2 position;
-        Size size;
-        Color color;
-        float alpha;
-
-        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f) {
-            this->position = position;
-            this->size = size;
-            this->color = color;
-            this->alpha = alpha;
-        }
-
-        void Render(GameContext ctx, GameObject* thisGO) override {
-            DrawRectangle(this->position.x, this->position.y, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
-        }
-};
 
 int main() {
     // # Init
@@ -439,6 +381,16 @@ int main() {
         )
     };
 
+    // ball.rootNode->nodes.push_back(
+    //     make_shared<CircleView>(
+    //         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+    //         80,
+    //         WHITE,
+    //         0.5f,
+    //         true
+    //     )
+    // );
+
     GameObject line {
         make_shared<LineView>(
             (Vector2){ screenWidth/2.0f, 80 },
@@ -453,7 +405,8 @@ int main() {
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             80,
             WHITE,
-            0.5f
+            0.5f,
+            false
         )
     };
 
@@ -472,7 +425,7 @@ int main() {
 
         // # Initial
         for (auto go: ctx.gos) {
-            go->rootNode->Update(ctx, go);
+            GameObjectTraverseUpdate(go, &ctx);
         }
 
         //----------------------------------------------------------------------------------
@@ -482,7 +435,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (auto go: ctx.gos) {
-                go->rootNode->Render(ctx, go);
+                GameObjectTraverseRender(go, &ctx);
             }
         EndDrawing();
         //----------------------------------------------------------------------------------

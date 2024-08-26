@@ -1,6 +1,9 @@
 #include <vector>
 #include <iostream>
 
+#ifndef CENGINE_H
+#define CENGINE_H
+
 // # Core
 
 class Node;
@@ -24,19 +27,19 @@ struct GameContext {
 
 class Renderer {
     public:
-        virtual void Render(GameContext ctx, GameObject* thisGO) {};
+        virtual void Render(GameContext* ctx, GameObject* thisGO) {};
 };
 
 class Updater {
     public:
-        virtual void Update(GameContext ctx, GameObject* thisGO) {};
+        virtual void Update(GameContext* ctx, GameObject* thisGO) {};
 };
 
 class Node: public Renderer, public Updater {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
-        virtual void Render(GameContext ctx, GameObject* thisGO) override {};
-        virtual void Update(GameContext ctx, GameObject* thisGO) override {};
+        virtual void Render(GameContext* ctx, GameObject* thisGO) override {};
+        virtual void Update(GameContext* ctx, GameObject* thisGO) override {};
         ~Node() {
             for (auto node: this->nodes) {
                 node.reset();
@@ -58,3 +61,37 @@ const float secondsPerFrame = 1.0f / FPS;
 float DeltaTime() {
     return GetFrameTime() / secondsPerFrame;
 }
+
+// # Traverse
+
+void NodeTraverseUpdate(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
+    node->Update(ctx, go);
+    for (auto n: node->nodes) {
+        NodeTraverseUpdate(n, ctx, go);
+    }
+}
+
+void GameObjectTraverseUpdate(GameObject* go, GameContext* ctx) {
+    NodeTraverseUpdate(
+        go->rootNode,
+        ctx,
+        go
+    );
+}
+
+void NodeTraverseRender(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
+    node->Render(ctx, go);
+    for (auto n: node->nodes) {
+        NodeTraverseRender(n, ctx, go);
+    }
+}
+
+void GameObjectTraverseRender(GameObject* go, GameContext* ctx) {
+    NodeTraverseRender(
+        go->rootNode,
+        ctx,
+        go
+    );
+}
+
+#endif // CENGINE_H
