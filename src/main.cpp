@@ -185,48 +185,46 @@ void Ball::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        for (auto c: go->nodes) {
-            std::shared_ptr<CharacterHolder> ch = dynamic_pointer_cast<CharacterHolder>(c);
-            if (ch == nullptr) {
-                continue;
-            }
+        std::shared_ptr<CharacterHolder> ch = dynamic_pointer_cast<CharacterHolder>(go->rootNode);
+        if (ch == nullptr) {
+            continue;
+        }
 
-            Character *character = &ch->character;
+        Character *character = &ch->character;
 
-            auto collision = CircleRectangleCollision(
+        auto collision = CircleRectangleCollision(
+            this->character.position,
+            this->radius,
+            character->position,
+            character->size
+        );
+
+        if (collision.penetration > 0) {
+            // # Resolve penetration
+            this->character.position = Vector2Add(
                 this->character.position,
-                this->radius,
-                character->position,
-                character->size
+                Vector2Scale(collision.normal, collision.penetration)
             );
 
-            if (collision.penetration > 0) {
-                // # Resolve penetration
-                this->character.position = Vector2Add(
-                    this->character.position,
-                    Vector2Scale(collision.normal, collision.penetration)
-                );
+            // TODO: return this
+            // # Add paddle velocity to ball
+            // this->character.velocity = Vector2Add(
+            //     this->character.velocity,
+            //     Vector2Scale(character->velocity, 0.7f)
+            // );
 
-                // TODO: return this
-                // # Add paddle velocity to ball
-                // this->character.velocity = Vector2Add(
-                //     this->character.velocity,
-                //     Vector2Scale(character->velocity, 0.7f)
-                // );
+            // # Resolve velocity
+            // ## Calculate velocity separation
+            float velocitySeparation = Vector2DotProduct(
+                Vector2Subtract(character->velocity, this->character.velocity),
+                collision.normal
+            );
 
-                // # Resolve velocity
-                // ## Calculate velocity separation
-                float velocitySeparation = Vector2DotProduct(
-                    Vector2Subtract(character->velocity, this->character.velocity),
-                    collision.normal
-                );
-
-                // ## Apply velocity separation
-                this->character.velocity = Vector2Add(
-                    this->character.velocity,
-                    Vector2Scale(collision.normal, 2.0f * velocitySeparation)
-                );
-            }
+            // ## Apply velocity separation
+            this->character.velocity = Vector2Add(
+                this->character.velocity,
+                Vector2Scale(collision.normal, 2.0f * velocitySeparation)
+            );
         }
     }
 
@@ -265,27 +263,25 @@ void Enemy::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        for (auto c: go->nodes) {
-            std::shared_ptr<Ball> ball = dynamic_pointer_cast<Ball>(c);
-            if (ball == nullptr) {
-                continue;
-            }
+        std::shared_ptr<Ball> ball = dynamic_pointer_cast<Ball>(go->rootNode);
+        if (ball == nullptr) {
+            continue;
+        }
 
-            if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
-                directionY = -1;
-            } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
-                directionY = 1;
-            }
+        if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
+            directionY = -1;
+        } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
+            directionY = 1;
+        }
 
-            if (ball->character.position.x < worldWidth/2) {
-                directionX = 1;
-            } else {
-                directionX = -1;
-            }
+        if (ball->character.position.x < worldWidth/2) {
+            directionX = 1;
+        } else {
+            directionX = -1;
+        }
 
-            if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
-                directionX = 1;
-            }
+        if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
+            directionX = 1;
         }
     }
 
@@ -404,9 +400,7 @@ int main() {
     const float sixthScreen = screenWidth/6.0f;
 
     // # Player
-    GameObject player;
-
-    player.nodes.push_back(
+    GameObject player {
         make_shared<Player>(
             (Character){
                 (Vector2){ sixthScreen, screenHeight/2.0f },
@@ -416,11 +410,9 @@ int main() {
                 10.0f
             }
         )
-    );
+    };
 
-    GameObject enemy;
-
-    enemy.nodes.push_back(
+    GameObject enemy {
         make_shared<Enemy>(
             (Character){
                 (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
@@ -430,12 +422,10 @@ int main() {
                 10.0f
             }
         )
-    );
+    };
 
     float ballRadius = 15.0f;
-    GameObject ball;
-
-    ball.nodes.push_back(
+    GameObject ball {
         make_shared<Ball>(
             ballRadius,
             (Character){
@@ -445,30 +435,26 @@ int main() {
                 3.0f,
                 3.0f
             }
-        )
-    );
+        ),
+    };
 
-    GameObject line;
-
-    line.nodes.push_back(
+    GameObject line {
         make_shared<LineView>(
             (Vector2){ screenWidth/2.0f, 80 },
             (Vector2){ screenWidth/2.0f, screenHeight - 80 },
             WHITE,
             0.5f
         )
-    );
+    };
 
-    GameObject circle;
-
-    circle.nodes.push_back(
+    GameObject circle {
         make_shared<CircleView>(
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             80,
             WHITE,
             0.5f
         )
-    );
+    };
 
     // # Game Objects
     GameContext ctx = {
@@ -485,9 +471,7 @@ int main() {
 
         // # Initial
         for (auto go: ctx.gos) {
-            for (auto component: go->nodes) {
-                component->Update(ctx, go);
-            }
+            go->rootNode->Update(ctx, go);
         }
 
         //----------------------------------------------------------------------------------
@@ -497,9 +481,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (auto go: ctx.gos) {
-                for (auto component: go->nodes) {
-                    component->Render(ctx, go);
-                }
+                go->rootNode->Render(ctx, go);
             }
         EndDrawing();
         //----------------------------------------------------------------------------------

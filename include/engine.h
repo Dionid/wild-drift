@@ -7,7 +7,7 @@ class Node;
 
 class GameObject {
     public:
-        std::vector<std::shared_ptr<Node>> nodes;
+        std::shared_ptr<Node> rootNode;
 };
 
 struct GameContext {
@@ -21,9 +21,14 @@ class Renderer {
         virtual void Render(GameContext ctx, GameObject* thisGO) {};
 };
 
-class Node: public Renderer {
+class Updater {
     public:
         virtual void Update(GameContext ctx, GameObject* thisGO) {};
+};
+
+class Node: public Renderer, public Updater {
+    public:
+        std::vector<std::shared_ptr<Node>> nodes;
 };
 
 // # Types
