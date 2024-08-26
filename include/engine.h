@@ -74,7 +74,7 @@ void NodeTraverseUpdate(std::shared_ptr<Node> node, GameContext* ctx, GameObject
     }
 }
 
-void GameObjectTraverseUpdate(GameObject* go, GameContext* ctx) {
+void traverseGameObjectUpdate(GameObject* go, GameContext* ctx) {
     NodeTraverseUpdate(
         go->rootNode,
         ctx,
@@ -82,15 +82,15 @@ void GameObjectTraverseUpdate(GameObject* go, GameContext* ctx) {
     );
 }
 
-void NodeTraverseRender(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
+void traverseNodeRender(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
     node->Render(ctx, go);
     for (auto n: node->nodes) {
-        NodeTraverseRender(n, ctx, go);
+        traverseNodeRender(n, ctx, go);
     }
 }
 
-void GameObjectTraverseRender(GameObject* go, GameContext* ctx) {
-    NodeTraverseRender(
+void traverseGameObjectRender(GameObject* go, GameContext* ctx) {
+    traverseNodeRender(
         go->rootNode,
         ctx,
         go

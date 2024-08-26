@@ -394,7 +394,7 @@ int main() {
         // # Initial
         for (auto go: ctx.gos) {
             traverseGameObjectGlobalPosition(go, &ctx);
-            GameObjectTraverseUpdate(go, &ctx);
+            traverseGameObjectUpdate(go, &ctx);
         }
 
         //----------------------------------------------------------------------------------
@@ -404,7 +404,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (auto go: ctx.gos) {
-                GameObjectTraverseRender(go, &ctx);
+                traverseGameObjectRender(go, &ctx);
             }
         EndDrawing();
         //----------------------------------------------------------------------------------
