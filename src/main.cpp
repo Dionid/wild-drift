@@ -35,6 +35,7 @@ struct Character {
     Size size;
     Vector2 velocity;
     float speed;
+    float maxVelocity;
 };
 
 class CharacterHolder {
@@ -104,6 +105,10 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
     this->character.velocity.y += newSpeed.y * deltaTime;
     this->character.velocity.x += newSpeed.x * deltaTime;
 
+    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
+        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    }
+
     // # Friction
     CharacterApplyFriction(&this->character);
 
@@ -111,10 +116,10 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
     CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
 
     // # Field boundaries
-    // if (this->character.position.x + this->character.size.width/2 > worldWidth/2) {
-    //     this->character.position.x = worldWidth/2 - this->character.size.width/2;
-    //     this->character.velocity.x = 0;
-    // }
+    if (this->character.position.x + this->character.size.width/2 > worldWidth/2) {
+        this->character.position.x = worldWidth/2 - this->character.size.width/2;
+        this->character.velocity.x = 0;
+    }
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
@@ -122,7 +127,7 @@ void Player::Update(std::vector<GameObject*> gos, float deltaTime, float worldWi
 
 void Player::Render(float deltaTime, float worldWidth, float worldHeight) {
     Rectangle playerRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
-    DrawRectangleRec(playerRect, WHITE);
+    DrawRectangleRec(playerRect, BLUE);
 }
 
 // # Ball
@@ -240,12 +245,10 @@ void Ball::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidt
         }
     }
 
-    // # Clamp velocity
-    this->character.velocity = Vector2Clamp(
-        this->character.velocity,
-        (Vector2){-12.0f, -12.0f},
-        (Vector2){12.0f, 12.0f}
-    );
+    // # Limit and normalize velocity
+    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
+        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    }
 }
 
 void Ball::Render(float deltaTime, float worldWidth, float worldHeight) {
@@ -264,6 +267,54 @@ class Enemy: public GameObject, public CharacterHolder {
 };
 
 void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWidth, float worldHeight) {
+    float directionX = 0;
+    float directionY = 0;
+
+    for (auto go: gos) {
+        if (go == this) {
+            continue;
+        }
+
+        Ball *ball = dynamic_cast<Ball*>(go);
+        if (ball == nullptr) {
+            continue;
+        }
+
+        if (this->character.position.y > ball->character.position.y + ball->radius + 50) {
+            directionY = -1;
+        } else if (this->character.position.y < ball->character.position.y - ball->radius - 50) {
+            directionY = 1;
+        }
+
+        if (ball->character.position.x < worldWidth/2) {
+            directionX = 1;
+        } else {
+            directionX = -1;
+        }
+
+        if (ball->character.position.x + ball->radius > this->character.position.x - this->character.size.width/2 + this->character.size.width/10) {
+            directionX = 1;
+        }
+    }
+
+    Vector2 newSpeed = Vector2Scale(
+        Vector2Normalize({
+            this->character.speed * directionX,
+            this->character.speed * directionY,
+        }),
+        this->character.speed
+    );
+
+    this->character.velocity.y += newSpeed.y * deltaTime;
+    this->character.velocity.x += newSpeed.x * deltaTime;
+
+    if (Vector2Length(this->character.velocity) > this->character.maxVelocity) {
+        this->character.velocity = Vector2Scale(Vector2Normalize(this->character.velocity), this->character.maxVelocity);
+    }
+
+    // # Friction
+    CharacterApplyFriction(&this->character);
+
     // # World Boundaries
     CharacterApplyWorldBoundaries(&this->character, worldWidth, worldHeight);
 
@@ -273,14 +324,54 @@ void Enemy::Update(std::vector<GameObject*> gos, float deltaTime, float worldWid
         this->character.velocity.x = 0;
     }
 
+
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(&this->character);
 }
 
 void Enemy::Render(float deltaTime, float worldWidth, float worldHeight) {
     Rectangle enemyRect = { this->character.position.x - this->character.size.width/2, this->character.position.y - this->character.size.height/2, this->character.size.width, this->character.size.height };
-    DrawRectangleRec(enemyRect, WHITE);
+    DrawRectangleRec(enemyRect, RED);
 }
+
+class Line: public GameObject {
+    public:
+        Vector2 start;
+        Vector2 end;
+        float alpha;
+        Color color;
+
+        Line(Vector2 start, Vector2 end, Color color = WHITE, float alpha = 1.0f) {
+            this->start = start;
+            this->end = end;
+            this->alpha = alpha;
+            this->color = color;
+        }
+
+        void Render(float deltaTime, float worldWidth, float worldHeight) override {
+            DrawLineV(this->start, this->end, ColorAlpha(this->color, this->alpha));
+        }
+};
+
+class Circle: public GameObject {
+    public:
+        Vector2 center;
+        float radius;
+        float alpha;
+        Color color;
+
+
+        Circle(Vector2 center, float radius, Color color = WHITE, float alpha = 1.0f) {
+            this->center = center;
+            this->radius = radius;
+            this->alpha = alpha;
+            this->color = color;
+        }
+
+        void Render(float deltaTime, float worldWidth, float worldHeight) override {
+            DrawCircleLinesV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
+        }
+};
 
 int main() {
     // # Init
@@ -306,7 +397,8 @@ int main() {
             (Vector2){ sixthScreen, screenHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            1.0f
+            .3f,
+            10.0f
         },
     };
 
@@ -315,7 +407,8 @@ int main() {
             (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            3.0f
+            .3f,
+            10.0f
         }
     };
 
@@ -325,13 +418,28 @@ int main() {
         {
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             (Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ 10.0f, 0.0f },
+            (Vector2){ 3.0f, 0.0f },
+            3.0f,
             3.0f
         }
     };
 
+    Line line = {
+        (Vector2){ screenWidth/2.0f, 80 },
+        (Vector2){ screenWidth/2.0f, screenHeight - 80 },
+        WHITE,
+        0.5f
+    };
+
+    Circle circle = {
+        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+        50.0f,
+        WHITE,
+        0.5f
+    };
+
     // # Game Objects
-    std::vector<GameObject*> gameObjects = { &player, &ball, &enemy };
+    std::vector<GameObject*> gameObjects = { &player, &ball, &enemy, &line, &circle };
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
