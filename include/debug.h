@@ -16,11 +16,11 @@ class Debugger: public Renderer {
                     continue;
                 }
 
-                DrawCircleV(character->globalPosition, 5, PURPLE);
+                DrawCircleV(character->position, 5, PURPLE);
 
                 DrawLineV(
-                    character->globalPosition,
-                    Vector2Add(character->globalPosition, Vector2Scale(character->velocity, 20.f)),
+                    character->position,
+                    Vector2Add(character->position, Vector2Scale(character->velocity, 20.f)),
                     GREEN
                 );
             }

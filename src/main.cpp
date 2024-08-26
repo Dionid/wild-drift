@@ -24,27 +24,21 @@ void CharacterApplyFriction(CharacterBody2D *c) {
 }
 
 void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float worldHeight) {
-    auto charNewPositionY = c->position.y + c->velocity.y;
-    auto charNewPositionX = c->position.x + c->velocity.x;
-
-    if (charNewPositionX - c->size.width/2 < 0) {
-        charNewPositionX = c->size.width/2;
+    if (c->position.x - c->size.width/2 < 0) {
+        c->position.x = c->size.width/2;
         c->velocity.x = 0;
-    } else if (charNewPositionX + c->size.width/2 > worldWidth) {
-        charNewPositionX = worldWidth - c->size.width/2;
+    } else if (c->position.x + c->size.width/2 > worldWidth) {
+        c->position.x = worldWidth - c->size.width/2;
         c->velocity.x = 0;
     }
 
-    if (charNewPositionY - c->size.height/2 < 0) {
-        charNewPositionY = c->size.height/2;
+    if (c->position.y - c->size.height/2 < 0) {
+        c->position.y = c->size.height/2;
         c->velocity.y = 0;
-    } else if (charNewPositionY + c->size.height/2 > worldHeight) {
-        charNewPositionY = worldHeight - c->size.height/2;
+    } else if (c->position.y + c->size.height/2 > worldHeight) {
+        c->position.y = worldHeight - c->size.height/2;
         c->velocity.y = 0;
     }
-
-    c->position.x = charNewPositionX;
-    c->position.y = charNewPositionY;
 }
 
 void CharacterApplyVelocityToPosition(CharacterBody2D *c) {
@@ -100,17 +94,17 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     // # Friction
     CharacterApplyFriction(this);
 
-    // # World Boundaries
-    CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
-
     // # Field boundaries
-    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
-        this->position.x = ctx->worldWidth/2 - this->size.width/2;
-        this->velocity.x = 0;
-    }
+    // if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
+    //     this->position.x = ctx->worldWidth/2 - this->size.width/2;
+    //     this->velocity.x = 0;
+    // }
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(this);
+
+    // # World Boundaries
+    CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -136,13 +130,18 @@ class Ball: public CharacterBody2D {
         }
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
-        // void Render(GameContext* ctx, GameObject* thisGO) override;
+        void Render(GameContext* ctx, GameObject* thisGO) override;
 };
 
 void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
     auto gos = ctx->gos;
+
+    // # Limit and normalize velocity
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    }
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(this);
@@ -163,58 +162,10 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
         this->position.y = worldHeight - this->radius;
         this->velocity = Vector2Reflect(this->velocity, (Vector2){0, 1});
     }
+}
 
-    // # Collide and bounce
-    for (auto go: gos) { 
-        if (go == thisGO) {
-            continue;
-        }
-
-        auto character = dynamic_pointer_cast<CharacterBody2D>(go->rootNode);
-        if (character == nullptr) {
-            continue;
-        }
-
-        auto collision = CircleRectangleCollision(
-            this->position,
-            this->radius,
-            character->position,
-            character->size
-        );
-
-        if (collision.penetration > 0) {
-            // # Resolve penetration
-            this->position = Vector2Add(
-                this->position,
-                Vector2Scale(collision.normal, collision.penetration)
-            );
-
-            // TODO: return this
-            // # Add paddle velocity to ball
-            // this->velocity = Vector2Add(
-            //     this->velocity,
-            //     Vector2Scale(character->velocity, 0.7f)
-            // );
-
-            // # Resolve velocity
-            // ## Calculate velocity separation
-            float velocitySeparation = Vector2DotProduct(
-                Vector2Subtract(character->velocity, this->velocity),
-                collision.normal
-            );
-
-            // ## Apply velocity separation
-            this->velocity = Vector2Add(
-                this->velocity,
-                Vector2Scale(collision.normal, 2.0f * velocitySeparation)
-            );
-        }
-    }
-
-    // # Limit and normalize velocity
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
+void Ball::Render(GameContext* ctx, GameObject* thisGO) {
+    DrawCircleV(this->position, this->radius, WHITE);
 }
 
 // # Ball
@@ -248,6 +199,7 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
     float directionX = 0;
     float directionY = 0;
 
+    // # AI
     for (auto go: gos) {
         if (go == thisGO) {
             continue;
@@ -270,11 +222,13 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
             directionX = -1;
         }
 
+        // # Ball is behind
         if (ball->position.x + ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
             directionX = 1;
         }
     }
 
+    // # Calc velocity
     Vector2 newSpeed = Vector2Scale(
         Vector2Normalize({
             this->speed * directionX,
@@ -293,14 +247,14 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
     // # Friction
     CharacterApplyFriction(this);
 
-    // # World Boundaries
-    CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
-
     // # Field boundaries
     if (this->position.x - this->size.width/2 < worldWidth/2) {
         this->position.x = worldWidth/2 + this->size.width/2;
         this->velocity.x = 0;
     }
+
+    // # World Boundaries
+    CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(this);
@@ -309,6 +263,59 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
     Rectangle enemyRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
     DrawRectangleRec(enemyRect, RED);
+}
+
+void ballCollision(
+    GameObject* go,
+    GameContext* ctx
+) {
+    // # Collision
+    auto ball = dynamic_pointer_cast<Ball>(go->rootNode);
+    if (ball == nullptr) {
+        return;
+    }
+
+    // # Collide and bounce
+    for (auto j = 0; j < ctx->gos.size(); j++) {
+        auto otherGo = ctx->gos[j];
+
+        if (otherGo == go) {
+            continue;
+        }
+
+        auto other = dynamic_pointer_cast<CharacterBody2D>(otherGo->rootNode);
+        if (other == nullptr) {
+            continue;
+        }
+
+        auto collision = CircleRectangleCollision(
+            ball->position,
+            ball->radius,
+            other->position,
+            other->size
+        );
+
+        if (collision.penetration > 0) {
+            // # Resolve penetration
+            ball->position = Vector2Add(
+                ball->position,
+                Vector2Scale(collision.normal, collision.penetration)
+            );
+
+            // # Resolve velocity
+            // ## Calculate velocity separation
+            float velocitySeparation = Vector2DotProduct(
+                Vector2Subtract(ball->velocity, other->velocity),
+                collision.normal
+            );
+
+            // ## Apply velocity separation
+            ball->velocity = Vector2Add(
+                ball->velocity,
+                Vector2Scale(collision.normal, -2 * velocitySeparation)
+            );
+        }
+    }
 }
 
 int main() {
@@ -337,7 +344,7 @@ int main() {
             (Vector2){ sixthScreen, screenHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            .3f,
+            1.0f,
             10.0f
         )
     };
@@ -347,7 +354,7 @@ int main() {
             (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            .3f,
+            1.0f,
             10.0f
         )
     };
@@ -357,14 +364,14 @@ int main() {
         ballRadius,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         (Size){ ballRadius*2, ballRadius*2 },
-        (Vector2){ 3.0f, 0.0f },
-        3.0f
+        (Vector2){ 1.0f, 0.0f },
+        5.0f
     );
-    ballRootNode->AddNode(
-        make_shared<CircleView>(
-            ballRadius
-        )
-    );
+    // ballRootNode->AddNode(
+    //     make_shared<CircleView>(
+    //         ballRadius
+    //     )
+    // );
     GameObject ball {
         ballRootNode,
     };
@@ -391,7 +398,7 @@ int main() {
 
     // # Game Context
     GameContext ctx = {
-        { &player, &ball, &enemy, &line, &circle },
+        { &ball, &player, &enemy, &line, &circle },
         screenWidth,
         screenHeight
     };
@@ -403,9 +410,15 @@ int main() {
         //----------------------------------------------------------------------------------
 
         // # Initial
-        for (auto go: ctx.gos) {
+        for (auto i = 0; i < ctx.gos.size(); i++) {
+            auto go = ctx.gos[i];
             traverseGameObjectUpdate(go, &ctx);
             traverseGameObjectGlobalPosition(go, &ctx);
+        }
+
+        for (auto i = 0; i < ctx.gos.size(); i++) {
+            auto go = ctx.gos[i];
+            ballCollision(go, &ctx);
         }
 
         //----------------------------------------------------------------------------------

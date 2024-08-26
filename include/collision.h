@@ -17,8 +17,8 @@ CollisionHit CircleRectangleCollision(
     Size rectSize
 ) {
     Vector2 closest = {
-        fmaxf(rectPosition.x - rectSize.width/2, fminf(circlePosition.x, rectPosition.x + rectSize.width/2)),
-        fmaxf(rectPosition.y - rectSize.height/2, fminf(circlePosition.y, rectPosition.y + rectSize.height/2))
+        std::clamp(circlePosition.x, rectPosition.x - rectSize.width/2, rectPosition.x + rectSize.width/2),
+        std::clamp(circlePosition.y, rectPosition.y - rectSize.height/2, rectPosition.y + rectSize.height/2)
     };
 
     Vector2 distance = Vector2Subtract(circlePosition, closest);

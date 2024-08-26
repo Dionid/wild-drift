@@ -76,7 +76,7 @@ class RectangleView: public Node2D {
         }
 
         void Render(GameContext* ctx, GameObject* thisGO) override {
-            DrawRectangle(this->position.x, this->position.y, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
+            DrawRectangle(this->globalPosition.x, this->globalPosition.y, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
 
