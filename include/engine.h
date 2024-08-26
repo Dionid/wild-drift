@@ -14,8 +14,13 @@ class GameObject {
         GameObject(std::shared_ptr<Node> rootNode) {
             this->rootNode = rootNode;
         }
-        ~GameObject() {
-            this->rootNode.reset();
+        // ~GameObject() {}
+        GameObject(const GameObject& other) {
+            this->rootNode = other.rootNode;
+        }
+        GameObject& operator=(const GameObject& other) {
+            this->rootNode = other.rootNode;
+            return *this;
         }
 };
 
@@ -35,7 +40,7 @@ class Updater {
         virtual void Update(GameContext* ctx, GameObject* thisGO) {};
 };
 
-class Node: public Renderer, public Updater {
+class Node: public Renderer, public Updater, public std::enable_shared_from_this<Node> {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
         std::shared_ptr<Node> parent;
@@ -44,13 +49,18 @@ class Node: public Renderer, public Updater {
         ) {
             this->parent = parent;
         }
-        ~Node() {
-            for (auto node: this->nodes) {
-                node.reset();
-            }
+        // ~Node() {}
+        Node(const Node& other) {
+            this->nodes = other.nodes;
+            this->parent = other.parent;
+        }
+        Node& operator=(const Node& other) {
+            this->nodes = other.nodes;
+            this->parent = other.parent;
+            return *this;
         }
         void AddNode(std::shared_ptr<Node> node) {
-            node.get()->parent.reset(this);
+            node->parent = shared_from_this();
             this->nodes.push_back(node);
         }
 };

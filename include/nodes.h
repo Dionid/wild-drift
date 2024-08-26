@@ -28,6 +28,10 @@ std::shared_ptr<Node2D> findClosestNode2DParent(std::shared_ptr<Node> node) {
 }
 
 void traverseNodeGlobalPosition(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
+    if (node == nullptr) {
+        return;
+    }
+
     auto currentNode = std::dynamic_pointer_cast<Node2D>(node);
     auto parent = findClosestNode2DParent(node);
 
