@@ -5,21 +5,6 @@
 #include "engine.h"
 using namespace std;
 
-// # Types
-
-struct Size {
-    float width;
-    float height;
-};
-
-// # Delta
-const float FPS = 60.0f;
-const float secondsPerFrame = 1.0f / FPS;
-
-float DeltaTime() {
-    return GetFrameTime() / secondsPerFrame;
-}
-
 // # Character
 
 struct Character {
@@ -70,7 +55,7 @@ void CharacterApplyVelocityToPosition(Character *c) {
 }
 
 // # Player
-class Player: public Component, public CharacterHolder {
+class Player: public Node, public CharacterHolder {
     public:
         Player(Character c) {
             this->character = c;
@@ -125,7 +110,7 @@ void Player::Render(GameContext ctx, GameObject* thisGO) {
 }
 
 // # Ball
-class Ball: public Component, public CharacterHolder {
+class Ball: public Node, public CharacterHolder {
     public:
         float radius;
         Ball(float radius, Character c) {
@@ -200,7 +185,7 @@ void Ball::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        for (auto c: go->components) {
+        for (auto c: go->nodes) {
             std::shared_ptr<CharacterHolder> ch = dynamic_pointer_cast<CharacterHolder>(c);
             if (ch == nullptr) {
                 continue;
@@ -256,7 +241,7 @@ void Ball::Render(GameContext ctx, GameObject* thisGO) {
 }
 
 // # Ball
-class Enemy: public Component, public CharacterHolder {
+class Enemy: public Node, public CharacterHolder {
     public:
         Enemy(Character c) {
             this->character = c;
@@ -280,7 +265,7 @@ void Enemy::Update(GameContext ctx, GameObject* thisGO) {
             continue;
         }
 
-        for (auto c: go->components) {
+        for (auto c: go->nodes) {
             std::shared_ptr<Ball> ball = dynamic_pointer_cast<Ball>(c);
             if (ball == nullptr) {
                 continue;
@@ -340,14 +325,16 @@ void Enemy::Render(GameContext ctx, GameObject* thisGO) {
     DrawRectangleRec(enemyRect, RED);
 }
 
-class Line: public Component {
+// # Views
+
+class LineView: public Node {
     public:
         Vector2 start;
         Vector2 end;
         float alpha;
         Color color;
 
-        Line(Vector2 start, Vector2 end, Color color = WHITE, float alpha = 1.0f) {
+        LineView(Vector2 start, Vector2 end, Color color = WHITE, float alpha = 1.0f) {
             this->start = start;
             this->end = end;
             this->alpha = alpha;
@@ -359,7 +346,7 @@ class Line: public Component {
         }
 };
 
-class Circle: public Component {
+class CircleView: public Node {
     public:
         Vector2 center;
         float radius;
@@ -367,7 +354,7 @@ class Circle: public Component {
         Color color;
 
 
-        Circle(Vector2 center, float radius, Color color = WHITE, float alpha = 1.0f) {
+        CircleView(Vector2 center, float radius, Color color = WHITE, float alpha = 1.0f) {
             this->center = center;
             this->radius = radius;
             this->alpha = alpha;
@@ -376,6 +363,25 @@ class Circle: public Component {
 
         void Render(GameContext ctx, GameObject* thisGO) override {
             DrawCircleLinesV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
+        }
+};
+
+class RectangleView: public Node {
+    public:
+        Vector2 position;
+        Size size;
+        Color color;
+        float alpha;
+
+        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f) {
+            this->position = position;
+            this->size = size;
+            this->color = color;
+            this->alpha = alpha;
+        }
+
+        void Render(GameContext ctx, GameObject* thisGO) override {
+            DrawRectangle(this->position.x, this->position.y, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
 
@@ -400,7 +406,7 @@ int main() {
     // # Player
     GameObject player;
 
-    player.components.push_back(
+    player.nodes.push_back(
         make_shared<Player>(
             (Character){
                 (Vector2){ sixthScreen, screenHeight/2.0f },
@@ -414,7 +420,7 @@ int main() {
 
     GameObject enemy;
 
-    enemy.components.push_back(
+    enemy.nodes.push_back(
         make_shared<Enemy>(
             (Character){
                 (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
@@ -429,7 +435,7 @@ int main() {
     float ballRadius = 15.0f;
     GameObject ball;
 
-    ball.components.push_back(
+    ball.nodes.push_back(
         make_shared<Ball>(
             ballRadius,
             (Character){
@@ -444,8 +450,8 @@ int main() {
 
     GameObject line;
 
-    line.components.push_back(
-        make_shared<Line>(
+    line.nodes.push_back(
+        make_shared<LineView>(
             (Vector2){ screenWidth/2.0f, 80 },
             (Vector2){ screenWidth/2.0f, screenHeight - 80 },
             WHITE,
@@ -455,8 +461,8 @@ int main() {
 
     GameObject circle;
 
-    circle.components.push_back(
-        make_shared<Circle>(
+    circle.nodes.push_back(
+        make_shared<CircleView>(
             (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             80,
             WHITE,
@@ -479,7 +485,7 @@ int main() {
 
         // # Initial
         for (auto go: ctx.gos) {
-            for (auto component: go->components) {
+            for (auto component: go->nodes) {
                 component->Update(ctx, go);
             }
         }
@@ -491,7 +497,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (auto go: ctx.gos) {
-                for (auto component: go->components) {
+                for (auto component: go->nodes) {
                     component->Render(ctx, go);
                 }
             }

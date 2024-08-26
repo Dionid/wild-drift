@@ -1,11 +1,13 @@
 #include <vector>
 #include <iostream>
 
-class Component;
+// # Core
+
+class Node;
 
 class GameObject {
     public:
-        std::vector<std::shared_ptr<Component>> components;
+        std::vector<std::shared_ptr<Node>> nodes;
 };
 
 struct GameContext {
@@ -19,7 +21,22 @@ class Renderer {
         virtual void Render(GameContext ctx, GameObject* thisGO) {};
 };
 
-class Component: public Renderer {
+class Node: public Renderer {
     public:
         virtual void Update(GameContext ctx, GameObject* thisGO) {};
 };
+
+// # Types
+
+struct Size {
+    float width;
+    float height;
+};
+
+// # Delta
+const float FPS = 60.0f;
+const float secondsPerFrame = 1.0f / FPS;
+
+float DeltaTime() {
+    return GetFrameTime() / secondsPerFrame;
+}
