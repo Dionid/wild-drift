@@ -1,40 +1,52 @@
 #include <raylib.h>
 #include "engine.h"
+#include "nodes.h"
 
 #ifndef CENGINE_VIEW_H
 #define CENGINE_VIEW_H
 
 // # Views
 
-class LineView: public Node {
+class LineView: public Node2D {
     public:
-        Vector2 start;
-        Vector2 end;
+        float length;
         float alpha;
         Color color;
 
-        LineView(Vector2 start, Vector2 end, Color color = WHITE, float alpha = 1.0f) {
-            this->start = start;
-            this->end = end;
+        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+            this->length = length;
             this->alpha = alpha;
             this->color = color;
         }
 
         void Render(GameContext* ctx, GameObject* thisGO) override {
-            DrawLineV(this->start, this->end, ColorAlpha(this->color, this->alpha));
+            auto globalPosition = this->position;
+
+            auto parent = dynamic_pointer_cast<Node2D>(this->parent);
+
+            if (parent != nullptr) {
+                globalPosition = Vector2Add(
+                    globalPosition,
+                    parent.get()->position
+                );
+            }
+
+            Vector2 end = {
+                globalPosition.x,
+                globalPosition.y + this->length
+            };
+            DrawLineV(globalPosition, end, ColorAlpha(this->color, this->alpha));
         }
 };
 
-class CircleView: public Node {
+class CircleView: public Node2D {
     public:
-        Vector2 center;
         float radius;
         float alpha;
         Color color;
         bool fill;
 
-        CircleView(Vector2 center, float radius, Color color = WHITE, float alpha = 1.0f, bool fill = true) {
-            this->center = center;
+        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;
@@ -42,24 +54,33 @@ class CircleView: public Node {
         }
 
         void Render(GameContext* ctx, GameObject* thisGO) override {
+            auto globalPosition = this->position;
+
+            auto parent = dynamic_pointer_cast<Node2D>(this->parent);
+
+            if (parent != nullptr) {
+                globalPosition = Vector2Add(
+                    globalPosition,
+                    parent.get()->position
+                );
+            }
+
             if (this->fill) {
-                DrawCircleV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
+                DrawCircleV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
                 return;
             }
 
-            DrawCircleLinesV(this->center, this->radius, ColorAlpha(this->color, this->alpha));
+            DrawCircleLinesV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
         }
 };
 
-class RectangleView: public Node {
+class RectangleView: public Node2D {
     public:
-        Vector2 position;
         Size size;
         Color color;
         float alpha;
 
-        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f) {
-            this->position = position;
+        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;

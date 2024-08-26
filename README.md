@@ -4,6 +4,7 @@
 
 1. Draw debug lines
 1. Fix collision "slide"
+1. Anchor
 1. Randomize ball direction
 1. Debug (memory, performance)
 1. Goals

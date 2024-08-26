@@ -38,10 +38,20 @@ class Updater {
 class Node: public Renderer, public Updater {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
+        std::shared_ptr<Node> parent;
+        Node(
+            std::shared_ptr<Node> parent = nullptr
+        ) {
+            this->parent = parent;
+        }
         ~Node() {
             for (auto node: this->nodes) {
                 node.reset();
             }
+        }
+        void AddNode(std::shared_ptr<Node> node) {
+            node.get()->parent.reset(this);
+            this->nodes.push_back(node);
         }
 };
 

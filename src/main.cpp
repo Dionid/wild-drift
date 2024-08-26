@@ -127,7 +127,7 @@ class Ball: public CharacterBody2D {
         }
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
-        void Render(GameContext* ctx, GameObject* thisGO) override;
+        // void Render(GameContext* ctx, GameObject* thisGO) override;
 };
 
 void Ball::Update(GameContext* ctx, GameObject* thisGO) {
@@ -208,9 +208,9 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     }
 }
 
-void Ball::Render(GameContext* ctx, GameObject* thisGO) {
-    DrawCircleV(this->position, this->radius, WHITE);
-}
+// void Ball::Render(GameContext* ctx, GameObject* thisGO) {
+//     DrawCircleV(this->position, this->radius, WHITE);
+// }
 
 // # Ball
 class Enemy: public CharacterBody2D {
@@ -347,14 +347,20 @@ int main() {
     };
 
     float ballRadius = 15.0f;
-    GameObject ball {
-        make_shared<Ball>(
-            ballRadius,
-            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-            (Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ 3.0f, 0.0f },
-            3.0f
+    auto ballRootNode = make_shared<Ball>(
+        ballRadius,
+        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+        (Size){ ballRadius*2, ballRadius*2 },
+        (Vector2){ 3.0f, 0.0f },
+        3.0f
+    );
+    ballRootNode->AddNode(
+        make_shared<CircleView>(
+            ballRadius
         )
+    );
+    GameObject ball {
+        ballRootNode,
     };
 
     // ball.rootNode->nodes.push_back(
@@ -370,7 +376,7 @@ int main() {
     GameObject line {
         make_shared<LineView>(
             (Vector2){ screenWidth/2.0f, 80 },
-            (Vector2){ screenWidth/2.0f, screenHeight - 80 },
+            screenHeight - 160,
             WHITE,
             0.5f
         ),
@@ -378,8 +384,8 @@ int main() {
 
     GameObject circle {
         make_shared<CircleView>(
-            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             80,
+            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
             WHITE,
             0.5f,
             false

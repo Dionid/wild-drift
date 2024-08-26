@@ -7,7 +7,7 @@
 class Node2D: public Node {
     public:
         Vector2 position;
-        Node2D(Vector2 position) {
+        Node2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node(parent) {
             this->position = position;
         }
 };
@@ -16,7 +16,7 @@ class CharacterBody2D: public Node2D {
     public:
         Size size;
         Vector2 velocity;
-        CharacterBody2D(Vector2 position, Size size, Vector2 velocity = Vector2{}) : Node2D(position) {
+        CharacterBody2D(Vector2 position, Size size, Vector2 velocity = Vector2{}, std::shared_ptr<Node> parent = nullptr) : Node2D(position, parent) {
             this->size = size;
             this->velocity = velocity;
         }
