@@ -6,12 +6,21 @@
 #include "view.h"
 #include "nodes.h"
 #include "collision.h"
+#include "debug.h"
 
 using namespace std;
 
 void CharacterApplyFriction(CharacterBody2D *c) {
     c->velocity.y *= .80f;
     c->velocity.x *= .80f;
+
+    if (c->velocity.x < 0.001 && c->velocity.x > -0.001) {
+        c->velocity.x = 0;
+    }
+
+    if (c->velocity.y < 0.001 && c->velocity.y > -0.001) {
+        c->velocity.y = 0;
+    }
 }
 
 void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float worldHeight) {
@@ -311,6 +320,8 @@ int main() {
     DisableCursor();
     SetTargetFPS(FPS);
 
+    Debugger debugger;
+
     // # Camera
     Camera2D camera = { 0 };
     camera.target = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
@@ -393,8 +404,8 @@ int main() {
 
         // # Initial
         for (auto go: ctx.gos) {
-            traverseGameObjectGlobalPosition(go, &ctx);
             traverseGameObjectUpdate(go, &ctx);
+            traverseGameObjectGlobalPosition(go, &ctx);
         }
 
         //----------------------------------------------------------------------------------
@@ -406,6 +417,7 @@ int main() {
             for (auto go: ctx.gos) {
                 traverseGameObjectRender(go, &ctx);
             }
+            debugger.Render(&ctx, nullptr);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
