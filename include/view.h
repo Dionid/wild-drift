@@ -54,17 +54,6 @@ class CircleView: public Node2D {
         }
 
         void Render(GameContext* ctx, GameObject* thisGO) override {
-            // auto globalPosition = this->position;
-
-            // auto parent = dynamic_pointer_cast<Node2D>(this->parent);
-
-            // if (parent != nullptr) {
-            //     globalPosition = Vector2Add(
-            //         globalPosition,
-            //         parent.get()->position
-            //     );
-            // }
-
             if (this->fill) {
                 DrawCircleV(this->globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
                 return;
