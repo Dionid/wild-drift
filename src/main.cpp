@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "view.h"
 #include "nodes.h"
+#include "collision.h"
 
 using namespace std;
 
@@ -128,38 +129,6 @@ class Ball: public CharacterBody2D {
         void Update(GameContext* ctx, GameObject* thisGO) override;
         void Render(GameContext* ctx, GameObject* thisGO) override;
 };
-
-struct CollisionData {
-    float penetration;
-    Vector2 normal;
-};
-
-CollisionData CircleRectangleCollision(
-    Vector2 circlePosition,
-    float circleRadius,
-    Vector2 rectPosition,
-    Size rectSize
-) {
-    Vector2 closest = {
-        fmaxf(rectPosition.x - rectSize.width/2, fminf(circlePosition.x, rectPosition.x + rectSize.width/2)),
-        fmaxf(rectPosition.y - rectSize.height/2, fminf(circlePosition.y, rectPosition.y + rectSize.height/2))
-    };
-
-    Vector2 distance = Vector2Subtract(circlePosition, closest);
-    float distanceLength = Vector2Length(distance);
-
-    if (distanceLength < circleRadius) {
-        return {
-            circleRadius - distanceLength,
-            Vector2Normalize(distance)
-        };
-    }
-
-    return {
-        0,
-        Vector2Zero()
-    };
-}
 
 void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     auto worldWidth = ctx->worldWidth;
