@@ -4,6 +4,7 @@
 #include <vector>
 #include "engine.h"
 #include "view.h"
+#include "nodes.h"
 
 using namespace std;
 

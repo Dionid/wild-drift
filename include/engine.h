@@ -38,29 +38,12 @@ class Updater {
 class Node: public Renderer, public Updater {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
-        virtual void Render(GameContext* ctx, GameObject* thisGO) override {};
-        virtual void Update(GameContext* ctx, GameObject* thisGO) override {};
         ~Node() {
             for (auto node: this->nodes) {
                 node.reset();
             }
         }
 };
-
-// # Types
-
-struct Size {
-    float width;
-    float height;
-};
-
-// # Delta
-const float FPS = 60.0f;
-const float secondsPerFrame = 1.0f / FPS;
-
-float DeltaTime() {
-    return GetFrameTime() / secondsPerFrame;
-}
 
 // # Traverse
 
@@ -92,6 +75,21 @@ void GameObjectTraverseRender(GameObject* go, GameContext* ctx) {
         ctx,
         go
     );
+}
+
+// # Types
+
+struct Size {
+    float width;
+    float height;
+};
+
+// # Delta
+const float FPS = 60.0f;
+const float secondsPerFrame = 1.0f / FPS;
+
+float DeltaTime() {
+    return GetFrameTime() / secondsPerFrame;
 }
 
 #endif // CENGINE_H
