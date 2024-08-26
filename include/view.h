@@ -13,7 +13,7 @@ class LineView: public Node2D {
         float alpha;
         Color color;
 
-        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, globalPosition, parent) {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
@@ -46,7 +46,7 @@ class CircleView: public Node2D {
         Color color;
         bool fill;
 
-        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, globalPosition, parent) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;
@@ -54,23 +54,23 @@ class CircleView: public Node2D {
         }
 
         void Render(GameContext* ctx, GameObject* thisGO) override {
-            auto globalPosition = this->position;
+            // auto globalPosition = this->position;
 
-            auto parent = dynamic_pointer_cast<Node2D>(this->parent);
+            // auto parent = dynamic_pointer_cast<Node2D>(this->parent);
 
-            if (parent != nullptr) {
-                globalPosition = Vector2Add(
-                    globalPosition,
-                    parent.get()->position
-                );
-            }
+            // if (parent != nullptr) {
+            //     globalPosition = Vector2Add(
+            //         globalPosition,
+            //         parent.get()->position
+            //     );
+            // }
 
             if (this->fill) {
-                DrawCircleV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
+                DrawCircleV(this->globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
                 return;
             }
 
-            DrawCircleLinesV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
+            DrawCircleLinesV(this->globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
         }
 };
 
@@ -80,7 +80,7 @@ class RectangleView: public Node2D {
         Color color;
         float alpha;
 
-        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, globalPosition, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;

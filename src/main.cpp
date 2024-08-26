@@ -208,10 +208,6 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     }
 }
 
-// void Ball::Render(GameContext* ctx, GameObject* thisGO) {
-//     DrawCircleV(this->position, this->radius, WHITE);
-// }
-
 // # Ball
 class Enemy: public CharacterBody2D {
     public:
@@ -322,9 +318,8 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    const float sixthScreen = screenWidth/6.0f;
-
     // # Player
+    const float sixthScreen = screenWidth/6.0f;
 
     GameObject player {
         make_shared<Player>(
@@ -363,16 +358,7 @@ int main() {
         ballRootNode,
     };
 
-    // ball.rootNode->nodes.push_back(
-    //     make_shared<CircleView>(
-    //         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-    //         80,
-    //         WHITE,
-    //         0.5f,
-    //         true
-    //     )
-    // );
-
+    // # Field
     GameObject line {
         make_shared<LineView>(
             (Vector2){ screenWidth/2.0f, 80 },
@@ -392,7 +378,7 @@ int main() {
         )
     };
 
-    // # Game Objects
+    // # Game Context
     GameContext ctx = {
         { &player, &ball, &enemy, &line, &circle },
         screenWidth,
@@ -407,6 +393,7 @@ int main() {
 
         // # Initial
         for (auto go: ctx.gos) {
+            traverseGameObjectGlobalPosition(go, &ctx);
             GameObjectTraverseUpdate(go, &ctx);
         }
 
