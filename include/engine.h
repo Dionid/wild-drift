@@ -49,23 +49,21 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
 
             return this->parent->GetRootNode();
         }
+
+        void TraverseNodeUpdate(GameContext* ctx) {
+            this->Update(ctx);
+            for (auto node: this->nodes) {
+                node->TraverseNodeUpdate(ctx);
+            }
+        }
+
+        void TraverseNodeRender(GameContext* ctx) {
+            this->Render(ctx);
+            for (auto node: this->nodes) {
+                node->TraverseNodeRender(ctx);
+            }
+        }
 };
-
-// # Traverse
-
-void traverseNodeUpdate(std::shared_ptr<Node> node, GameContext* ctx) {
-    node->Update(ctx);
-    for (auto n: node->nodes) {
-        traverseNodeUpdate(n, ctx);
-    }
-}
-
-void traverseNodeRender(std::shared_ptr<Node> node, GameContext* ctx) {
-    node->Render(ctx);
-    for (auto n: node->nodes) {
-        traverseNodeRender(n, ctx);
-    }
-}
 
 // # Delta
 const float FPS = 60.0f;

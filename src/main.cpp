@@ -403,7 +403,7 @@ int main() {
         // # Initial
         for (auto i = 0; i < ctx.nodes.size(); i++) {
             auto node = ctx.nodes[i];
-            traverseNodeUpdate(node, &ctx);
+            node->TraverseNodeUpdate(&ctx);
         }
 
         // # Collision
@@ -416,7 +416,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (auto node: ctx.nodes) {
-                traverseNodeRender(node, &ctx);
+                node->TraverseNodeRender(&ctx);
             }
             debugger.Render(&ctx);
         EndDrawing();
