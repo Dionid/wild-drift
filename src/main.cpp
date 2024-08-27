@@ -73,11 +73,11 @@ class Player: public Paddle {
             this->maxVelocity = maxVelocity;   
         }
 
-        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx) override;
 };
 
 // # Player Update function
-void Player::Update(GameContext* ctx, GameObject* thisGO) {
+void Player::Update(GameContext* ctx) {
     float deltaTime = DeltaTime();
 
     // # Calc velocity
@@ -133,7 +133,7 @@ class Ball: public CharacterBody2D {
             this->maxVelocity = maxVelocity;
         }
 
-        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx) override;
         void OnCollision(Collision c) override;
 };
 
@@ -165,10 +165,9 @@ void Ball::OnCollision(Collision collision) {
     );
 }
 
-void Ball::Update(GameContext* ctx, GameObject* thisGO) {
+void Ball::Update(GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
-    auto gos = ctx->gos;
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -213,25 +212,24 @@ class Enemy: public Paddle {
             this->maxVelocity = maxVelocity;
         }
 
-        void Update(GameContext* ctx, GameObject* thisGO) override;
+        void Update(GameContext* ctx) override;
 };
 
-void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
+void Enemy::Update(GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
-    auto gos = ctx->gos;
     float deltaTime = DeltaTime();
 
     float directionX = 0;
     float directionY = 0;
 
     // # AI
-    for (auto go: gos) {
-        if (go == thisGO) {
+    for (auto node: ctx->nodes) {
+        if (node.get() == this) {
             continue;
         }
 
-        auto ball = dynamic_pointer_cast<Ball>(go->rootNode);
+        auto ball = dynamic_pointer_cast<Ball>(node);
         if (ball == nullptr) {
             continue;
         }
@@ -308,23 +306,20 @@ int main() {
     // # Player
     const float sixthScreen = screenWidth/6.0f;
 
-    auto playerRootNode = make_shared<Player>(
+    auto player = make_shared<Player>(
         (Vector2){ sixthScreen, screenHeight/2.0f },
         (Size){ 40.0f, 120.0f },
         (Vector2){ 0.0f, 0.0f },
         1.0f,
         10.0f
     );
-    GameObject player {
-        playerRootNode,
-    };
-    playerRootNode->AddNode(
+    player->AddNode(
         make_shared<RectangleView>(
             (Size){ 40.0f, 120.0f },
             BLUE
         )
     );
-    playerRootNode->AddNode(
+    player->AddNode(
         make_shared<Collider>(
             ColliderType::Solid,
             Shape::Rectangle({ 40.0f, 120.0f }),
@@ -332,23 +327,20 @@ int main() {
         )
     );
 
-    auto enemyRootNode = make_shared<Enemy>(
+    auto enemy = make_shared<Enemy>(
         (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
         (Size){ 40.0f, 120.0f },
         (Vector2){ 0.0f, 0.0f },
         1.0f,
         10.0f
     );
-    GameObject enemy {
-        enemyRootNode,
-    };
-    enemyRootNode->AddNode(
+    enemy->AddNode(
         make_shared<RectangleView>(
             (Size){ 40.0f, 120.0f },
             RED
         )
     );
-    enemyRootNode->AddNode(
+    enemy->AddNode(
         make_shared<Collider>(
             ColliderType::Solid,
             Shape::Rectangle({ 40.0f, 120.0f }),
@@ -358,19 +350,19 @@ int main() {
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
-    auto ballRootNode = make_shared<Ball>(
+    auto ball = make_shared<Ball>(
         ballRadius,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         (Size){ ballRadius*2, ballRadius*2 },
         (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
         7.0f
     );
-    ballRootNode->AddNode(
+    ball->AddNode(
         make_shared<CircleView>(
             ballRadius
         )
     );
-    ballRootNode->AddNode(
+    ball->AddNode(
         make_shared<Collider>(
             ColliderType::Solid,
             Shape::Circle(ballRadius),
@@ -378,33 +370,26 @@ int main() {
         )
     );
 
-    GameObject ball {
-        ballRootNode,
-    };
 
     // # Field
-    GameObject line {
-        make_shared<LineView>(
-            (Vector2){ screenWidth/2.0f, 80 },
-            screenHeight - 160,
-            WHITE,
-            0.5f
-        ),
-    };
+    auto line = make_shared<LineView>(
+        (Vector2){ screenWidth/2.0f, 80 },
+        screenHeight - 160,
+        WHITE,
+        0.5f
+    );
 
-    GameObject circle {
-        make_shared<CircleView>(
-            80,
-            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-            WHITE,
-            0.5f,
-            false
-        )
-    };
+    auto circle = make_shared<CircleView>(
+        80,
+        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+        WHITE,
+        0.5f,
+        false
+    );
 
     // # Game Context
     GameContext ctx = {
-        { &ball, &player, &enemy, &line, &circle },
+        { ball, player, enemy, line, circle },
         screenWidth,
         screenHeight
     };
@@ -416,9 +401,9 @@ int main() {
         //----------------------------------------------------------------------------------
 
         // # Initial
-        for (auto i = 0; i < ctx.gos.size(); i++) {
-            auto go = ctx.gos[i];
-            traverseGameObjectUpdate(go, &ctx);
+        for (auto i = 0; i < ctx.nodes.size(); i++) {
+            auto node = ctx.nodes[i];
+            traverseNodeUpdate(node, &ctx);
         }
 
         // # Collision
@@ -430,10 +415,10 @@ int main() {
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            for (auto go: ctx.gos) {
-                traverseGameObjectRender(go, &ctx);
+            for (auto node: ctx.nodes) {
+                traverseNodeRender(node, &ctx);
             }
-            debugger.Render(&ctx, nullptr);
+            debugger.Render(&ctx);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }

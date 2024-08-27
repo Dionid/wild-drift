@@ -7,6 +7,7 @@
 class Node2D: public Node {
     public:
         Vector2 position;
+
         Node2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node(parent) {
             this->position = position;
         }

@@ -9,61 +9,37 @@
 
 class Node;
 
-class GameObject {
-    public:
-        std::shared_ptr<Node> rootNode;
-        GameObject(std::shared_ptr<Node> rootNode) {
-            this->rootNode = rootNode;
-        }
-        // ~GameObject() {}
-        GameObject(const GameObject& other) {
-            this->rootNode = other.rootNode;
-        }
-        GameObject& operator=(const GameObject& other) {
-            this->rootNode = other.rootNode;
-            return *this;
-        }
-};
-
 struct GameContext {
-    std::vector<GameObject*> gos;
+    std::vector<std::shared_ptr<Node>> nodes;
     float worldWidth;
     float worldHeight;
 };
 
 class Renderer {
     public:
-        virtual void Render(GameContext* ctx, GameObject* thisGO) {};
+        virtual void Render(GameContext* ctx) {};
 };
 
 class Updater {
     public:
-        virtual void Update(GameContext* ctx, GameObject* thisGO) {};
+        virtual void Update(GameContext* ctx) {};
 };
 
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
         std::shared_ptr<Node> parent;
+
         Node(
             std::shared_ptr<Node> parent = nullptr
         ) {
             this->parent = parent;
         }
-        // ~Node() {}
-        // Node(const Node& other) {
-        //     this->nodes = other.nodes;
-        //     this->parent = other.parent;
-        // }
-        // Node& operator=(const Node& other) {
-        //     this->nodes = other.nodes;
-        //     this->parent = other.parent;
-        //     return *this;
-        // }
 
-        void AddNode(std::shared_ptr<Node> node) {
+        std::shared_ptr<Node> AddNode(std::shared_ptr<Node> node) {
             node->parent = shared_from_this();
             this->nodes.push_back(node);
+            return node;
         }
 
         Node* GetRootNode() {
@@ -77,34 +53,18 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
 
 // # Traverse
 
-void traverseNodeUpdate(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
-    node->Update(ctx, go);
+void traverseNodeUpdate(std::shared_ptr<Node> node, GameContext* ctx) {
+    node->Update(ctx);
     for (auto n: node->nodes) {
-        traverseNodeUpdate(n, ctx, go);
+        traverseNodeUpdate(n, ctx);
     }
 }
 
-void traverseGameObjectUpdate(GameObject* go, GameContext* ctx) {
-    traverseNodeUpdate(
-        go->rootNode,
-        ctx,
-        go
-    );
-}
-
-void traverseNodeRender(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
-    node->Render(ctx, go);
+void traverseNodeRender(std::shared_ptr<Node> node, GameContext* ctx) {
+    node->Render(ctx);
     for (auto n: node->nodes) {
-        traverseNodeRender(n, ctx, go);
+        traverseNodeRender(n, ctx);
     }
-}
-
-void traverseGameObjectRender(GameObject* go, GameContext* ctx) {
-    traverseNodeRender(
-        go->rootNode,
-        ctx,
-        go
-    );
 }
 
 // # Delta

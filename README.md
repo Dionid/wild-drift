@@ -2,10 +2,9 @@
 
 # Roadmap
 
-1. Move and slide
+1. OnCollisionStart, OnCollisionEnd
 1. GO Storage
 1. Remove raylib
-1. Collision Event
 1. Debug (memory, performance)
 1. Goals
 1. Score

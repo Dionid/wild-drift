@@ -38,7 +38,6 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         void MoveAndSlide(
-            GameObject* go,
             GameContext* ctx
         ) {
             if (this->velocity.x == 0 && this->velocity.y == 0) {
@@ -56,8 +55,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto n: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(n);
+            for (auto node: this->nodes) {
+                auto collider = std::dynamic_pointer_cast<Collider>(node);
 
                 if (collider == nullptr) {
                     continue;
@@ -67,20 +66,20 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherGo: ctx->gos) {
-                    if (go == otherGo) {
+                for (auto otherNode: ctx->nodes) {
+                    if (this == otherNode.get()) {
                         continue;
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherGo->rootNode);
+                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherNode);
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherGo->rootNode->nodes) {
+                    for (auto otherN: otherNode->nodes) {
                         auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
 
                         if (otherCollider == nullptr) {
@@ -142,7 +141,6 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         std::vector<Collision> MoveAndCollide(
-            GameObject* go,
             GameContext* ctx
         ) {
             std::vector<Collision> collisions;
@@ -158,8 +156,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto n: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(n);
+            for (auto node: this->nodes) {
+                auto collider = std::dynamic_pointer_cast<Collider>(node);
 
                 if (collider == nullptr) {
                     continue;
@@ -169,20 +167,20 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherGo: ctx->gos) {
-                    if (go == otherGo) {
+                for (auto otherNode: ctx->nodes) {
+                    if (this == otherNode.get()) {
                         continue;
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherGo->rootNode);
+                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherNode);
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherGo->rootNode->nodes) {
+                    for (auto otherN: otherNode->nodes) {
                         auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
 
                         if (otherCollider == nullptr) {

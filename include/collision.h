@@ -119,34 +119,34 @@ class CollisionObject2D: public Node2D {
 void collisionCheck(
     GameContext* ctx
 ) {
-    for (auto i = 0; i < ctx->gos.size(); i++) {
-        auto go = ctx->gos[i];
+    for (auto i = 0; i < ctx->nodes.size(); i++) {
+        auto node = ctx->nodes[i];
 
-        auto co = dynamic_pointer_cast<CollisionObject2D>(go->rootNode);
+        auto co = dynamic_pointer_cast<CollisionObject2D>(node);
         if (co == nullptr) {
             continue;
         }
 
-        for (auto n: go->rootNode->nodes) {
+        for (auto n: node->nodes) {
             auto collider = dynamic_pointer_cast<Collider>(n);
 
             if (collider == nullptr) {
                 continue;
             }
 
-            for (auto j = i + 1; j < ctx->gos.size(); j++) {
-                auto otherGo = ctx->gos[j];
+            for (auto j = i + 1; j < ctx->nodes.size(); j++) {
+                auto otherNode = ctx->nodes[j];
 
-                if (otherGo == go) {
+                if (otherNode == node) {
                     continue;
                 }
 
-                auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherGo->rootNode);
+                auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherNode);
                 if (otherCo == nullptr) {
                     continue;
                 }
 
-                for (auto on: otherGo->rootNode->nodes) {
+                for (auto on: otherNode->nodes) {
                     auto otherCollider = dynamic_pointer_cast<Collider>(on);
 
                     if (otherCollider == nullptr) {

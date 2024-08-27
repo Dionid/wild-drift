@@ -7,11 +7,11 @@
 
 class Debugger: public Renderer {
     public:
-        void Render(GameContext* ctx, GameObject* thisGO) override {
+        void Render(GameContext* ctx) override {
             DrawText("Debug", 10, 10, 20, WHITE);
 
-            for (auto go: ctx->gos) {
-                auto character = std::dynamic_pointer_cast<CharacterBody2D>(go->rootNode);
+            for (auto node: ctx->nodes) {
+                auto character = std::dynamic_pointer_cast<CharacterBody2D>(node);
                 if (character == nullptr) {
                     continue;
                 }
