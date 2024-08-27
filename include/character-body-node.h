@@ -105,8 +105,14 @@ class CharacterBody2D: public Node2D {
                         }
 
                         if (collision.penetration > 0) {
-                            this->velocity.x += collision.normal.x * collision.penetration;
-                            this->velocity.y += collision.normal.y * collision.penetration;
+                            auto d = Vector2DotProduct(this->velocity, collision.normal);
+                            if (d < 0) {
+                                this->velocity.x += collision.normal.x * collision.penetration;
+                                this->velocity.y += collision.normal.y * collision.penetration;
+                            } else {
+                                this->velocity.x -= collision.normal.x * collision.penetration;
+                                this->velocity.y -= collision.normal.y * collision.penetration;
+                            }
                         }
                     }
                 }

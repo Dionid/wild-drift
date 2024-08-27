@@ -100,7 +100,8 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Velocity -> Position
-    this->ApplyVelocityToPosition();
+    // this->ApplyVelocityToPosition();
+    this->MoveAndSlide(thisGO, ctx);
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -255,7 +256,7 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Velocity -> Position
-    this->ApplyVelocityToPosition();
+    this->MoveAndSlide(thisGO, ctx);
 }
 
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
