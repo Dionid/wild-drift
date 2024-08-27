@@ -40,18 +40,20 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
             this->parent = parent;
         }
 
-        std::shared_ptr<Node> AddNode(std::shared_ptr<Node> node) {
+        template <typename T>
+        std::shared_ptr<T> AddNode(std::shared_ptr<T> node) {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = shared_from_this();
             this->nodes.push_back(node);
             return node;
         }
 
-        Node* GetRootNode() {
+        std::shared_ptr<Node> RootNode() {
             if (this->parent == nullptr) {
-                return this;
+                return shared_from_this();
             }
 
-            return this->parent->GetRootNode();
+            return this->parent->RootNode();
         }
 
         void TraverseNodeUpdate(GameContext* ctx) {

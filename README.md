@@ -3,7 +3,12 @@
 # Roadmap
 
 1. OnCollisionStart, OnCollisionEnd
+1. Node
+    1. GetChildNode<T>()
+    1. GetChildNodeDeep<T>()
+    1. ...
 1. GO Storage
+1. unique_ptr
 1. Remove raylib
 1. Debug (memory, performance)
 1. Goals

@@ -46,7 +46,7 @@ class CharacterBody2D: public CollisionObject2D {
 
             auto newPosition = Vector2Add(
                 Vector2Add(
-                    this->GetGlobalPosition(),
+                    this->GlobalPosition(),
                     (Vector2){
                         this->skinWidth,
                         this->skinWidth
@@ -99,7 +99,7 @@ class CharacterBody2D: public CollisionObject2D {
                                         break;
                                     case Shape::Type::CIRCLE:
                                         collision = CircleRectangleCollision(
-                                            otherCollider->GetGlobalPosition(),
+                                            otherCollider->GlobalPosition(),
                                             otherCollider->shape.circle.radius,
                                             newPosition,
                                             collider->shape.rect.size
@@ -113,7 +113,7 @@ class CharacterBody2D: public CollisionObject2D {
                                         collision = CircleRectangleCollision(
                                             newPosition,
                                             collider->shape.circle.radius,
-                                            otherCollider->GetGlobalPosition(),
+                                            otherCollider->GlobalPosition(),
                                             otherCollider->shape.rect.size
                                         );
                                         break;
@@ -147,7 +147,7 @@ class CharacterBody2D: public CollisionObject2D {
 
             auto newPosition = Vector2Add(
                 Vector2Add(
-                    this->GetGlobalPosition(),
+                    this->GlobalPosition(),
                     (Vector2){
                         this->skinWidth,
                         this->skinWidth
@@ -200,7 +200,7 @@ class CharacterBody2D: public CollisionObject2D {
                                         break;
                                     case Shape::Type::CIRCLE:
                                         collision = CircleRectangleCollision(
-                                            otherCollider->GetGlobalPosition(),
+                                            otherCollider->GlobalPosition(),
                                             otherCollider->shape.circle.radius,
                                             newPosition,
                                             collider->shape.rect.size
@@ -214,7 +214,7 @@ class CharacterBody2D: public CollisionObject2D {
                                         collision = CircleRectangleCollision(
                                             newPosition,
                                             collider->shape.circle.radius,
-                                            otherCollider->GetGlobalPosition(),
+                                            otherCollider->GlobalPosition(),
                                             otherCollider->shape.rect.size
                                         );
                                         break;

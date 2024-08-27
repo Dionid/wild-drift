@@ -12,21 +12,21 @@ class Node2D: public Node {
             this->position = position;
         }
 
-        Vector2 GetGlobalPosition() {
+        Vector2 GlobalPosition() {
             if (this->parent == nullptr) {
                 return this->position;
             }
 
-            auto parent = this->FindClosestNode2DParent();
+            auto parent = this->ClosestNode2DParent();
 
             if (parent == nullptr) {
                 return this->position;
             }
 
-            return Vector2Add(parent->GetGlobalPosition(), this->position);
+            return Vector2Add(parent->GlobalPosition(), this->position);
         }
 
-        std::shared_ptr<Node2D> FindClosestNode2DParent() {
+        std::shared_ptr<Node2D> ClosestNode2DParent() {
             if (this->parent == nullptr) {
                 return nullptr;
             }
@@ -37,21 +37,21 @@ class Node2D: public Node {
                 return parent;
             }
 
-            return parent->FindClosestNode2DParent();
+            return parent->ClosestNode2DParent();
         }
 
-        Node2D* GetRootNode2D() {
+        Node2D* RootNode2D() {
             if (this->parent == nullptr) {
                 return this;
             }
 
-            auto p = this->FindClosestNode2DParent();
+            auto p = this->ClosestNode2DParent();
 
             if (p == nullptr) {
                 return this;
             }
 
-            return p->GetRootNode2D();
+            return p->RootNode2D();
         }
 };
 

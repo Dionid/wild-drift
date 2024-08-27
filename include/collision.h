@@ -162,9 +162,9 @@ void collisionCheck(
                                     break;
                                 case Shape::Type::CIRCLE:
                                     collision = CircleRectangleCollision(
-                                        otherCollider->GetGlobalPosition(),
+                                        otherCollider->GlobalPosition(),
                                         otherCollider->shape.circle.radius,
-                                        collider->GetGlobalPosition(),
+                                        collider->GlobalPosition(),
                                         collider->shape.rect.size
                                     );
                                     break;
@@ -174,9 +174,9 @@ void collisionCheck(
                             switch (otherCollider->shape.type) {
                                 case Shape::Type::RECTANGLE:
                                     collision = CircleRectangleCollision(
-                                        collider->GetGlobalPosition(),
+                                        collider->GlobalPosition(),
                                         collider->shape.circle.radius,
-                                        otherCollider->GetGlobalPosition(),
+                                        otherCollider->GlobalPosition(),
                                         otherCollider->shape.rect.size
                                     );
                                     break;

@@ -46,20 +46,27 @@ void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float w
 
 class Paddle: public CharacterBody2D {
     public:
+        float speed;
+        float maxVelocity;
+
         Paddle(
             Vector2 position,
             Size size,
-            Vector2 velocity = Vector2{}
+            Vector2 velocity = Vector2{},
+            float speed = 5.0f,
+            float maxVelocity = 10.0f
         ) : CharacterBody2D(position, size, velocity)
         {
+            this->speed = speed;
+            this->maxVelocity = maxVelocity;
         }
 };
 
 // # Player
 class Player: public Paddle {
     public:
-        float speed;
-        float maxVelocity;
+        shared_ptr<RectangleView> view;
+        shared_ptr<Collider> collider;
 
         Player(
             Vector2 position,
@@ -67,10 +74,35 @@ class Player: public Paddle {
             Vector2 velocity = Vector2{},
             float speed = 5.0f,
             float maxVelocity = 10.0f
-        ) : Paddle(position, size, velocity)
-        {
-            this->speed = speed;
-            this->maxVelocity = maxVelocity;   
+        ) : Paddle(position, size, velocity, speed, maxVelocity)
+        { 
+        }
+
+        static shared_ptr<Player> NewPlayer(
+            Vector2 position,
+            Size size,
+            Vector2 velocity = Vector2{},
+            float speed = 5.0f,
+            float maxVelocity = 10.0f
+        ) {
+            auto player = make_shared<Player>(position, size, velocity, speed, maxVelocity);
+
+            player->view = player->AddNode(
+                make_shared<RectangleView>(
+                    size,
+                    BLUE
+                )
+            );
+
+            player->collider = player->AddNode(
+                make_shared<Collider>(
+                    ColliderType::Solid,
+                    Shape::Rectangle(size),
+                    (Vector2){ 0.0f, 0.0f }
+                )
+            );
+
+            return player;
         }
 
         void Update(GameContext* ctx) override;
@@ -197,19 +229,14 @@ void Ball::Update(GameContext* ctx) {
 // # Enemy
 class Enemy: public Paddle {
     public:
-        float maxVelocity;
-        float speed;
-
         Enemy(
             Vector2 position,
             Size size,
             Vector2 velocity = Vector2{},
             float speed = 5.0f,
             float maxVelocity = 10.0f
-        ) : Paddle(position, size, velocity)
+        ) : Paddle(position, size, velocity, speed, maxVelocity)
         {
-            this->speed = speed;
-            this->maxVelocity = maxVelocity;
         }
 
         void Update(GameContext* ctx) override;
@@ -306,25 +333,12 @@ int main() {
     // # Player
     const float sixthScreen = screenWidth/6.0f;
 
-    auto player = make_shared<Player>(
+    auto player = Player::NewPlayer(
         (Vector2){ sixthScreen, screenHeight/2.0f },
         (Size){ 40.0f, 120.0f },
         (Vector2){ 0.0f, 0.0f },
         1.0f,
         10.0f
-    );
-    player->AddNode(
-        make_shared<RectangleView>(
-            (Size){ 40.0f, 120.0f },
-            BLUE
-        )
-    );
-    player->AddNode(
-        make_shared<Collider>(
-            ColliderType::Solid,
-            Shape::Rectangle({ 40.0f, 120.0f }),
-            (Vector2){ 0.0f, 0.0f }
-        )
     );
 
     auto enemy = make_shared<Enemy>(
