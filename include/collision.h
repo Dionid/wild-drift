@@ -100,6 +100,7 @@ class CollisionObject2D;
 
 struct Collision {
     CollisionHit hit;
+    std::shared_ptr<Collider> selfCollider;
     std::shared_ptr<CollisionObject2D> other;
 };
 
@@ -112,5 +113,95 @@ class CollisionObject2D: public Node2D {
             return Node::downcasted_shared_from_this<CollisionObject2D>();
         }
 };
+
+// # Checks
+
+void collisionCheck(
+    GameContext* ctx
+) {
+    for (auto i = 0; i < ctx->gos.size(); i++) {
+        auto go = ctx->gos[i];
+
+        auto co = dynamic_pointer_cast<CollisionObject2D>(go->rootNode);
+        if (co == nullptr) {
+            continue;
+        }
+
+        for (auto n: go->rootNode->nodes) {
+            auto collider = dynamic_pointer_cast<Collider>(n);
+
+            if (collider == nullptr) {
+                continue;
+            }
+
+            for (auto j = i + 1; j < ctx->gos.size(); j++) {
+                auto otherGo = ctx->gos[j];
+
+                if (otherGo == go) {
+                    continue;
+                }
+
+                auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherGo->rootNode);
+                if (otherCo == nullptr) {
+                    continue;
+                }
+
+                for (auto on: otherGo->rootNode->nodes) {
+                    auto otherCollider = dynamic_pointer_cast<Collider>(on);
+
+                    if (otherCollider == nullptr) {
+                        continue;
+                    }
+
+                    auto collision = CollisionHit{0, Vector2{}};
+
+                    switch (collider->shape.type) {
+                        case Shape::Type::RECTANGLE:
+                            switch (otherCollider->shape.type) {
+                                case Shape::Type::RECTANGLE:
+                                    break;
+                                case Shape::Type::CIRCLE:
+                                    collision = CircleRectangleCollision(
+                                        otherCollider->GetGlobalPosition(),
+                                        otherCollider->shape.circle.radius,
+                                        collider->GetGlobalPosition(),
+                                        collider->shape.rect.size
+                                    );
+                                    break;
+                            }
+                            break;
+                        case Shape::Type::CIRCLE:
+                            switch (otherCollider->shape.type) {
+                                case Shape::Type::RECTANGLE:
+                                    collision = CircleRectangleCollision(
+                                        collider->GetGlobalPosition(),
+                                        collider->shape.circle.radius,
+                                        otherCollider->GetGlobalPosition(),
+                                        otherCollider->shape.rect.size
+                                    );
+                                    break;
+                                case Shape::Type::CIRCLE:
+                                    break;
+                            }
+                            break;
+                    }
+
+                    if (collision.penetration > 0) {
+                        co->OnCollision({
+                            collision,
+                            collider,
+                            otherCo
+                        });
+                        otherCo->OnCollision({
+                            collision,
+                            otherCollider,
+                            co
+                        });
+                    }
+                }
+            } 
+        }
+    }
+}
 
 #endif //CENGINE_COLLISION_H

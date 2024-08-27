@@ -41,6 +41,10 @@ class CharacterBody2D: public CollisionObject2D {
             GameObject* go,
             GameContext* ctx
         ) {
+            if (this->velocity.x == 0 && this->velocity.y == 0) {
+                return;
+            }
+
             auto newPosition = Vector2Add(
                 Vector2Add(
                     this->GetGlobalPosition(),
@@ -225,6 +229,7 @@ class CharacterBody2D: public CollisionObject2D {
                         if (collision.penetration > 0) {
                             collisions.push_back(Collision{
                                 collision,
+                                collider,
                                 otherCollisionObject
                             });
                         }

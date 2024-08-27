@@ -15,11 +15,11 @@ void CharacterApplyFriction(CharacterBody2D *c) {
     c->velocity.y *= .80f;
     c->velocity.x *= .80f;
 
-    if (c->velocity.x < 0.001 && c->velocity.x > -0.001) {
+    if (c->velocity.x < 0.01 && c->velocity.x > -0.01) {
         c->velocity.x = 0;
     }
 
-    if (c->velocity.y < 0.001 && c->velocity.y > -0.001) {
+    if (c->velocity.y < 0.01 && c->velocity.y > -0.01) {
         c->velocity.y = 0;
     }
 }
@@ -100,8 +100,8 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Velocity -> Position
-    this->MoveAndSlide(thisGO, ctx);
-    // this->ApplyVelocityToPosition();
+    // this->MoveAndSlide(thisGO, ctx);
+    this->ApplyVelocityToPosition();
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -132,11 +132,38 @@ class Ball: public CharacterBody2D {
 };
 
 void Ball::OnCollision(Collision collision) {
-//     cout << "collision" << endl;
-//     this->velocity = Vector2Scale(
-//         Vector2Reflect(this->velocity, collision.hit.normal),
-//         2
-//     );
+    cout << "collision" << endl;
+
+    // # Resolve penetration
+    this->position = Vector2Add(
+        this->position,
+        Vector2Scale(collision.hit.normal, collision.hit.penetration)
+    );
+
+    // # Reflect velocity
+    // this->velocity = Vector2Scale(
+    //     Vector2Reflect(this->velocity, collision.hit.normal),
+    //     2
+    // );
+
+    auto other = dynamic_pointer_cast<CharacterBody2D>(collision.other);
+
+    if (other == nullptr) {
+        return;
+    }
+
+    // # Resolve velocity
+    // ## Calculate velocity separation
+    float velocitySeparation = Vector2DotProduct(
+        Vector2Subtract(this->velocity, other->velocity),
+        collision.hit.normal
+    );
+
+    // ## Apply velocity separation
+    this->velocity = Vector2Add(
+        this->velocity,
+        Vector2Scale(collision.hit.normal, -2 * velocitySeparation)
+    );
 }
 
 void Ball::Update(GameContext* ctx, GameObject* thisGO) {
@@ -166,25 +193,6 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
 
-    // auto collisionsVec = this->MoveAndCollide(thisGO, ctx);
-
-    // for (auto collision: collisionsVec) {
-    //     // # Resolve penetration
-    //     this->position = Vector2Add(
-    //         Vector2Add(
-    //             this->position,
-    //             this->velocity
-    //         ),
-    //         Vector2Scale(collision.hit.normal, collision.hit.penetration)
-    //     );
-
-    //     this->velocity = Vector2Scale(
-    //         Vector2Reflect(this->velocity, collision.hit.normal),
-    //         2
-    //     );
-    // }
-
-    // this->MoveAndSlide(thisGO, ctx);
     this->ApplyVelocityToPosition();
 }
 
@@ -192,7 +200,7 @@ void Ball::Render(GameContext* ctx, GameObject* thisGO) {
     // DrawCircleV(this->position, this->radius, WHITE);
 }
 
-// # Ball
+// # Enemy
 class Enemy: public CharacterBody2D {
     public:
         float maxVelocity;
@@ -281,8 +289,8 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Velocity -> Position
-    this->MoveAndSlide(thisGO, ctx);
-    // this->ApplyVelocityToPosition();
+    // this->MoveAndSlide(thisGO, ctx);
+    this->ApplyVelocityToPosition();
 }
 
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
@@ -419,7 +427,7 @@ int main() {
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         (Size){ ballRadius*2, ballRadius*2 },
         (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
-        5.0f
+        7.0f
     );
     ballRootNode->AddNode(
         make_shared<CircleView>(
@@ -477,11 +485,8 @@ int main() {
             traverseGameObjectUpdate(go, &ctx);
         }
 
-        // # Calc collisions
-        // for (auto i = 0; i < ctx.gos.size(); i++) {
-        //     auto go = ctx.gos[i];
-        //     ballCollision(go, &ctx);
-        // }
+        // # Collision
+        collisionCheck(&ctx);
 
         //----------------------------------------------------------------------------------
 
