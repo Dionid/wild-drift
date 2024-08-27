@@ -62,6 +62,11 @@ class CharacterBody2D: public Node2D {
             this->size = size;
             this->velocity = velocity;
         }
+
+        void ApplyVelocityToPosition() {
+            this->position.x += this->velocity.x;
+            this->position.y += this->velocity.y;
+        }
 };
 
 #endif // CENGINE_NODES_H

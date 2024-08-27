@@ -3,10 +3,8 @@
 # Roadmap
 
 1. Move and slide
-1. Global Position
 1. GO Store
 1. Collision Event
-1. Randomize ball direction
 1. Debug (memory, performance)
 1. Goals
 1. Score

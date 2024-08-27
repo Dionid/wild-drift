@@ -62,7 +62,7 @@ class RectangleView: public Node2D {
         Color color;
         float alpha;
 
-        RectangleView(Vector2 position, Size size, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        RectangleView(Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;
@@ -71,7 +71,7 @@ class RectangleView: public Node2D {
         void Render(GameContext* ctx, GameObject* thisGO) override {
             auto globalPosition = this->GetGlobalPosition();
 
-            DrawRectangle(globalPosition.x, globalPosition.y, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
+            DrawRectangle(globalPosition.x - this->size.width * 0.5, globalPosition.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
 

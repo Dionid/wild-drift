@@ -41,11 +41,6 @@ void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float w
     }
 }
 
-void CharacterApplyVelocityToPosition(CharacterBody2D *c) {
-    c->position.x += c->velocity.x;
-    c->position.y += c->velocity.y;
-}
-
 // # Player
 class Player: public CharacterBody2D {
     public:
@@ -101,15 +96,15 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     }
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(this);
+    this->ApplyVelocityToPosition();
 
     // # World Boundaries
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
-    Rectangle playerRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
-    DrawRectangleRec(playerRect, BLUE);
+    // Rectangle playerRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
+    // DrawRectangleRec(playerRect, BLUE);
 }
 
 // # Ball
@@ -144,7 +139,7 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     }
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(this);
+    this->ApplyVelocityToPosition();
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -257,12 +252,12 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Velocity -> Position
-    CharacterApplyVelocityToPosition(this);
+    this->ApplyVelocityToPosition();
 }
 
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {
-    Rectangle enemyRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
-    DrawRectangleRec(enemyRect, RED);
+    // Rectangle enemyRect = { this->position.x - this->size.width/2, this->position.y - this->size.height/2, this->size.width, this->size.height };
+    // DrawRectangleRec(enemyRect, RED);
 }
 
 void ballCollision(
@@ -339,25 +334,40 @@ int main() {
     // # Player
     const float sixthScreen = screenWidth/6.0f;
 
+    auto playerRootNode = make_shared<Player>(
+        (Vector2){ sixthScreen, screenHeight/2.0f },
+        (Size){ 40.0f, 120.0f },
+        (Vector2){ 0.0f, 0.0f },
+        1.0f,
+        10.0f
+    );
     GameObject player {
-        make_shared<Player>(
-            (Vector2){ sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.0f,
-            10.0f
-        )
+        playerRootNode,
     };
+    playerRootNode->AddNode(
+        make_shared<RectangleView>(
+            (Size){ 40.0f, 120.0f },
+            BLUE
+        )
+    );
 
+
+    auto enemyRootNode = make_shared<Enemy>(
+        (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
+        (Size){ 40.0f, 120.0f },
+        (Vector2){ 0.0f, 0.0f },
+        1.0f,
+        10.0f
+    );
     GameObject enemy {
-        make_shared<Enemy>(
-            (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.0f,
-            10.0f
-        )
+        enemyRootNode,
     };
+    enemyRootNode->AddNode(
+        make_shared<RectangleView>(
+            (Size){ 40.0f, 120.0f },
+            RED
+        )
+    );
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
