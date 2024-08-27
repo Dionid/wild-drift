@@ -36,11 +36,11 @@ void traverseNodeGlobalPosition(std::shared_ptr<Node> node, GameContext* ctx, Ga
     auto parent = findClosestNode2DParent(node);
 
     if (currentNode != nullptr && parent == nullptr) {
-        currentNode.get()->globalPosition = currentNode.get()->position;
+        currentNode->globalPosition = currentNode->position;
     } else if (currentNode != nullptr && parent != nullptr) {
-        currentNode.get()->globalPosition = Vector2Add(
-            currentNode.get()->position,
-            parent.get()->globalPosition
+        currentNode->globalPosition = Vector2Add(
+            currentNode->position,
+            parent->globalPosition
         );
     }
 

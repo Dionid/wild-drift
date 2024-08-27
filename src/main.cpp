@@ -95,10 +95,10 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyFriction(this);
 
     // # Field boundaries
-    // if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
-    //     this->position.x = ctx->worldWidth/2 - this->size.width/2;
-    //     this->velocity.x = 0;
-    // }
+    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
+        this->position.x = ctx->worldWidth/2 - this->size.width/2;
+        this->velocity.x = 0;
+    }
 
     // # Velocity -> Position
     CharacterApplyVelocityToPosition(this);
@@ -360,11 +360,12 @@ int main() {
     };
 
     float ballRadius = 15.0f;
+    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
     auto ballRootNode = make_shared<Ball>(
         ballRadius,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         (Size){ ballRadius*2, ballRadius*2 },
-        (Vector2){ 1.0f, 0.0f },
+        (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
         5.0f
     );
     // ballRootNode->AddNode(
@@ -413,9 +414,15 @@ int main() {
         for (auto i = 0; i < ctx.gos.size(); i++) {
             auto go = ctx.gos[i];
             traverseGameObjectUpdate(go, &ctx);
+        }
+
+        // # Calc nodes global position
+        for (auto i = 0; i < ctx.gos.size(); i++) {
+            auto go = ctx.gos[i];
             traverseGameObjectGlobalPosition(go, &ctx);
         }
 
+        // # Calc collisions
         for (auto i = 0; i < ctx.gos.size(); i++) {
             auto go = ctx.gos[i];
             ballCollision(go, &ctx);
