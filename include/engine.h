@@ -50,32 +50,41 @@ class Node: public Renderer, public Updater, public std::enable_shared_from_this
             this->parent = parent;
         }
         // ~Node() {}
-        Node(const Node& other) {
-            this->nodes = other.nodes;
-            this->parent = other.parent;
-        }
-        Node& operator=(const Node& other) {
-            this->nodes = other.nodes;
-            this->parent = other.parent;
-            return *this;
-        }
+        // Node(const Node& other) {
+        //     this->nodes = other.nodes;
+        //     this->parent = other.parent;
+        // }
+        // Node& operator=(const Node& other) {
+        //     this->nodes = other.nodes;
+        //     this->parent = other.parent;
+        //     return *this;
+        // }
+
         void AddNode(std::shared_ptr<Node> node) {
             node->parent = shared_from_this();
             this->nodes.push_back(node);
+        }
+
+        Node* GetRootNode() {
+            if (this->parent == nullptr) {
+                return this;
+            }
+
+            return this->parent->GetRootNode();
         }
 };
 
 // # Traverse
 
-void NodeTraverseUpdate(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
+void traverseNodeUpdate(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
     node->Update(ctx, go);
     for (auto n: node->nodes) {
-        NodeTraverseUpdate(n, ctx, go);
+        traverseNodeUpdate(n, ctx, go);
     }
 }
 
 void traverseGameObjectUpdate(GameObject* go, GameContext* ctx) {
-    NodeTraverseUpdate(
+    traverseNodeUpdate(
         go->rootNode,
         ctx,
         go

@@ -7,61 +7,58 @@
 class Node2D: public Node {
     public:
         Vector2 position;
-        Vector2 globalPosition;
-        Node2D(Vector2 position, Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node(parent) {
+        Node2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node(parent) {
             this->position = position;
         }
+
+        Vector2 GetGlobalPosition() {
+            if (this->parent == nullptr) {
+                return this->position;
+            }
+
+            auto parent = this->FindClosestNode2DParent();
+
+            if (parent == nullptr) {
+                return this->position;
+            }
+
+            return Vector2Add(parent->GetGlobalPosition(), this->position);
+        }
+
+        std::shared_ptr<Node2D> FindClosestNode2DParent() {
+            if (this->parent == nullptr) {
+                return nullptr;
+            }
+
+            auto parent = std::dynamic_pointer_cast<Node2D>(this->parent);
+
+            if (parent != nullptr) {
+                return parent;
+            }
+
+            return parent->FindClosestNode2DParent();
+        }
+
+        Node2D* GetRootNode2D() {
+            if (this->parent == nullptr) {
+                return this;
+            }
+
+            auto p = this->FindClosestNode2DParent();
+
+            if (p == nullptr) {
+                return this;
+            }
+
+            return p->GetRootNode2D();
+        }
 };
-
-std::shared_ptr<Node2D> findClosestNode2DParent(std::shared_ptr<Node> node) {
-    if (node->parent == nullptr) {
-        return nullptr;
-    }
-
-    auto parent = std::dynamic_pointer_cast<Node2D>(node->parent);
-
-    if (parent != nullptr) {
-        return parent;
-    }
-
-    return findClosestNode2DParent(parent);
-}
-
-void traverseNodeGlobalPosition(std::shared_ptr<Node> node, GameContext* ctx, GameObject* go) {
-    if (node == nullptr) {
-        return;
-    }
-
-    auto currentNode = std::dynamic_pointer_cast<Node2D>(node);
-    auto parent = findClosestNode2DParent(node);
-
-    if (currentNode != nullptr && parent == nullptr) {
-        currentNode->globalPosition = currentNode->position;
-    } else if (currentNode != nullptr && parent != nullptr) {
-        currentNode->globalPosition = Vector2Add(
-            currentNode->position,
-            parent->globalPosition
-        );
-    }
-
-    for (auto n: node->nodes) {
-        traverseNodeGlobalPosition(n, ctx, go);
-    }
-}
-
-void traverseGameObjectGlobalPosition(GameObject* go, GameContext* ctx) {
-    traverseNodeGlobalPosition(
-        go->rootNode,
-        ctx,
-        go
-    );
-}
 
 class CharacterBody2D: public Node2D {
     public:
         Size size;
         Vector2 velocity;
-        CharacterBody2D(Vector2 position, Size size, Vector2 velocity = Vector2{},  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr) : Node2D(position, globalPosition, parent) {
+        CharacterBody2D(Vector2 position, Size size, Vector2 velocity = Vector2{}, std::shared_ptr<Node> parent = nullptr) : Node2D(position, parent) {
             this->size = size;
             this->velocity = velocity;
         }

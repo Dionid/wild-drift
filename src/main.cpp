@@ -165,7 +165,7 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
 }
 
 void Ball::Render(GameContext* ctx, GameObject* thisGO) {
-    DrawCircleV(this->position, this->radius, WHITE);
+    // DrawCircleV(this->position, this->radius, WHITE);
 }
 
 // # Ball
@@ -368,11 +368,11 @@ int main() {
         (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
         5.0f
     );
-    // ballRootNode->AddNode(
-    //     make_shared<CircleView>(
-    //         ballRadius
-    //     )
-    // );
+    ballRootNode->AddNode(
+        make_shared<CircleView>(
+            ballRadius
+        )
+    );
     GameObject ball {
         ballRootNode,
     };
@@ -414,12 +414,6 @@ int main() {
         for (auto i = 0; i < ctx.gos.size(); i++) {
             auto go = ctx.gos[i];
             traverseGameObjectUpdate(go, &ctx);
-        }
-
-        // # Calc nodes global position
-        for (auto i = 0; i < ctx.gos.size(); i++) {
-            auto go = ctx.gos[i];
-            traverseGameObjectGlobalPosition(go, &ctx);
         }
 
         // # Calc collisions
