@@ -2,6 +2,7 @@
 #include <raymath.h>
 #include <iostream>
 #include <vector>
+#include "core.h"
 #include "engine.h"
 #include "view.h"
 #include "nodes.h"
@@ -53,7 +54,7 @@ class Player: public CharacterBody2D {
             Vector2 velocity = Vector2{},
             float speed = 5.0f,
             float maxVelocity = 10.0f
-        ) : CharacterBody2D(position, size, velocity)
+        ) : CharacterBody2D(position, size, velocity, MotionMode::Floating, Vector2Up)
         {
             this->speed = speed;
             this->maxVelocity = maxVelocity;   
@@ -95,11 +96,11 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
         this->velocity.x = 0;
     }
 
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
-
     // # World Boundaries
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
+
+    // # Velocity -> Position
+    this->ApplyVelocityToPosition();
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -138,8 +139,10 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
 
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
+    // // # Velocity -> Position
+    // this->ApplyVelocityToPosition();
+
+    this->MoveAndSlide(thisGO, ctx);
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -350,7 +353,13 @@ int main() {
             BLUE
         )
     );
-
+    playerRootNode->AddNode(
+        make_shared<Collider>(
+            ColliderType::Solid,
+            Shape::Rectangle({ 40.0f, 120.0f }),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
 
     auto enemyRootNode = make_shared<Enemy>(
         (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
@@ -368,6 +377,13 @@ int main() {
             RED
         )
     );
+    enemyRootNode->AddNode(
+        make_shared<Collider>(
+            ColliderType::Solid,
+            Shape::Rectangle({ 40.0f, 120.0f }),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
@@ -383,6 +399,14 @@ int main() {
             ballRadius
         )
     );
+    ballRootNode->AddNode(
+        make_shared<Collider>(
+            ColliderType::Solid,
+            Shape::Circle(ballRadius),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
+
     GameObject ball {
         ballRootNode,
     };
@@ -427,10 +451,10 @@ int main() {
         }
 
         // # Calc collisions
-        for (auto i = 0; i < ctx.gos.size(); i++) {
-            auto go = ctx.gos[i];
-            ballCollision(go, &ctx);
-        }
+        // for (auto i = 0; i < ctx.gos.size(); i++) {
+        //     auto go = ctx.gos[i];
+        //     ballCollision(go, &ctx);
+        // }
 
         //----------------------------------------------------------------------------------
 

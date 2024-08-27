@@ -1,6 +1,6 @@
 #include <raylib.h>
 #include "engine.h"
-#include "nodes.h"
+#include "character-body-node.h"
 
 #ifndef CDEBUG_H
 #define CDEBUG_H

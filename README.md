@@ -3,7 +3,8 @@
 # Roadmap
 
 1. Move and slide
-1. GO Store
+1. GO Storage
+1. Remove raylib
 1. Collision Event
 1. Debug (memory, performance)
 1. Goals
@@ -13,6 +14,10 @@
 1. Add units (meters, seconds, etc.)
 1. Fixed update
 1. Multithreading
+
+# Questions
+
+1. Do I need size in CharacterNode2D?
 
 # Useful Links
 

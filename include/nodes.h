@@ -54,19 +54,4 @@ class Node2D: public Node {
         }
 };
 
-class CharacterBody2D: public Node2D {
-    public:
-        Size size;
-        Vector2 velocity;
-        CharacterBody2D(Vector2 position, Size size, Vector2 velocity = Vector2{}, std::shared_ptr<Node> parent = nullptr) : Node2D(position, parent) {
-            this->size = size;
-            this->velocity = velocity;
-        }
-
-        void ApplyVelocityToPosition() {
-            this->position.x += this->velocity.x;
-            this->position.y += this->velocity.y;
-        }
-};
-
 #endif // CENGINE_NODES_H

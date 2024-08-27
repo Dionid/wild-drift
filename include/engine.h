@@ -106,13 +106,6 @@ void traverseGameObjectRender(GameObject* go, GameContext* ctx) {
     );
 }
 
-// # Types
-
-struct Size {
-    float width;
-    float height;
-};
-
 // # Delta
 const float FPS = 60.0f;
 const float secondsPerFrame = 1.0f / FPS;
