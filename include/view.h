@@ -1,6 +1,6 @@
 #include <raylib.h>
 #include "engine.h"
-#include "nodes.h"
+#include "node-2d.h"
 
 #ifndef CENGINE_VIEW_H
 #define CENGINE_VIEW_H

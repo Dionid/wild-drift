@@ -5,7 +5,7 @@
 #include "core.h"
 #include "engine.h"
 #include "view.h"
-#include "nodes.h"
+#include "node-2d.h"
 #include "collision.h"
 #include "debug.h"
 

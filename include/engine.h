@@ -5,7 +5,7 @@
 #ifndef CENGINE_H
 #define CENGINE_H
 
-// # Core
+// # GameContext
 
 class Node;
 
@@ -14,6 +14,8 @@ struct GameContext {
     float worldWidth;
     float worldHeight;
 };
+
+// # Renderer and Updater
 
 class Renderer {
     public:
@@ -24,6 +26,8 @@ class Updater {
     public:
         virtual void Update(GameContext* ctx) {};
 };
+
+// # Node
 
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:

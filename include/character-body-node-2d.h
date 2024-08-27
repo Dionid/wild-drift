@@ -1,6 +1,6 @@
 #include <raylib.h>
 #include "core.h"
-#include "nodes.h"
+#include "node-2d.h"
 #include "collision.h"
 
 #ifndef CENGINE_CHARACTER_BODY_NODE_H

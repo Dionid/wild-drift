@@ -1,8 +1,8 @@
 #include <memory>
 #include <raymath.h>
 #include "core.h"
-#include "nodes.h"
 #include "engine.h"
+#include "node-2d.h"
 
 #ifndef CENGINE_COLLISION_H
 #define CENGINE_COLLISION_H
