@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include "core.h"
 
 #ifndef CENGINE_H
 #define CENGINE_H
@@ -40,7 +41,7 @@ class Updater {
         virtual void Update(GameContext* ctx, GameObject* thisGO) {};
 };
 
-class Node: public Renderer, public Updater, public std::enable_shared_from_this<Node> {
+class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
         std::shared_ptr<Node> parent;

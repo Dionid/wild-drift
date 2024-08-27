@@ -100,8 +100,8 @@ void Player::Update(GameContext* ctx, GameObject* thisGO) {
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Velocity -> Position
-    // this->ApplyVelocityToPosition();
     this->MoveAndSlide(thisGO, ctx);
+    // this->ApplyVelocityToPosition();
 }
 
 void Player::Render(GameContext* ctx, GameObject* thisGO) {
@@ -128,22 +128,21 @@ class Ball: public CharacterBody2D {
 
         void Update(GameContext* ctx, GameObject* thisGO) override;
         void Render(GameContext* ctx, GameObject* thisGO) override;
+        void OnCollision(Collision c) override;
 };
+
+void Ball::OnCollision(Collision collision) {
+//     cout << "collision" << endl;
+//     this->velocity = Vector2Scale(
+//         Vector2Reflect(this->velocity, collision.hit.normal),
+//         2
+//     );
+}
 
 void Ball::Update(GameContext* ctx, GameObject* thisGO) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
     auto gos = ctx->gos;
-
-    // # Limit and normalize velocity
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
-
-    // // # Velocity -> Position
-    // this->ApplyVelocityToPosition();
-
-    this->MoveAndSlide(thisGO, ctx);
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -161,6 +160,32 @@ void Ball::Update(GameContext* ctx, GameObject* thisGO) {
         this->position.y = worldHeight - this->radius;
         this->velocity = Vector2Reflect(this->velocity, (Vector2){0, 1});
     }
+
+    // # Limit and normalize velocity
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    }
+
+    // auto collisionsVec = this->MoveAndCollide(thisGO, ctx);
+
+    // for (auto collision: collisionsVec) {
+    //     // # Resolve penetration
+    //     this->position = Vector2Add(
+    //         Vector2Add(
+    //             this->position,
+    //             this->velocity
+    //         ),
+    //         Vector2Scale(collision.hit.normal, collision.hit.penetration)
+    //     );
+
+    //     this->velocity = Vector2Scale(
+    //         Vector2Reflect(this->velocity, collision.hit.normal),
+    //         2
+    //     );
+    // }
+
+    // this->MoveAndSlide(thisGO, ctx);
+    this->ApplyVelocityToPosition();
 }
 
 void Ball::Render(GameContext* ctx, GameObject* thisGO) {
@@ -257,6 +282,7 @@ void Enemy::Update(GameContext* ctx, GameObject* thisGO) {
 
     // # Velocity -> Position
     this->MoveAndSlide(thisGO, ctx);
+    // this->ApplyVelocityToPosition();
 }
 
 void Enemy::Render(GameContext* ctx, GameObject* thisGO) {

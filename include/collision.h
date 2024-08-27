@@ -1,3 +1,4 @@
+#include <memory>
 #include <raymath.h>
 #include "core.h"
 #include "nodes.h"
@@ -5,6 +6,42 @@
 
 #ifndef CENGINE_COLLISION_H
 #define CENGINE_COLLISION_H
+
+// # Collision
+
+struct CollisionHit {
+    float penetration;
+    Vector2 normal;
+};
+
+CollisionHit CircleRectangleCollision(
+    Vector2 circlePosition,
+    float circleRadius,
+    Vector2 rectPosition,
+    Size rectSize
+) {
+    Vector2 closest = {
+        std::clamp(circlePosition.x, rectPosition.x - rectSize.width/2, rectPosition.x + rectSize.width/2),
+        std::clamp(circlePosition.y, rectPosition.y - rectSize.height/2, rectPosition.y + rectSize.height/2)
+    };
+
+    Vector2 distance = Vector2Subtract(circlePosition, closest);
+    float distanceLength = Vector2Length(distance);
+
+    if (distanceLength < circleRadius) {
+        return {
+            circleRadius - distanceLength,
+            Vector2Normalize(distance)
+        };
+    }
+
+    return {
+        0,
+        Vector2{}
+    };
+}
+
+// # Nodes
 
 enum class ColliderType {
     Solid,
@@ -57,36 +94,23 @@ class Collider: public Node2D {
         }
 };
 
-struct CollisionHit {
-    float penetration;
-    Vector2 normal;
+// # ColliderBody
+
+class CollisionObject2D;
+
+struct Collision {
+    CollisionHit hit;
+    std::shared_ptr<CollisionObject2D> other;
 };
 
-CollisionHit CircleRectangleCollision(
-    Vector2 circlePosition,
-    float circleRadius,
-    Vector2 rectPosition,
-    Size rectSize
-) {
-    Vector2 closest = {
-        std::clamp(circlePosition.x, rectPosition.x - rectSize.width/2, rectPosition.x + rectSize.width/2),
-        std::clamp(circlePosition.y, rectPosition.y - rectSize.height/2, rectPosition.y + rectSize.height/2)
-    };
+class CollisionObject2D: public Node2D {
+    public:
+        CollisionObject2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {}
+        virtual void OnCollision(Collision c) {}
 
-    Vector2 distance = Vector2Subtract(circlePosition, closest);
-    float distanceLength = Vector2Length(distance);
-
-    if (distanceLength < circleRadius) {
-        return {
-            circleRadius - distanceLength,
-            Vector2Normalize(distance)
-        };
-    }
-
-    return {
-        0,
-        Vector2{}
-    };
-}
+        virtual std::shared_ptr<CollisionObject2D> GetCollisionObject2DShared() {
+            return Node::downcasted_shared_from_this<CollisionObject2D>();
+        }
+};
 
 #endif //CENGINE_COLLISION_H
