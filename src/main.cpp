@@ -167,6 +167,35 @@ class Ball: public CharacterBody2D {
 
         void Update(GameContext* ctx) override;
         void OnCollision(Collision c) override;
+
+        static std::shared_ptr<Ball> NewBall(
+            float ballRadius,
+            float screenWidth,
+            float screenHeight,
+            float randomAngle
+        ) {
+            auto ball = make_shared<Ball>(
+                ballRadius,
+                (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+                (Size){ ballRadius*2, ballRadius*2 },
+                (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
+                7.0f
+            );
+            ball->AddNode(
+                make_shared<CircleView>(
+                    ballRadius
+                )
+            );
+            ball->AddNode(
+                make_shared<Collider>(
+                    ColliderType::Solid,
+                    Shape::Circle(ballRadius),
+                    (Vector2){ 0.0f, 0.0f }
+                )
+            );
+
+            return ball;
+        }
 };
 
 void Ball::OnCollision(Collision collision) {
@@ -240,6 +269,37 @@ class Enemy: public Paddle {
         }
 
         void Update(GameContext* ctx) override;
+
+        static std::shared_ptr<Enemy> NewEnemy(
+            Vector2 position,
+            Size size,
+            Vector2 velocity = Vector2{},
+            float speed = 5.0f,
+            float maxVelocity = 10.0f
+        ) {
+            auto enemy = make_shared<Enemy>(
+                position,
+                size,
+                velocity,
+                speed,
+                maxVelocity
+            );
+            enemy->AddNode(
+                make_shared<RectangleView>(
+                    size,
+                    RED
+                )
+            );
+            enemy->AddNode(
+                make_shared<Collider>(
+                    ColliderType::Solid,
+                    Shape::Rectangle(size),
+                    (Vector2){ 0.0f, 0.0f }
+                )
+            );
+
+            return enemy;
+        }
 };
 
 void Enemy::Update(GameContext* ctx) {
@@ -341,49 +401,22 @@ int main() {
         10.0f
     );
 
-    auto enemy = make_shared<Enemy>(
+    auto enemy = Enemy::NewEnemy(
         (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
         (Size){ 40.0f, 120.0f },
         (Vector2){ 0.0f, 0.0f },
         1.0f,
         10.0f
     );
-    enemy->AddNode(
-        make_shared<RectangleView>(
-            (Size){ 40.0f, 120.0f },
-            RED
-        )
-    );
-    enemy->AddNode(
-        make_shared<Collider>(
-            ColliderType::Solid,
-            Shape::Rectangle({ 40.0f, 120.0f }),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
-    auto ball = make_shared<Ball>(
+    auto ball = Ball::NewBall(
         ballRadius,
-        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-        (Size){ ballRadius*2, ballRadius*2 },
-        (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
+        screenWidth,
+        screenHeight,
         7.0f
     );
-    ball->AddNode(
-        make_shared<CircleView>(
-            ballRadius
-        )
-    );
-    ball->AddNode(
-        make_shared<Collider>(
-            ColliderType::Solid,
-            Shape::Circle(ballRadius),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
-
 
     // # Field
     auto line = make_shared<LineView>(
