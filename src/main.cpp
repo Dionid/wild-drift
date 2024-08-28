@@ -11,6 +11,13 @@
 
 using namespace std;
 
+const float FPS = 60.0f;
+const float secondsPerFrame = 1.0f / FPS;
+
+float DeltaTime() {
+    return GetFrameTime() / secondsPerFrame;
+}
+
 void CharacterApplyFriction(CharacterBody2D *c) {
     c->velocity.y *= .80f;
     c->velocity.x *= .80f;
@@ -167,6 +174,7 @@ class Ball: public CharacterBody2D {
 
         void Update(GameContext* ctx) override;
         void OnCollision(Collision c) override;
+        void OnCollisionStarted(Collision c) override;
 
         static std::shared_ptr<Ball> NewBall(
             float ballRadius,
@@ -198,6 +206,10 @@ class Ball: public CharacterBody2D {
         }
 };
 
+void Ball::OnCollisionStarted(Collision collision) {
+    this->velocity = Vector2Reflect(this->velocity, collision.hit.normal);
+}
+
 void Ball::OnCollision(Collision collision) {
     // # Resolve penetration
     this->position = Vector2Add(
@@ -205,25 +217,26 @@ void Ball::OnCollision(Collision collision) {
         Vector2Scale(collision.hit.normal, collision.hit.penetration)
     );
 
-    // # Reflect velocity
-    auto other = dynamic_pointer_cast<Paddle>(collision.other);
+    // # This is other valid way of resolving collision
+    // // # Reflect velocity
+    // auto other = dynamic_pointer_cast<Paddle>(collision.other);
 
-    if (other == nullptr) {
-        return;
-    }
+    // if (other == nullptr) {
+    //     return;
+    // }
 
-    // # Resolve velocity
-    // ## Calculate velocity separation
-    float velocitySeparation = Vector2DotProduct(
-        Vector2Subtract(this->velocity, other->velocity),
-        collision.hit.normal
-    );
+    // // # Resolve velocity
+    // // ## Calculate velocity separation
+    // float velocitySeparation = Vector2DotProduct(
+    //     Vector2Subtract(this->velocity, other->velocity),
+    //     collision.hit.normal
+    // );
 
-    // ## Apply velocity separation
-    this->velocity = Vector2Add(
-        this->velocity,
-        Vector2Scale(collision.hit.normal, -2 * velocitySeparation)
-    );
+    // // ## Apply velocity separation
+    // this->velocity = Vector2Add(
+    //     this->velocity,
+    //     Vector2Scale(collision.hit.normal, -2 * velocitySeparation)
+    // );
 }
 
 void Ball::Update(GameContext* ctx) {
@@ -441,6 +454,8 @@ int main() {
         screenHeight
     };
 
+    CollisionEngine collisionEngine;
+
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -454,7 +469,7 @@ int main() {
         }
 
         // # Collision
-        collisionCheck(&ctx);
+        collisionEngine.CollisionCheck(&ctx);
 
         //----------------------------------------------------------------------------------
 

@@ -108,6 +108,8 @@ class CollisionObject2D: public Node2D {
     public:
         CollisionObject2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {}
         virtual void OnCollision(Collision c) {}
+        virtual void OnCollisionStarted(Collision c) {}
+        virtual void OnCollisionEnded(Collision c) {}
 
         virtual std::shared_ptr<CollisionObject2D> GetCollisionObject2DShared() {
             return Node::downcasted_shared_from_this<CollisionObject2D>();
@@ -116,92 +118,193 @@ class CollisionObject2D: public Node2D {
 
 // # Checks
 
-void collisionCheck(
-    GameContext* ctx
-) {
-    for (auto i = 0; i < ctx->nodes.size(); i++) {
-        auto node = ctx->nodes[i];
+struct CollisionEvent {
+    CollisionHit hit;
+    std::shared_ptr<CollisionObject2D> collisionObjectA;
+    std::shared_ptr<Collider> colliderA;
+    std::shared_ptr<CollisionObject2D> collisionObjectB;
+    std::shared_ptr<Collider> colliderB;
+};
 
-        auto co = dynamic_pointer_cast<CollisionObject2D>(node);
-        if (co == nullptr) {
-            continue;
+class CollisionEngine {
+    public:
+        std::vector<CollisionEvent> collisionsEventVec;
+
+        CollisionEngine() {
+            this->collisionsEventVec = std::vector<CollisionEvent>();
         }
 
-        for (auto n: node->nodes) {
-            auto collider = dynamic_pointer_cast<Collider>(n);
+        void CollisionCheck(
+            GameContext* ctx
+        ) {
+            std::vector<CollisionEvent> currentCollisions;
 
-            if (collider == nullptr) {
-                continue;
-            }
+            for (auto i = 0; i < ctx->nodes.size(); i++) {
+                auto node = ctx->nodes[i];
 
-            for (auto j = i + 1; j < ctx->nodes.size(); j++) {
-                auto otherNode = ctx->nodes[j];
-
-                if (otherNode == node) {
+                auto co = dynamic_pointer_cast<CollisionObject2D>(node);
+                if (co == nullptr) {
                     continue;
                 }
 
-                auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherNode);
-                if (otherCo == nullptr) {
-                    continue;
-                }
+                for (auto n: node->nodes) {
+                    auto collider = dynamic_pointer_cast<Collider>(n);
 
-                for (auto on: otherNode->nodes) {
-                    auto otherCollider = dynamic_pointer_cast<Collider>(on);
-
-                    if (otherCollider == nullptr) {
+                    if (collider == nullptr) {
                         continue;
                     }
 
-                    auto collision = CollisionHit{0, Vector2{}};
+                    for (auto j = i + 1; j < ctx->nodes.size(); j++) {
+                        auto otherNode = ctx->nodes[j];
 
-                    switch (collider->shape.type) {
-                        case Shape::Type::RECTANGLE:
-                            switch (otherCollider->shape.type) {
+                        if (otherNode == node) {
+                            continue;
+                        }
+
+                        auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                        if (otherCo == nullptr) {
+                            continue;
+                        }
+
+                        for (auto on: otherNode->nodes) {
+                            auto otherCollider = dynamic_pointer_cast<Collider>(on);
+
+                            if (otherCollider == nullptr) {
+                                continue;
+                            }
+
+                            auto collision = CollisionHit{0, Vector2{}};
+
+                            switch (collider->shape.type) {
                                 case Shape::Type::RECTANGLE:
+                                    switch (otherCollider->shape.type) {
+                                        case Shape::Type::RECTANGLE:
+                                            break;
+                                        case Shape::Type::CIRCLE:
+                                            collision = CircleRectangleCollision(
+                                                otherCollider->GlobalPosition(),
+                                                otherCollider->shape.circle.radius,
+                                                collider->GlobalPosition(),
+                                                collider->shape.rect.size
+                                            );
+                                            break;
+                                    }
                                     break;
                                 case Shape::Type::CIRCLE:
-                                    collision = CircleRectangleCollision(
-                                        otherCollider->GlobalPosition(),
-                                        otherCollider->shape.circle.radius,
-                                        collider->GlobalPosition(),
-                                        collider->shape.rect.size
-                                    );
+                                    switch (otherCollider->shape.type) {
+                                        case Shape::Type::RECTANGLE:
+                                            collision = CircleRectangleCollision(
+                                                collider->GlobalPosition(),
+                                                collider->shape.circle.radius,
+                                                otherCollider->GlobalPosition(),
+                                                otherCollider->shape.rect.size
+                                            );
+                                            break;
+                                        case Shape::Type::CIRCLE:
+                                            break;
+                                    }
                                     break;
                             }
-                            break;
-                        case Shape::Type::CIRCLE:
-                            switch (otherCollider->shape.type) {
-                                case Shape::Type::RECTANGLE:
-                                    collision = CircleRectangleCollision(
-                                        collider->GlobalPosition(),
-                                        collider->shape.circle.radius,
-                                        otherCollider->GlobalPosition(),
-                                        otherCollider->shape.rect.size
-                                    );
-                                    break;
-                                case Shape::Type::CIRCLE:
-                                    break;
-                            }
-                            break;
-                    }
 
-                    if (collision.penetration > 0) {
-                        co->OnCollision({
-                            collision,
-                            collider,
-                            otherCo
-                        });
-                        otherCo->OnCollision({
-                            collision,
-                            otherCollider,
-                            co
-                        });
+                            if (collision.penetration > 0) {
+                                currentCollisions.push_back({
+                                    collision,
+                                    co,
+                                    collider,
+                                    otherCo,
+                                    otherCollider
+                                });
+                            }
+                        }
+                    } 
+                }
+            }
+
+            std::vector<CollisionEvent> newCollisions;
+
+            for (auto collision: currentCollisions) {
+                bool found = false;
+
+                for (auto oldCollision: this->collisionsEventVec) {
+                    if (
+                        (oldCollision.collisionObjectA == collision.collisionObjectB &&
+                        oldCollision.collisionObjectB == collision.collisionObjectA) || 
+                        (oldCollision.collisionObjectA == collision.collisionObjectA &&
+                        oldCollision.collisionObjectB == collision.collisionObjectB)
+                    ) {
+                        found = true;
+                        break;
                     }
                 }
-            } 
+
+                if (!found) {
+                    newCollisions.push_back(collision);
+                }
+            }
+
+            std::vector<CollisionEvent> endedCollisions;
+
+            for (auto oldCollision: this->collisionsEventVec) {
+                bool found = false;
+
+                for (auto collision: currentCollisions) {
+                    if (
+                        (oldCollision.collisionObjectA == collision.collisionObjectB &&
+                        oldCollision.collisionObjectB == collision.collisionObjectA) || 
+                        (oldCollision.collisionObjectA == collision.collisionObjectA &&
+                        oldCollision.collisionObjectB == collision.collisionObjectB)
+                    ) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    endedCollisions.push_back(oldCollision);
+                }
+            }
+
+            for (auto collision: newCollisions) {
+                collision.collisionObjectA->OnCollisionStarted({
+                    collision.hit,
+                    collision.colliderA,
+                    collision.collisionObjectB,
+                });
+                collision.collisionObjectB->OnCollisionStarted({
+                    collision.hit,
+                    collision.colliderB,
+                    collision.collisionObjectA,
+                });
+            }
+
+            for (auto collision: currentCollisions) {
+                collision.collisionObjectA->OnCollision({
+                    collision.hit,
+                    collision.colliderA,
+                    collision.collisionObjectB,
+                });
+                collision.collisionObjectB->OnCollision({
+                    collision.hit,
+                    collision.colliderB,
+                    collision.collisionObjectA,
+                });
+            }
+
+            for (auto collision: endedCollisions) {
+                collision.collisionObjectA->OnCollisionEnded({
+                    collision.hit,
+                    collision.colliderA,
+                    collision.collisionObjectB,
+                });
+                collision.collisionObjectB->OnCollisionEnded({
+                    collision.hit,
+                    collision.colliderB,
+                    collision.collisionObjectA,
+                });
+            }
+
+            this->collisionsEventVec = currentCollisions;
         }
-    }
-}
+};
 
 #endif //CENGINE_COLLISION_H
