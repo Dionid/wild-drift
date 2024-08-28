@@ -151,7 +151,6 @@ void Player::Update(GameContext* ctx) {
     CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
 
     // # Velocity -> Position
-    // this->MoveAndSlide(thisGO, ctx);
     this->ApplyVelocityToPosition();
 }
 
@@ -381,7 +380,6 @@ void Enemy::Update(GameContext* ctx) {
     CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
 
     // # Velocity -> Position
-    // this->MoveAndSlide(thisGO, ctx);
     this->ApplyVelocityToPosition();
 }
 
@@ -469,7 +467,7 @@ int main() {
         }
 
         // # Collision
-        collisionEngine.CollisionCheck(&ctx);
+        collisionEngine.NarrowCollisionCheckNaive(&ctx);
 
         //----------------------------------------------------------------------------------
 
