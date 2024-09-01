@@ -26,6 +26,19 @@ public:
     std::shared_ptr<Down> downcasted_shared_from_this() {
         return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::shared_from_this());
     }
+
+    std::weak_ptr<T> weak_from_this() {
+        if (auto shared = MultipleInheritableEnableSharedFromThis::shared_from_this()) {
+            return std::dynamic_pointer_cast<T>(shared);
+        }
+
+        return std::weak_ptr<T>();
+    }
+
+    template <class Down>
+    std::weak_ptr<Down> downcasted_weak_from_this() {
+        return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::weak_from_this());
+    }
 };
 
 // # Constants

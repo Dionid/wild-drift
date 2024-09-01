@@ -142,13 +142,13 @@ class CollisionEngine {
             for (auto i = 0; i < ctx->nodes.size(); i++) {
                 auto node = ctx->nodes[i];
 
-                auto co = dynamic_pointer_cast<CollisionObject2D>(node);
+                auto co = std::dynamic_pointer_cast<CollisionObject2D>(node);
                 if (co == nullptr) {
                     continue;
                 }
 
                 for (auto n: node->nodes) {
-                    auto collider = dynamic_pointer_cast<Collider>(n);
+                    auto collider = std::dynamic_pointer_cast<Collider>(n);
 
                     if (collider == nullptr) {
                         continue;
@@ -161,13 +161,13 @@ class CollisionEngine {
                             continue;
                         }
 
-                        auto otherCo = dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                        auto otherCo = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
                         if (otherCo == nullptr) {
                             continue;
                         }
 
                         for (auto on: otherNode->nodes) {
-                            auto otherCollider = dynamic_pointer_cast<Collider>(on);
+                            auto otherCollider = std::dynamic_pointer_cast<Collider>(on);
 
                             if (otherCollider == nullptr) {
                                 continue;

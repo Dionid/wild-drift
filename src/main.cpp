@@ -9,8 +9,6 @@
 #include "collision.h"
 #include "debug.h"
 
-using namespace std;
-
 const float FPS = 60.0f;
 const float secondsPerFrame = 1.0f / FPS;
 
@@ -72,8 +70,8 @@ class Paddle: public CharacterBody2D {
 // # Player
 class Player: public Paddle {
     public:
-        shared_ptr<RectangleView> view;
-        shared_ptr<Collider> collider;
+        std::shared_ptr<RectangleView> view;
+        std::shared_ptr<Collider> collider;
 
         Player(
             Vector2 position,
@@ -85,24 +83,24 @@ class Player: public Paddle {
         { 
         }
 
-        static shared_ptr<Player> NewPlayer(
+        static std::shared_ptr<Player> NewPlayer(
             Vector2 position,
             Size size,
             Vector2 velocity = Vector2{},
             float speed = 5.0f,
             float maxVelocity = 10.0f
         ) {
-            auto player = make_shared<Player>(position, size, velocity, speed, maxVelocity);
+            auto player = std::make_shared<Player>(position, size, velocity, speed, maxVelocity);
 
             player->view = player->AddNode(
-                make_shared<RectangleView>(
+                std::make_shared<RectangleView>(
                     size,
                     BLUE
                 )
             );
 
             player->collider = player->AddNode(
-                make_shared<Collider>(
+                std::make_shared<Collider>(
                     ColliderType::Solid,
                     Shape::Rectangle(size),
                     (Vector2){ 0.0f, 0.0f }
@@ -181,7 +179,7 @@ class Ball: public CharacterBody2D {
             float screenHeight,
             float randomAngle
         ) {
-            auto ball = make_shared<Ball>(
+            auto ball = std::make_shared<Ball>(
                 ballRadius,
                 (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
                 (Size){ ballRadius*2, ballRadius*2 },
@@ -189,12 +187,12 @@ class Ball: public CharacterBody2D {
                 7.0f
             );
             ball->AddNode(
-                make_shared<CircleView>(
+                std::make_shared<CircleView>(
                     ballRadius
                 )
             );
             ball->AddNode(
-                make_shared<Collider>(
+                std::make_shared<Collider>(
                     ColliderType::Solid,
                     Shape::Circle(ballRadius),
                     (Vector2){ 0.0f, 0.0f }
@@ -289,7 +287,7 @@ class Enemy: public Paddle {
             float speed = 5.0f,
             float maxVelocity = 10.0f
         ) {
-            auto enemy = make_shared<Enemy>(
+            auto enemy = std::make_shared<Enemy>(
                 position,
                 size,
                 velocity,
@@ -297,13 +295,13 @@ class Enemy: public Paddle {
                 maxVelocity
             );
             enemy->AddNode(
-                make_shared<RectangleView>(
+                std::make_shared<RectangleView>(
                     size,
                     RED
                 )
             );
             enemy->AddNode(
-                make_shared<Collider>(
+                std::make_shared<Collider>(
                     ColliderType::Solid,
                     Shape::Rectangle(size),
                     (Vector2){ 0.0f, 0.0f }
@@ -328,7 +326,7 @@ void Enemy::Update(GameContext* ctx) {
             continue;
         }
 
-        auto ball = dynamic_pointer_cast<Ball>(node);
+        auto ball = std::dynamic_pointer_cast<Ball>(node);
         if (ball == nullptr) {
             continue;
         }
@@ -430,14 +428,14 @@ int main() {
     );
 
     // # Field
-    auto line = make_shared<LineView>(
+    auto line = std::make_shared<LineView>(
         (Vector2){ screenWidth/2.0f, 80 },
         screenHeight - 160,
         WHITE,
         0.5f
     );
 
-    auto circle = make_shared<CircleView>(
+    auto circle = std::make_shared<CircleView>(
         80,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         WHITE,

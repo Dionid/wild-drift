@@ -72,7 +72,7 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
 
                     if (otherCollisionObject == nullptr) {
                         continue;
@@ -173,7 +173,7 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
 
                     if (otherCollisionObject == nullptr) {
                         continue;

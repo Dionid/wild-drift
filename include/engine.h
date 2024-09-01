@@ -32,10 +32,10 @@ class Updater {
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
         std::vector<std::shared_ptr<Node>> nodes;
-        std::shared_ptr<Node> parent;
+        std::weak_ptr<Node> parent;
 
         Node(
-            std::shared_ptr<Node> parent = nullptr
+            std::weak_ptr<Node> parent = std::weak_ptr<Node>()
         ) {
             this->parent = parent;
         }
@@ -48,12 +48,12 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
             return node;
         }
 
-        std::shared_ptr<Node> RootNode() {
-            if (this->parent == nullptr) {
-                return shared_from_this();
+        std::weak_ptr<Node> RootNode() {
+            if (auto pt = this->parent.lock()) {
+                return pt->RootNode();
             }
 
-            return this->parent->RootNode();
+            return weak_from_this();
         }
 
         void TraverseNodeUpdate(GameContext* ctx) {
