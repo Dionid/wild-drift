@@ -48,6 +48,10 @@ constexpr Vector2 Vector2Down {0, 1};
 constexpr Vector2 Vector2Left {-1, 0};
 constexpr Vector2 Vector2Right {1, 0};
 
+inline Vector2 Vector2Abs(Vector2 v) {
+    return { fabs(v.x), fabs(v.y) };
+};
+
 // # Structs
 
 struct Size {

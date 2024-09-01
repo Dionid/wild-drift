@@ -14,7 +14,7 @@ struct CollisionHit {
     Vector2 normal;
 };
 
-RMAPI CollisionHit CircleRectangleCollision(
+static CollisionHit CircleRectangleCollision(
     Vector2 circlePosition,
     float circleRadius,
     Vector2 rectPosition,
@@ -31,6 +31,65 @@ RMAPI CollisionHit CircleRectangleCollision(
     if (distanceLength < circleRadius) {
         return {
             circleRadius - distanceLength,
+            Vector2Normalize(distance)
+        };
+    }
+
+    return {
+        0,
+        Vector2{}
+    };
+}
+
+static CollisionHit RectangleRectangleCollision(
+    Vector2 positionA,
+    Size sizeA,
+    Vector2 positionB,
+    Size sizeB
+) {
+    Vector2 distance = Vector2Subtract(positionA, positionB);
+
+    Vector2 halfSizeA = {
+        sizeA.width/2,
+        sizeA.height/2
+    };
+
+    Vector2 halfSizeB = {
+        sizeB.width/2,
+        sizeB.height/2
+    };
+
+    Vector2 overlap = Vector2Subtract(
+        Vector2Add(halfSizeA, halfSizeB),
+        Vector2Abs(distance)
+    );
+
+    if (overlap.x > 0 && overlap.y > 0) {
+        return {
+            std::min(overlap.x, overlap.y),
+            Vector2Normalize(distance)
+        };
+    }
+
+    return {
+        0,
+        Vector2{}
+    };
+}
+
+static CollisionHit CircleCircleCollision(
+    Vector2 positionA,
+    float radiusA,
+    Vector2 positionB,
+    float radiusB
+) {
+    Vector2 distance = Vector2Subtract(positionA, positionB);
+
+    float distanceLength = Vector2Length(distance);
+
+    if (distanceLength < radiusA + radiusB) {
+        return {
+            radiusA + radiusB - distanceLength,
             Vector2Normalize(distance)
         };
     }
@@ -175,6 +234,12 @@ class CollisionEngine {
                                 case Shape::Type::RECTANGLE:
                                     switch (otherCollider->shape.type) {
                                         case Shape::Type::RECTANGLE:
+                                            collision = RectangleRectangleCollision(
+                                                collider->GlobalPosition(),
+                                                collider->shape.rect.size,
+                                                otherCollider->GlobalPosition(),
+                                                otherCollider->shape.rect.size
+                                            );
                                             break;
                                         case Shape::Type::CIRCLE:
                                             collision = CircleRectangleCollision(
@@ -197,6 +262,12 @@ class CollisionEngine {
                                             );
                                             break;
                                         case Shape::Type::CIRCLE:
+                                            collision = CircleCircleCollision(
+                                                collider->GlobalPosition(),
+                                                collider->shape.circle.radius,
+                                                otherCollider->GlobalPosition(),
+                                                otherCollider->shape.circle.radius
+                                            );
                                             break;
                                     }
                                     break;
