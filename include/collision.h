@@ -110,10 +110,6 @@ class CollisionObject2D: public Node2D {
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
         virtual void OnCollisionEnded(Collision c) {}
-
-        virtual std::shared_ptr<CollisionObject2D> GetCollisionObject2DShared() {
-            return Node::downcasted_shared_from_this<CollisionObject2D>();
-        }
 };
 
 // # Checks

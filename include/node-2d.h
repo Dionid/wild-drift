@@ -12,12 +12,22 @@ class Node2D: public Node {
             this->position = position;
         }
 
-        Vector2 GlobalPosition() {
+        Node2D* ClosestNode2DParent() {
             auto currentParent = this->parent.lock();
             if (currentParent == nullptr) {
-                return this->position;
+                return nullptr;
             }
 
+            auto parent = std::dynamic_pointer_cast<Node2D>(currentParent);
+
+            if (parent != nullptr) {
+                return parent.get();
+            }
+
+            return parent->ClosestNode2DParent();
+        }
+
+        Vector2 GlobalPosition() {
             auto parent = this->ClosestNode2DParent();
 
             if (parent == nullptr) {
@@ -27,27 +37,7 @@ class Node2D: public Node {
             return Vector2Add(parent->GlobalPosition(), this->position);
         }
 
-        std::shared_ptr<Node2D> ClosestNode2DParent() {
-            auto currentParent = this->parent.lock();
-            if (currentParent == nullptr) {
-                return nullptr;
-            }
-
-            auto parent = std::dynamic_pointer_cast<Node2D>(currentParent);
-
-            if (parent != nullptr) {
-                return parent;
-            }
-
-            return parent->ClosestNode2DParent();
-        }
-
         Node2D* RootNode2D() {
-            auto currentParent = this->parent.lock();
-            if (currentParent == nullptr) {
-                return this;
-            }
-
             auto p = this->ClosestNode2DParent();
 
             if (p == nullptr) {

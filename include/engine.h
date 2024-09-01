@@ -31,8 +31,8 @@ class Updater {
 
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
-        std::vector<std::shared_ptr<Node>> nodes;
         std::weak_ptr<Node> parent;
+        std::vector<std::shared_ptr<Node>> nodes;
 
         Node(
             std::weak_ptr<Node> parent = std::weak_ptr<Node>()
@@ -41,19 +41,19 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         }
 
         template <typename T>
-        std::shared_ptr<T> AddNode(std::shared_ptr<T> node) {
+        std::weak_ptr<T> AddNode(std::shared_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = shared_from_this();
             this->nodes.push_back(node);
             return node;
         }
 
-        std::weak_ptr<Node> RootNode() {
+        Node* RootNode() {
             if (auto pt = this->parent.lock()) {
                 return pt->RootNode();
             }
 
-            return weak_from_this();
+            return this;
         }
 
         void TraverseNodeUpdate(GameContext* ctx) {

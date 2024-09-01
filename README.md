@@ -2,12 +2,12 @@
 
 # Roadmap
 
-1. Fix child parent reference to weak_ptr
 1. Refs
     1. const references
+    1. `no except`
 1. GO Storage
-1. Remove RTTI
 1. unique_ptr
+1. name convention
 1. Remove raylib
 1. Debug (memory, performance)
 1. Goals

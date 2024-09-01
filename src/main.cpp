@@ -16,37 +16,6 @@ float DeltaTime() {
     return GetFrameTime() / secondsPerFrame;
 }
 
-void CharacterApplyFriction(CharacterBody2D *c) {
-    c->velocity.y *= .80f;
-    c->velocity.x *= .80f;
-
-    if (c->velocity.x < 0.01 && c->velocity.x > -0.01) {
-        c->velocity.x = 0;
-    }
-
-    if (c->velocity.y < 0.01 && c->velocity.y > -0.01) {
-        c->velocity.y = 0;
-    }
-}
-
-void CharacterApplyWorldBoundaries(CharacterBody2D *c, float worldWidth, float worldHeight) {
-    if (c->position.x - c->size.width/2 < 0) {
-        c->position.x = c->size.width/2;
-        c->velocity.x = 0;
-    } else if (c->position.x + c->size.width/2 > worldWidth) {
-        c->position.x = worldWidth - c->size.width/2;
-        c->velocity.x = 0;
-    }
-
-    if (c->position.y - c->size.height/2 < 0) {
-        c->position.y = c->size.height/2;
-        c->velocity.y = 0;
-    } else if (c->position.y + c->size.height/2 > worldHeight) {
-        c->position.y = worldHeight - c->size.height/2;
-        c->velocity.y = 0;
-    }
-}
-
 // # Paddle
 
 class Paddle: public CharacterBody2D {
@@ -65,13 +34,46 @@ class Paddle: public CharacterBody2D {
             this->speed = speed;
             this->maxVelocity = maxVelocity;
         }
+
+        // TODO: Move constants to props
+        void ApplyFriction() {
+            this->velocity.y *= .80f;
+            this->velocity.x *= .80f;
+
+            if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
+                this->velocity.x = 0;
+            }
+
+            if (this->velocity.y < 0.01 && this->velocity.y > -0.01) {
+                this->velocity.y = 0;
+            }
+        }
+
+        // TODO: Move constants to props
+        void ApplyWorldBoundaries(float worldWidth, float worldHeight) {
+            if (this->position.x - this->size.width/2 < 0) {
+                this->position.x = this->size.width/2;
+                this->velocity.x = 0;
+            } else if (this->position.x + this->size.width/2 > worldWidth) {
+                this->position.x = worldWidth - this->size.width/2;
+                this->velocity.x = 0;
+            }
+
+            if (this->position.y - this->size.height/2 < 0) {
+                this->position.y = this->size.height/2;
+                this->velocity.y = 0;
+            } else if (this->position.y + this->size.height/2 > worldHeight) {
+                this->position.y = worldHeight - this->size.height/2;
+                this->velocity.y = 0;
+            }
+        }
 };
 
 // # Player
 class Player: public Paddle {
     public:
-        std::shared_ptr<RectangleView> view;
-        std::shared_ptr<Collider> collider;
+        std::weak_ptr<RectangleView> view;
+        std::weak_ptr<Collider> collider;
 
         Player(
             Vector2 position,
@@ -137,7 +139,7 @@ void Player::Update(GameContext* ctx) {
     }
 
     // # Friction
-    CharacterApplyFriction(this);
+    this->ApplyFriction();
 
     // # Field boundaries
     if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
@@ -146,7 +148,7 @@ void Player::Update(GameContext* ctx) {
     }
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(this, ctx->worldWidth, ctx->worldHeight);
+    this->ApplyWorldBoundaries(ctx->worldWidth, ctx->worldHeight);
 
     // # Velocity -> Position
     this->ApplyVelocityToPosition();
@@ -214,7 +216,7 @@ void Ball::OnCollision(Collision collision) {
         Vector2Scale(collision.hit.normal, collision.hit.penetration)
     );
 
-    // # This is other valid way of resolving collision
+    // NOTE: This is other valid way of resolving collision
     // // # Reflect velocity
     // auto other = dynamic_pointer_cast<Paddle>(collision.other);
 
@@ -366,7 +368,7 @@ void Enemy::Update(GameContext* ctx) {
     }
 
     // # Friction
-    CharacterApplyFriction(this);
+    this->ApplyFriction();
 
     // # Field boundaries
     if (this->position.x - this->size.width/2 < worldWidth/2) {
@@ -375,7 +377,7 @@ void Enemy::Update(GameContext* ctx) {
     }
 
     // # World Boundaries
-    CharacterApplyWorldBoundaries(this, worldWidth, worldHeight);
+    this->ApplyWorldBoundaries(worldWidth, worldHeight);
 
     // # Velocity -> Position
     this->ApplyVelocityToPosition();
