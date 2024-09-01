@@ -2,9 +2,6 @@
 
 # Roadmap
 
-1. Refs
-    1. const references
-    1. `no except`
 1. GO Storage
 1. unique_ptr
 1. name convention

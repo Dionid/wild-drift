@@ -1,8 +1,8 @@
-#include <memory>
-#include <raymath.h>
-
 #ifndef CENGINE_CORE_H
 #define CENGINE_CORE_H
+
+#include <memory>
+#include <raymath.h>
 
 // # Shared pointers
 

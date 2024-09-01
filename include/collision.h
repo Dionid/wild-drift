@@ -1,11 +1,11 @@
+#ifndef CENGINE_COLLISION_H
+#define CENGINE_COLLISION_H
+
 #include <memory>
 #include <raymath.h>
 #include "core.h"
 #include "engine.h"
 #include "node-2d.h"
-
-#ifndef CENGINE_COLLISION_H
-#define CENGINE_COLLISION_H
 
 // # Collision
 
@@ -14,7 +14,7 @@ struct CollisionHit {
     Vector2 normal;
 };
 
-CollisionHit CircleRectangleCollision(
+RMAPI CollisionHit CircleRectangleCollision(
     Vector2 circlePosition,
     float circleRadius,
     Vector2 rectPosition,
