@@ -1,7 +1,7 @@
 #ifndef CSP_ENTITY_H_
 #define CSP_ENTITY_H_
 
-#include "cengine.h"
+#include "cengine/cengine.h"
 
 // # Paddle
 class Paddle: public CharacterBody2D {
