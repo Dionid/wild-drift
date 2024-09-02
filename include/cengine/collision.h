@@ -202,7 +202,7 @@ class CollisionEngine {
                     continue;
                 }
 
-                for (const auto& n: node->nodes) {
+                for (const auto& n: node->children) {
                     auto collider = dynamic_cast<Collider*>(n.get());
 
                     if (collider == nullptr) {
@@ -221,7 +221,7 @@ class CollisionEngine {
                             continue;
                         }
 
-                        for (const auto& on: otherNode->nodes) {
+                        for (const auto& on: otherNode->children) {
                             auto otherCollider = dynamic_cast<Collider*>(on.get());
 
                             if (otherCollider == nullptr) {

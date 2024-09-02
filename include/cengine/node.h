@@ -22,9 +22,8 @@ class Updater {
 
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
-        
         Node* parent;
-        std::vector<std::unique_ptr<Node>> nodes;
+        std::vector<std::unique_ptr<Node>> children;
 
         Node(
             Node* parent = nullptr
@@ -37,11 +36,42 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = this;
             auto ptr = node.get();
-            this->nodes.push_back(std::move(node));
+            this->children.push_back(std::move(node));
             return ptr;
         }
 
-        // TODO: RemoveNode
+        template <typename T>
+        std::vector<Node*> GetByType() {
+            std::vector<Node*> nodes;
+
+            for (const auto& node: this->children) {
+                if (dynamic_cast<T*>(node.get())) {
+                    nodes.push_back(node.get());
+                }
+            }
+
+            return nodes;
+        }
+
+        template <typename T>
+        Node* GetFirstByType() {
+            for (const auto& node: this->children) {
+                if (dynamic_cast<T*>(node.get())) {
+                    return node.get();
+                }
+            }
+
+            return nullptr;
+        }
+
+        void RemoveNode(Node* node) {
+            for (auto it = this->children.begin(); it != this->children.end(); it++) {
+                if (it->get() == node) {
+                    this->children.erase(it);
+                    return;
+                }
+            }
+        }
 
         Node* RootNode() {
             if (this->parent != nullptr) {
@@ -53,14 +83,14 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
 
         void TraverseNodeUpdate(GameContext* ctx) {
             this->Update(ctx);
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->children) {
                 node->TraverseNodeUpdate(ctx);
             }
         }
 
         void TraverseNodeRender(GameContext* ctx) {
             this->Render(ctx);
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->children) {
                 node->TraverseNodeRender(ctx);
             }
         }

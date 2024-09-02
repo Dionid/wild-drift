@@ -24,6 +24,17 @@ class NodeStorage {
 
             return nodes;
         }
+
+        template <typename T>
+        Node* GetFirstByType() {
+            for (const auto& node: this->nodes) {
+                if (dynamic_cast<T*>(node.get())) {
+                    return node.get();
+                }
+            }
+
+            return nullptr;
+        }
 };
 
 #endif // CENGINE_STORAGE_H_

@@ -55,7 +55,7 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->children) {
                 auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
@@ -79,7 +79,7 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: recursive nodes
-                    for (const auto& otherN: otherNode->nodes) {
+                    for (const auto& otherN: otherNode->children) {
                         auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
@@ -156,7 +156,7 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->children) {
                 auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
@@ -180,7 +180,7 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: recursive nodes
-                    for (const auto& otherN: otherNode->nodes) {
+                    for (const auto& otherN: otherNode->children) {
                         auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
