@@ -1,9 +1,9 @@
-#include <raylib.h>
-#include "engine.h"
-#include "node-2d.h"
+#ifndef CENGINE_VIEW_H_
+#define CENGINE_VIEW_H_
 
-#ifndef CENGINE_VIEW_H
-#define CENGINE_VIEW_H
+#include <raylib.h>
+#include "node.h"
+#include "node-2d.h"
 
 // # Views
 
@@ -75,4 +75,4 @@ class RectangleView: public Node2D {
         }
 };
 
-#endif // CENGINE_VIEW_H
+#endif // CENGINE_VIEW_H_

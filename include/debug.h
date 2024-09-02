@@ -1,9 +1,10 @@
-#include <raylib.h>
-#include "engine.h"
-#include "character-body-node-2d.h"
+#ifndef CENGINE_DEBUG_H_
+#define CENGINE_DEBUG_H_
 
-#ifndef CDEBUG_H
-#define CDEBUG_H
+#include <raylib.h>
+#include "game_context.h"
+#include "node.h"
+#include "character_body_node_2d.h"
 
 class Debugger: public Renderer {
     public:
@@ -27,4 +28,4 @@ class Debugger: public Renderer {
         }
 };
 
-#endif // CDEBUG_H
+#endif // CENGINE_DEBUG_H_

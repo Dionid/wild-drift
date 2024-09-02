@@ -1,10 +1,10 @@
-#include <raylib.h>
+#ifndef CENGINE_CHARACTER_BODY_NODE_H
+#define CENGINE_CHARACTER_BODY_NODE_H
+
+#include <raymath.h>
 #include "core.h"
 #include "node-2d.h"
 #include "collision.h"
-
-#ifndef CENGINE_CHARACTER_BODY_NODE_H
-#define CENGINE_CHARACTER_BODY_NODE_H
 
 enum class MotionMode {
     Floating,

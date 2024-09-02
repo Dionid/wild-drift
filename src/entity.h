@@ -1,8 +1,7 @@
-#ifndef CSP_ENTITY_H
-#define CSP_ENTITY_H
+#ifndef CSP_ENTITY_H_
+#define CSP_ENTITY_H_
 
-#include <raymath.h>
-#include "character-body-node-2d.h"
+#include "cengine.h"
 
 // # Paddle
 class Paddle: public CharacterBody2D {
@@ -92,4 +91,4 @@ class Ball: public CharacterBody2D {
         );
 };
 
-#endif // CSP_ENTITY_H
+#endif // CSP_ENTITY_H_

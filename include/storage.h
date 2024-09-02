@@ -1,5 +1,8 @@
+#ifndef CENGINE_STORAGE_H_
+#define CENGINE_STORAGE_H_
+
 #include <vector>
-#include "engine.h"
+#include "node.h"
 
 class NodesStorage {
     public:
@@ -22,3 +25,5 @@ class NodesStorage {
             return nodes;
         }
 };
+
+#endif // CENGINE_STORAGE_H_

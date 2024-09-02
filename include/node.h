@@ -1,19 +1,10 @@
+#ifndef CENGINE_NODE_H_
+#define CENGINE_NODE_H_
+
 #include <vector>
 #include <iostream>
 #include "core.h"
-
-#ifndef CENGINE_H
-#define CENGINE_H
-
-// # GameContext
-
-class Node;
-
-struct GameContext {
-    std::vector<std::shared_ptr<Node>> nodes;
-    float worldWidth;
-    float worldHeight;
-};
+#include "game_context.h"
 
 // # Renderer and Updater
 
@@ -44,8 +35,9 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = shared_from_this();
+            auto ptr = node.get();
             this->nodes.push_back(std::move(node));
-            return node.get();
+            return ptr;
         }
 
         // TODO: RemoveNode
@@ -73,4 +65,4 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         }
 };
 
-#endif // CENGINE_H
+#endif // CENGINE_NODE_H_

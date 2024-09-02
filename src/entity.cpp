@@ -1,8 +1,5 @@
-#include <raylib.h>
-#include "view.h"
-#include "core.h"
-#include "utils.h"
 #include "entity.h"
+#include "utils.h"
 
 // # Paddle
 

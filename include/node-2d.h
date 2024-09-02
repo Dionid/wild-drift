@@ -1,8 +1,8 @@
-#include <raylib.h>
-#include "engine.h"
-
 #ifndef CENGINE_NODES_H
 #define CENGINE_NODES_H
+
+#include <raymath.h>
+#include "node.h"
 
 class Node2D: public Node {
     public:
