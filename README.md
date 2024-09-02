@@ -3,8 +3,11 @@
 # Roadmap
 
 1. GO Storage
-1. unique_ptr
-1. name convention
+    1. Node id
+    1. NodeClass Id
+    1. unique_ptr
+1. Custom RTTI
+1. name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
 1. Remove raylib
 1. Debug (memory, performance)
 1. Goals

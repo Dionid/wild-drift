@@ -4,7 +4,7 @@
 #include <memory>
 #include <raymath.h>
 #include "core.h"
-#include "engine.h"
+#include "node.h"
 #include "node-2d.h"
 
 // # Collision
@@ -147,7 +147,7 @@ class Collider: public Node2D {
         ColliderType type;
         Shape shape;
 
-        Collider(ColliderType type, Shape shape, Vector2 position, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        Collider(ColliderType type, Shape shape, Vector2 position, Node* parent = nullptr): Node2D(position, parent) {
             this->type = type;
             this->shape = shape;
         }
@@ -159,13 +159,13 @@ class CollisionObject2D;
 
 struct Collision {
     CollisionHit hit;
-    std::shared_ptr<Collider> selfCollider;
-    std::shared_ptr<CollisionObject2D> other;
+    Collider* selfCollider;
+    CollisionObject2D* other;
 };
 
 class CollisionObject2D: public Node2D {
     public:
-        CollisionObject2D(Vector2 position, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {}
+        CollisionObject2D(Vector2 position, Node* parent = nullptr): Node2D(position, parent) {}
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
         virtual void OnCollisionEnded(Collision c) {}
@@ -175,10 +175,10 @@ class CollisionObject2D: public Node2D {
 
 struct CollisionEvent {
     CollisionHit hit;
-    std::shared_ptr<CollisionObject2D> collisionObjectA;
-    std::shared_ptr<Collider> colliderA;
-    std::shared_ptr<CollisionObject2D> collisionObjectB;
-    std::shared_ptr<Collider> colliderB;
+    CollisionObject2D* collisionObjectA;
+    Collider* colliderA;
+    CollisionObject2D* collisionObjectB;
+    Collider* colliderB;
 };
 
 class CollisionEngine {
@@ -194,35 +194,35 @@ class CollisionEngine {
         ) {
             std::vector<CollisionEvent> currentCollisions;
 
-            for (auto i = 0; i < ctx->nodes.size(); i++) {
-                auto node = ctx->nodes[i];
+            for (auto i = 0; i < ctx->scene->node_storage->nodes.size(); i++) {
+                const auto& node = ctx->scene->node_storage->nodes[i];
 
-                auto co = std::dynamic_pointer_cast<CollisionObject2D>(node);
+                auto co = dynamic_cast<CollisionObject2D*>(node.get());
                 if (co == nullptr) {
                     continue;
                 }
 
-                for (auto n: node->nodes) {
-                    auto collider = std::dynamic_pointer_cast<Collider>(n);
+                for (const auto& n: node->children) {
+                    auto collider = dynamic_cast<Collider*>(n.get());
 
                     if (collider == nullptr) {
                         continue;
                     }
 
-                    for (auto j = i + 1; j < ctx->nodes.size(); j++) {
-                        auto otherNode = ctx->nodes[j];
+                    for (auto j = i + 1; j < ctx->scene->node_storage->nodes.size(); j++) {
+                        const auto& otherNode = ctx->scene->node_storage->nodes[j];
 
                         if (otherNode == node) {
                             continue;
                         }
 
-                        auto otherCo = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                        auto otherCo = dynamic_cast<CollisionObject2D*>(otherNode.get());
                         if (otherCo == nullptr) {
                             continue;
                         }
 
-                        for (auto on: otherNode->nodes) {
-                            auto otherCollider = std::dynamic_pointer_cast<Collider>(on);
+                        for (const auto& on: otherNode->children) {
+                            auto otherCollider = dynamic_cast<Collider*>(on.get());
 
                             if (otherCollider == nullptr) {
                                 continue;

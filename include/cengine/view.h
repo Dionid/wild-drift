@@ -1,9 +1,9 @@
-#include <raylib.h>
-#include "engine.h"
-#include "node-2d.h"
+#ifndef CENGINE_VIEW_H_
+#define CENGINE_VIEW_H_
 
-#ifndef CENGINE_VIEW_H
-#define CENGINE_VIEW_H
+#include <raylib.h>
+#include "node.h"
+#include "node-2d.h"
 
 // # Views
 
@@ -13,7 +13,7 @@ class LineView: public Node2D {
         float alpha;
         Color color;
 
-        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, Node* parent = nullptr): Node2D(position, parent) {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
@@ -37,7 +37,7 @@ class CircleView: public Node2D {
         Color color;
         bool fill;
 
-        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, Node* parent = nullptr): Node2D(position, parent) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;
@@ -62,7 +62,7 @@ class RectangleView: public Node2D {
         Color color;
         float alpha;
 
-        RectangleView(Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, std::shared_ptr<Node> parent = nullptr): Node2D(position, parent) {
+        RectangleView(Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, Node* parent = nullptr): Node2D(position, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;
@@ -75,4 +75,4 @@ class RectangleView: public Node2D {
         }
 };
 
-#endif // CENGINE_VIEW_H
+#endif // CENGINE_VIEW_H_

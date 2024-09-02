@@ -1,8 +1,5 @@
-#include <raylib.h>
-#include "view.h"
-#include "core.h"
-#include "utils.h"
 #include "entity.h"
+#include "utils.h"
 
 // # Paddle
 
@@ -62,24 +59,24 @@ Player::Player(
 { 
 };
 
-std::shared_ptr<Player> Player::NewPlayer(
+std::unique_ptr<Player> Player::NewPlayer(
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
 ) {
-    auto player = std::make_shared<Player>(position, size, velocity, speed, maxVelocity);
+    auto player = std::make_unique<Player>(position, size, velocity, speed, maxVelocity);
 
     player->AddNode(
-        std::make_shared<RectangleView>(
+        std::make_unique<RectangleView>(
             size,
             BLUE
         )
     );
 
     player->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Rectangle(size),
             (Vector2){ 0.0f, 0.0f }
@@ -141,13 +138,13 @@ Ball::Ball(
     this->maxVelocity = maxVelocity;
 };
 
-std::shared_ptr<Ball> Ball::NewBall(
+std::unique_ptr<Ball> Ball::NewBall(
     float ballRadius,
     float screenWidth,
     float screenHeight,
     float randomAngle
 ) {
-    auto ball = std::make_shared<Ball>(
+    auto ball = std::make_unique<Ball>(
         ballRadius,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         (Size){ ballRadius*2, ballRadius*2 },
@@ -155,12 +152,12 @@ std::shared_ptr<Ball> Ball::NewBall(
         7.0f
     );
     ball->AddNode(
-        std::make_shared<CircleView>(
+        std::make_unique<CircleView>(
             ballRadius
         )
     );
     ball->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Circle(ballRadius),
             (Vector2){ 0.0f, 0.0f }
@@ -243,14 +240,14 @@ Enemy::Enemy(
 {
 };
 
-std::shared_ptr<Enemy> Enemy::NewEnemy(
+std::unique_ptr<Enemy> Enemy::NewEnemy(
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
 ) {
-    auto enemy = std::make_shared<Enemy>(
+    auto enemy = std::make_unique<Enemy>(
         position,
         size,
         velocity,
@@ -258,13 +255,13 @@ std::shared_ptr<Enemy> Enemy::NewEnemy(
         maxVelocity
     );
     enemy->AddNode(
-        std::make_shared<RectangleView>(
+        std::make_unique<RectangleView>(
             size,
             RED
         )
     );
     enemy->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Rectangle(size),
             (Vector2){ 0.0f, 0.0f }
@@ -283,12 +280,12 @@ void Enemy::Update(GameContext* ctx) {
     float directionY = 0;
 
     // # AI
-    for (auto node: ctx->nodes) {
+    for (const auto& node: ctx->scene->node_storage->nodes) {
         if (node.get() == this) {
             continue;
         }
 
-        auto ball = std::dynamic_pointer_cast<Ball>(node);
+        auto ball = dynamic_cast<Ball*>(node.get());
         if (ball == nullptr) {
             continue;
         }

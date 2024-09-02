@@ -1,10 +1,10 @@
-#include <raylib.h>
+#ifndef CENGINE_CHARACTER_BODY_NODE_H
+#define CENGINE_CHARACTER_BODY_NODE_H
+
+#include <raymath.h>
 #include "core.h"
 #include "node-2d.h"
 #include "collision.h"
-
-#ifndef CENGINE_CHARACTER_BODY_NODE_H
-#define CENGINE_CHARACTER_BODY_NODE_H
 
 enum class MotionMode {
     Floating,
@@ -26,7 +26,7 @@ class CharacterBody2D: public CollisionObject2D {
             MotionMode motionMode = MotionMode::Floating,
             Vector2 up = Vector2Up,
             float skinWidth = 0.1f,
-            std::shared_ptr<Node> parent = nullptr
+            Node* parent = nullptr
         ) : CollisionObject2D(position, parent) {
             this->size = size;
             this->velocity = velocity;
@@ -55,8 +55,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto node: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(node);
+            for (const auto& node: this->children) {
+                auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
                     continue;
@@ -66,21 +66,21 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherNode: ctx->nodes) {
+                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherNode->nodes) {
-                        auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
+                    for (const auto& otherN: otherNode->children) {
+                        auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
                             continue;
@@ -156,8 +156,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto node: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(node);
+            for (const auto& node: this->children) {
+                auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
                     continue;
@@ -167,21 +167,21 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherNode: ctx->nodes) {
+                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherNode->nodes) {
-                        auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
+                    for (const auto& otherN: otherNode->children) {
+                        auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
                             continue;
