@@ -159,8 +159,8 @@ class CollisionObject2D;
 
 struct Collision {
     CollisionHit hit;
-    std::shared_ptr<Collider> selfCollider;
-    std::shared_ptr<CollisionObject2D> other;
+    Collider* selfCollider;
+    CollisionObject2D* other;
 };
 
 class CollisionObject2D: public Node2D {
@@ -175,10 +175,10 @@ class CollisionObject2D: public Node2D {
 
 struct CollisionEvent {
     CollisionHit hit;
-    std::shared_ptr<CollisionObject2D> collisionObjectA;
-    std::shared_ptr<Collider> colliderA;
-    std::shared_ptr<CollisionObject2D> collisionObjectB;
-    std::shared_ptr<Collider> colliderB;
+    CollisionObject2D* collisionObjectA;
+    Collider* colliderA;
+    CollisionObject2D* collisionObjectB;
+    Collider* colliderB;
 };
 
 class CollisionEngine {
@@ -202,8 +202,8 @@ class CollisionEngine {
                     continue;
                 }
 
-                for (auto n: node->nodes) {
-                    auto collider = std::dynamic_pointer_cast<Collider>(n);
+                for (const auto& n: node->nodes) {
+                    auto collider = dynamic_cast<Collider*>(n.get());
 
                     if (collider == nullptr) {
                         continue;
@@ -221,8 +221,8 @@ class CollisionEngine {
                             continue;
                         }
 
-                        for (auto on: otherNode->nodes) {
-                            auto otherCollider = std::dynamic_pointer_cast<Collider>(on);
+                        for (const auto& on: otherNode->nodes) {
+                            auto otherCollider = dynamic_cast<Collider*>(on.get());
 
                             if (otherCollider == nullptr) {
                                 continue;
@@ -276,9 +276,9 @@ class CollisionEngine {
                             if (collision.penetration > 0) {
                                 currentCollisions.push_back({
                                     collision,
-                                    co,
+                                    co.get(),
                                     collider,
-                                    otherCo,
+                                    otherCo.get(),
                                     otherCollider
                                 });
                             }

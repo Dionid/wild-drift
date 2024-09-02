@@ -72,14 +72,14 @@ std::shared_ptr<Player> Player::NewPlayer(
     auto player = std::make_shared<Player>(position, size, velocity, speed, maxVelocity);
 
     player->AddNode(
-        std::make_shared<RectangleView>(
+        std::make_unique<RectangleView>(
             size,
             BLUE
         )
     );
 
     player->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Rectangle(size),
             (Vector2){ 0.0f, 0.0f }
@@ -155,12 +155,12 @@ std::shared_ptr<Ball> Ball::NewBall(
         7.0f
     );
     ball->AddNode(
-        std::make_shared<CircleView>(
+        std::make_unique<CircleView>(
             ballRadius
         )
     );
     ball->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Circle(ballRadius),
             (Vector2){ 0.0f, 0.0f }
@@ -258,13 +258,13 @@ std::shared_ptr<Enemy> Enemy::NewEnemy(
         maxVelocity
     );
     enemy->AddNode(
-        std::make_shared<RectangleView>(
+        std::make_unique<RectangleView>(
             size,
             RED
         )
     );
     enemy->AddNode(
-        std::make_shared<Collider>(
+        std::make_unique<Collider>(
             ColliderType::Solid,
             Shape::Rectangle(size),
             (Vector2){ 0.0f, 0.0f }

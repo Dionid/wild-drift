@@ -55,8 +55,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto node: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(node);
+            for (const auto& node: this->nodes) {
+                auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
                     continue;
@@ -79,8 +79,8 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherNode->nodes) {
-                        auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
+                    for (const auto& otherN: otherNode->nodes) {
+                        auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
                             continue;
@@ -156,8 +156,8 @@ class CharacterBody2D: public CollisionObject2D {
                 this->velocity
             );
 
-            for (auto node: this->nodes) {
-                auto collider = std::dynamic_pointer_cast<Collider>(node);
+            for (const auto& node: this->nodes) {
+                auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
                     continue;
@@ -173,15 +173,15 @@ class CharacterBody2D: public CollisionObject2D {
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
                     // TODO: recursive nodes
-                    for (auto otherN: otherNode->nodes) {
-                        auto otherCollider = std::dynamic_pointer_cast<Collider>(otherN);
+                    for (const auto& otherN: otherNode->nodes) {
+                        auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
                             continue;

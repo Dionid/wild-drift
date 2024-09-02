@@ -32,7 +32,7 @@ class Updater {
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
         std::weak_ptr<Node> parent;
-        std::vector<std::shared_ptr<Node>> nodes;
+        std::vector<std::unique_ptr<Node>> nodes;
 
         Node(
             std::weak_ptr<Node> parent = std::weak_ptr<Node>()
@@ -41,12 +41,14 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         }
 
         template <typename T>
-        std::weak_ptr<T> AddNode(std::shared_ptr<T> node) {
+        T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = shared_from_this();
-            this->nodes.push_back(node);
-            return node;
+            this->nodes.push_back(std::move(node));
+            return node.get();
         }
+
+        // TODO: RemoveNode
 
         Node* RootNode() {
             if (auto pt = this->parent.lock()) {
@@ -58,14 +60,14 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
 
         void TraverseNodeUpdate(GameContext* ctx) {
             this->Update(ctx);
-            for (auto node: this->nodes) {
+            for (const auto& node: this->nodes) {
                 node->TraverseNodeUpdate(ctx);
             }
         }
 
         void TraverseNodeRender(GameContext* ctx) {
             this->Render(ctx);
-            for (auto node: this->nodes) {
+            for (const auto& node: this->nodes) {
                 node->TraverseNodeRender(ctx);
             }
         }
