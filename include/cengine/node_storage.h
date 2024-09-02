@@ -26,10 +26,10 @@ class NodeStorage {
         }
 
         template <typename T>
-        Node* GetFirstByType() {
+        T* GetFirstByType() {
             for (const auto& node: this->nodes) {
-                if (dynamic_cast<T*>(node.get())) {
-                    return node.get();
+                if (auto res = dynamic_cast<T*>(node.get())) {
+                    return res;
                 }
             }
 

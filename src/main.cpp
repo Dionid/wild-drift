@@ -31,14 +31,6 @@ int main() {
         10.0f
     );
 
-    auto enemy = Enemy::NewEnemy(
-        (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-        (Size){ 40.0f, 120.0f },
-        (Vector2){ 0.0f, 0.0f },
-        1.0f,
-        10.0f
-    );
-
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
     auto ball = Ball::NewBall(
@@ -46,6 +38,15 @@ int main() {
         screenWidth,
         screenHeight,
         7.0f
+    );
+
+    auto enemy = Enemy::NewEnemy(
+        ball.get(),
+        (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
+        (Size){ 40.0f, 120.0f },
+        (Vector2){ 0.0f, 0.0f },
+        1.0f,
+        10.0f
     );
 
     // # Field

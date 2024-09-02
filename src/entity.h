@@ -44,9 +44,15 @@ class Player: public Paddle {
 };
 
 // # Enemy
+
+class Ball;
+
 class Enemy: public Paddle {
     public:
+        Ball* ball;
+
         Enemy(
+            Ball* ball,
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -57,6 +63,7 @@ class Enemy: public Paddle {
         void Update(GameContext* ctx) override;
 
         static std::unique_ptr<Enemy> NewEnemy(
+            Ball* ball,
             Vector2 position,
             Size size,
             Vector2 velocity,
