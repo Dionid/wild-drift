@@ -48,6 +48,8 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
+const uint64_t Paddle::_id = TypeIdGenerator::getInstance().getNextId();
+
 // # Player
 Player::Player(
     Vector2 position,
@@ -58,6 +60,8 @@ Player::Player(
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 { 
 };
+
+const uint64_t Player::_id = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Player> Player::NewPlayer(
     Vector2 position,
@@ -137,6 +141,8 @@ Ball::Ball(
     this->radius = radius;
     this->maxVelocity = maxVelocity;
 };
+
+const uint64_t Ball::_id = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Ball> Ball::NewBall(
     float ballRadius,
@@ -242,6 +248,8 @@ Enemy::Enemy(
 {
     this->ball = ball;
 };
+
+const uint64_t Enemy::_id = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Enemy> Enemy::NewEnemy(
     Ball* ball,

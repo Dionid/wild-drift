@@ -20,10 +20,16 @@ class Updater {
 
 // # Node
 
-class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
+class Node: public Renderer, public Updater, public WithType {
     public:
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
+
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Node::_id;
+        }
 
         Node(
             Node* parent = nullptr

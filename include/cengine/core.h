@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <raymath.h>
+#include <mutex>
 
 // # Shared pointers
 
@@ -58,5 +59,48 @@ struct Size {
     float width;
     float height;
 };
+
+// Custom RTTI
+
+class TypeIdGenerator {
+public:
+    TypeIdGenerator(const TypeIdGenerator&) = delete;
+    TypeIdGenerator& operator=(const TypeIdGenerator&) = delete;
+
+    static TypeIdGenerator& getInstance() {
+        static TypeIdGenerator instance;
+        return instance;
+    }
+
+    // Method to get the next ID
+    uint64_t getNextId() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return ++counter_;
+    }
+
+    uint64_t typeZero() {
+        return 0;
+    }
+
+private:
+    TypeIdGenerator() : counter_(0) {}
+
+    uint64_t counter_;
+    std::mutex mutex_;
+};
+
+class WithType {
+    public:
+        virtual uint64_t TypeId() const = 0;
+};
+
+// # For future
+template<typename T>
+struct TypeTag;
+
+template<typename T>
+static int getTypeId(T* value) {
+    return TypeTag<T>::id;
+}
 
 #endif // CENGINE_CORE_H

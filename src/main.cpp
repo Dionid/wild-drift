@@ -67,6 +67,8 @@ int main() {
 
     auto scene = std::make_unique<Scene>();
 
+    std::cout << player->TypeId() << std::endl;
+
     scene.get()->node_storage->AddNode(std::move(player));
     scene.get()->node_storage->AddNode(std::move(enemy));
     scene.get()->node_storage->AddNode(std::move(ball));
