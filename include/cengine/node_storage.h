@@ -14,11 +14,16 @@ class NodeStorage {
 
         template <typename T>
         std::vector<Node*> GetByType() {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+
             std::vector<Node*> nodes;
 
             for (const auto& node: this->nodes) {
-                if (dynamic_cast<T*>(node.get())) {
-                    nodes.push_back(node.get());
+                auto nPtr = node.get();
+                if (T::_id == nPtr->TypeId()) {
+                    nodes.push_back(
+                        static_cast<T*>(nPtr)
+                    );
                 }
             }
 
@@ -27,9 +32,12 @@ class NodeStorage {
 
         template <typename T>
         T* GetFirstByType() {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+
             for (const auto& node: this->nodes) {
-                if (auto res = dynamic_cast<T*>(node.get())) {
-                    return res;
+                auto nPtr = node.get();
+                if (T::_id == nPtr->TypeId()) {
+                    return static_cast<T*>(nPtr);
                 }
             }
 

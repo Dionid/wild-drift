@@ -13,6 +13,12 @@ enum class MotionMode {
 
 class CharacterBody2D: public CollisionObject2D {
     public:
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return CharacterBody2D::_id;
+        }
+
         Size size;
         Vector2 velocity;
         MotionMode motionMode;

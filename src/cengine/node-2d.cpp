@@ -1,0 +1,3 @@
+#include "cengine/node-2d.h"
+
+const uint64_t Node2D::_id = TypeIdGenerator::getInstance().getNextId();

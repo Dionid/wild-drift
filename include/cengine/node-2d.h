@@ -8,6 +8,12 @@ class Node2D: public Node {
     public:
         Vector2 position;
 
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Node2D::_id;
+        }
+
         Node2D(Vector2 position, Node* parent = nullptr): Node(parent) {
             this->position = position;
         }

@@ -91,6 +91,7 @@ private:
 
 class WithType {
     public:
+        static const uint64_t _id;
         virtual uint64_t TypeId() const = 0;
 };
 
