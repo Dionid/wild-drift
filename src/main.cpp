@@ -49,14 +49,14 @@ int main() {
     );
 
     // # Field
-    auto line = std::make_shared<LineView>(
+    auto line = std::make_unique<LineView>(
         (Vector2){ screenWidth/2.0f, 80 },
         screenHeight - 160,
         WHITE,
         0.5f
     );
 
-    auto circle = std::make_shared<CircleView>(
+    auto circle = std::make_unique<CircleView>(
         80,
         (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
         WHITE,
@@ -64,9 +64,17 @@ int main() {
         false
     );
 
+    auto scene = std::make_unique<Scene>();
+
+    scene.get()->node_storage->AddNode(std::move(player));
+    scene.get()->node_storage->AddNode(std::move(enemy));
+    scene.get()->node_storage->AddNode(std::move(ball));
+    scene.get()->node_storage->AddNode(std::move(line));
+    scene.get()->node_storage->AddNode(std::move(circle));
+
     // # Game Context
     GameContext ctx = {
-        { ball, player, enemy, line, circle },
+        scene.get(),
         screenWidth,
         screenHeight
     };
@@ -80,8 +88,7 @@ int main() {
         //----------------------------------------------------------------------------------
 
         // # Initial
-        for (auto i = 0; i < ctx.nodes.size(); i++) {
-            auto node = ctx.nodes[i];
+        for (const auto& node: ctx.scene->node_storage->nodes) {
             node->TraverseNodeUpdate(&ctx);
         }
 
@@ -94,7 +101,7 @@ int main() {
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            for (auto node: ctx.nodes) {
+            for (const auto& node: ctx.scene->node_storage->nodes) {
                 node->TraverseNodeRender(&ctx);
             }
             debugger.Render(&ctx);

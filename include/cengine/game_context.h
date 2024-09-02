@@ -1,14 +1,15 @@
-#include <vector>
-
 #ifndef GAME_CONTEXT_H_
 #define GAME_CONTEXT_H_
+
+#include <vector>
 
 // # GameContext
 
 class Node;
+class Scene;
 
 struct GameContext {
-    std::vector<std::shared_ptr<Node>> nodes;
+    Scene* scene;
     float worldWidth;
     float worldHeight;
 };

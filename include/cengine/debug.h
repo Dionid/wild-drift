@@ -11,8 +11,8 @@ class Debugger: public Renderer {
         void Render(GameContext* ctx) override {
             DrawText("Debug", 10, 10, 20, WHITE);
 
-            for (auto node: ctx->nodes) {
-                auto character = std::dynamic_pointer_cast<CharacterBody2D>(node);
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                auto character = dynamic_cast<CharacterBody2D*>(node.get());
                 if (character == nullptr) {
                     continue;
                 }

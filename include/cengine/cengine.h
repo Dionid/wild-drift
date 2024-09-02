@@ -4,6 +4,8 @@
 #include <raylib.h>
 #include <raymath.h>
 #include "core.h"
+#include "node_storage.h"
+#include "scene.h"
 #include "game_context.h"
 #include "node.h"
 #include "node-2d.h"

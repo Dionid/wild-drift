@@ -22,11 +22,12 @@ class Updater {
 
 class Node: public Renderer, public Updater, public enable_shared_from_base<Node> {
     public:
-        std::weak_ptr<Node> parent;
+        
+        Node* parent;
         std::vector<std::unique_ptr<Node>> nodes;
 
         Node(
-            std::weak_ptr<Node> parent = std::weak_ptr<Node>()
+            Node* parent = nullptr
         ) {
             this->parent = parent;
         }
@@ -34,7 +35,7 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         template <typename T>
         T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
-            node->parent = shared_from_this();
+            node->parent = this;
             auto ptr = node.get();
             this->nodes.push_back(std::move(node));
             return ptr;
@@ -43,8 +44,8 @@ class Node: public Renderer, public Updater, public enable_shared_from_base<Node
         // TODO: RemoveNode
 
         Node* RootNode() {
-            if (auto pt = this->parent.lock()) {
-                return pt->RootNode();
+            if (this->parent != nullptr) {
+                return this->parent->RootNode();
             }
 
             return this;

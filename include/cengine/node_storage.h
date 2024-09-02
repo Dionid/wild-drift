@@ -4,19 +4,19 @@
 #include <vector>
 #include "node.h"
 
-class NodesStorage {
+class NodeStorage {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
 
         void AddNode(std::unique_ptr<Node> node) {
-            this->nodes.push_back(node);
+            this->nodes.push_back(std::move(node));
         }
 
         template <typename T>
         std::vector<Node*> GetByType() {
             std::vector<Node*> nodes;
 
-            for (auto node: this->nodes) {
+            for (const auto& node: this->nodes) {
                 if (dynamic_cast<T*>(node.get())) {
                     nodes.push_back(node.get());
                 }

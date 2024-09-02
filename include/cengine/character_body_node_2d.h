@@ -26,7 +26,7 @@ class CharacterBody2D: public CollisionObject2D {
             MotionMode motionMode = MotionMode::Floating,
             Vector2 up = Vector2Up,
             float skinWidth = 0.1f,
-            std::shared_ptr<Node> parent = nullptr
+            Node* parent = nullptr
         ) : CollisionObject2D(position, parent) {
             this->size = size;
             this->velocity = velocity;
@@ -66,13 +66,13 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherNode: ctx->nodes) {
+                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
 
                     // TODO: refactor
-                    auto otherCollisionObject = std::dynamic_pointer_cast<CollisionObject2D>(otherNode);
+                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
 
                     if (otherCollisionObject == nullptr) {
                         continue;
@@ -167,7 +167,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (auto otherNode: ctx->nodes) {
+                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }

@@ -32,7 +32,7 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        static std::shared_ptr<Player> NewPlayer(
+        static std::unique_ptr<Player> NewPlayer(
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -56,7 +56,7 @@ class Enemy: public Paddle {
 
         void Update(GameContext* ctx) override;
 
-        static std::shared_ptr<Enemy> NewEnemy(
+        static std::unique_ptr<Enemy> NewEnemy(
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -83,7 +83,7 @@ class Ball: public CharacterBody2D {
         void OnCollision(Collision c) override;
         void OnCollisionStarted(Collision c) override;
 
-        static std::shared_ptr<Ball> NewBall(
+        static std::unique_ptr<Ball> NewBall(
             float ballRadius,
             float screenWidth,
             float screenHeight,
