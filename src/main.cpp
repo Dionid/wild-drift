@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "entity.h"
 #include "main_level.h"
+#include "gui.h"
 
 int main() {
     // # Init
@@ -25,12 +26,14 @@ int main() {
     Scene scene;
 
     // # Level
-    auto mainLevel = MainLevel(
-        screenWidth,
-        screenHeight,
-        &scene
-    );
-    mainLevel.InitMainLevel();
+    // auto mainLevel = MainLevel(
+    //     screenWidth,
+    //     screenHeight,
+    //     &scene
+    // );
+    // mainLevel.InitMainLevel();
+
+    scene.node_storage->AddNode(std::make_unique<MainMenu>());
 
     // # Collision Engine
     CollisionEngine collisionEngine;
