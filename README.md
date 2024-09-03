@@ -2,8 +2,7 @@
 
 # Roadmap
 
-1. Goals
-1. Score
+1. Node.id to find
 1. Menu
 1. Release (macOS, Windows, Linux, web)
 1. Add units (meters, seconds, etc.)

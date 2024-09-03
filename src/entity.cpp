@@ -393,7 +393,7 @@ std::unique_ptr<Goal> Goal::NewGoal(
 
 // # Score Manager
 
-ScoreManager::ScoreManager(
+LevelManager::LevelManager(
     Ball* ball,
     Player* player,
     Enemy* enemy,
@@ -407,28 +407,36 @@ ScoreManager::ScoreManager(
     this->enemyScore = enemyScore;
 }
 
-void ScoreManager::ResetLevel(GameContext* ctx) {
+void LevelManager::Reset(GameContext* ctx) {
     this->playerScore = 0;
     this->enemyScore = 0;
 
-    this->ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+    auto ball = ctx->scene->node_storage->GetByPtr(this->ball);
+    auto player = ctx->scene->node_storage->GetByPtr(this->player);
+    auto enemy = ctx->scene->node_storage->GetByPtr(this->enemy);
 
-    this->player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
-    this->player->velocity = (Vector2){ 0.0f, 0.0f };
+    if (ball == nullptr || player == nullptr || enemy == nullptr) {
+        return;
+    }
 
-    this->enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
-    this->enemy->velocity = (Vector2){ 0.0f, 0.0f };
+    ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+
+    player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
+    player->velocity = (Vector2){ 0.0f, 0.0f };
+
+    enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
+    enemy->velocity = (Vector2){ 0.0f, 0.0f };
 }
 
-void ScoreManager::PlayerScored() {
+void LevelManager::PlayerScored() {
     this->playerScore++;
 }
 
-void ScoreManager::EnemyScored() {
+void LevelManager::EnemyScored() {
     this->enemyScore++;
 }
 
-void ScoreManager::Update(GameContext* ctx) {
+void LevelManager::Update(GameContext* ctx) {
     for (const auto& collision: ctx->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_id &&
@@ -462,12 +470,12 @@ void ScoreManager::Update(GameContext* ctx) {
         }
 
         if (this->playerScore >= 2 || this->enemyScore >= 2) {
-            this->ResetLevel(ctx);
+            this->Reset(ctx);
         }
     }
 }
 
-void ScoreManager::Render(GameContext* ctx) {
+void LevelManager::Render(GameContext* ctx) {
     auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
     auto fontSize = 50;
 

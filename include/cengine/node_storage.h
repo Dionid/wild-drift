@@ -17,7 +17,21 @@ class NodeStorage {
         }
 
         template <typename T>
-        std::vector<Node*> GetByType() {
+        T* GetByPtr(T* targetPtr) {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+
+            for (const auto& node: this->nodes) {
+                auto nPtr = node.get();
+                if (targetPtr == nPtr) {
+                    return static_cast<T*>(nPtr);
+                }
+            }
+
+            return nullptr;
+        }
+
+        template <typename T>
+        std::vector<T*> GetByType() {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
 
             std::vector<Node*> nodes;

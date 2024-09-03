@@ -99,7 +99,7 @@ int main() {
 
     // # Score Manager
     scene->node_storage->AddNode(
-        std::make_unique<ScoreManager>(
+        std::make_unique<LevelManager>(
             ball,
             player,
             enemy,
