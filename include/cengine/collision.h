@@ -147,7 +147,7 @@ class Collider: public Node2D {
         ColliderType type;
         Shape shape;
 
-        Collider(ColliderType type, Shape shape, Vector2 position, Node* parent = nullptr): Node2D(position, parent) {
+        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, Node* parent = nullptr): Node2D(position, parent) {
             this->type = type;
             this->shape = shape;
         }
@@ -189,6 +189,7 @@ struct CollisionEvent {
 
 class CollisionEngine {
     public:
+        // # TODO: change to key value with node.id + node.id as key 
         std::vector<CollisionEvent> collisionsEventVec;
 
         CollisionEngine() {

@@ -8,8 +8,12 @@ class NodeStorage {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
 
-        void AddNode(std::unique_ptr<Node> node) {
+        template <typename T>
+        T* AddNode(std::unique_ptr<T> node) {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+            T* nPtr = node.get();
             this->nodes.push_back(std::move(node));
+            return nPtr;
         }
 
         template <typename T>

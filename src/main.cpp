@@ -20,6 +20,9 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    // # Scene
+    auto scene = std::make_unique<Scene>();
+
     // # Player
     const float sixthScreen = screenWidth/6.0f;
 
@@ -31,17 +34,21 @@ int main() {
         10.0f
     );
 
+    scene.get()->node_storage->AddNode(std::move(player));
+
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
-    auto ball = Ball::NewBall(
-        ballRadius,
-        screenWidth,
-        screenHeight,
-        7.0f
+    auto ball = scene.get()->node_storage->AddNode(
+        Ball::NewBall(
+            ballRadius,
+            screenWidth,
+            screenHeight,
+            7.0f
+        )
     );
 
     auto enemy = Enemy::NewEnemy(
-        ball.get(),
+        ball,
         (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
         (Size){ 40.0f, 120.0f },
         (Vector2){ 0.0f, 0.0f },
@@ -49,29 +56,44 @@ int main() {
         10.0f
     );
 
-    // # Field
-    auto line = std::make_unique<LineView>(
-        (Vector2){ screenWidth/2.0f, 80 },
-        screenHeight - 160,
-        WHITE,
-        0.5f
-    );
-
-    auto circle = std::make_unique<CircleView>(
-        80,
-        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-        WHITE,
-        0.5f,
-        false
-    );
-
-    auto scene = std::make_unique<Scene>();
-
-    scene.get()->node_storage->AddNode(std::move(player));
     scene.get()->node_storage->AddNode(std::move(enemy));
-    scene.get()->node_storage->AddNode(std::move(ball));
-    scene.get()->node_storage->AddNode(std::move(line));
-    scene.get()->node_storage->AddNode(std::move(circle));
+
+    // # Goals
+    Size goalSize = { 15, screenHeight - 15 };
+
+    auto leftGoal = Goal::NewGoal(
+        (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
+        goalSize
+    );
+
+    scene.get()->node_storage->AddNode(std::move(leftGoal));
+
+    auto rightGoal = Goal::NewGoal(
+        (Vector2){ screenWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
+        goalSize
+    );
+
+    scene.get()->node_storage->AddNode(std::move(rightGoal));
+
+    // # Field
+    scene.get()->node_storage->AddNode(
+        std::make_unique<LineView>(
+            (Vector2){ screenWidth/2.0f, 80 },
+            screenHeight - 160,
+            WHITE,
+            0.5f
+        )
+    );
+
+    scene.get()->node_storage->AddNode(
+        std::make_unique<CircleView>(
+            80,
+            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
+            WHITE,
+            0.5f,
+            false
+        )
+    );
 
     // # Game Context
     GameContext ctx = {
@@ -80,6 +102,7 @@ int main() {
         screenHeight
     };
 
+    // # Collision Engine
     CollisionEngine collisionEngine;
 
     // Main game loop

@@ -2,7 +2,6 @@
 
 # Roadmap
 
-1. Custom RTTI
 1. Goals
 1. Score
 1. Menu
@@ -14,6 +13,12 @@
 1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
 1. SAT
 1. ? Arena allocator
+
+# Features
+
+1. CharacterBody2D (move and slide, move and collide)
+1. Collisions
+1. Custom RTTI
 
 # Questions
 

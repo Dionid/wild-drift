@@ -237,6 +237,9 @@ void Ball::Update(GameContext* ctx) {
 };
 
 // # Enemy
+
+const uint64_t Enemy::_id = TypeIdGenerator::getInstance().getNextId();
+
 Enemy::Enemy(
     Ball* ball,
     Vector2 position,
@@ -248,8 +251,6 @@ Enemy::Enemy(
 {
     this->ball = ball;
 };
-
-const uint64_t Enemy::_id = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Enemy> Enemy::NewEnemy(
     Ball* ball,
@@ -342,4 +343,39 @@ void Enemy::Update(GameContext* ctx) {
 
     // # Velocity -> Position
     this->ApplyVelocityToPosition();
+}
+
+// # Goal
+
+const uint64_t Goal::_id = TypeIdGenerator::getInstance().getNextId();
+
+Goal::Goal(
+    Vector2 position,
+    Size size
+) : Node2D(position)
+{
+};
+
+std::unique_ptr<Goal> Goal::NewGoal(
+    Vector2 position,
+    Size size
+) {
+    auto goal = std::make_unique<Goal>(position, size);
+
+    goal->AddNode(
+        std::make_unique<RectangleView>(
+            size,
+            WHITE,
+            0.3f
+        )
+    );
+
+    goal->AddNode(
+        std::make_unique<Collider>(
+            ColliderType::Solid,
+            Shape::Rectangle(size)
+        )
+    );
+
+    return goal;
 }
