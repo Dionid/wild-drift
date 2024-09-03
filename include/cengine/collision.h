@@ -161,6 +161,7 @@ struct Collision {
     CollisionHit hit;
     Collider* selfCollider;
     CollisionObject2D* other;
+    Collider* otherCollider;
 };
 
 class CollisionObject2D: public Node2D {
@@ -190,10 +191,12 @@ struct CollisionEvent {
 class CollisionEngine {
     public:
         // # TODO: change to key value with node.id + node.id as key 
-        std::vector<CollisionEvent> collisionsEventVec;
+        std::vector<CollisionEvent> collisions;
+        std::vector<CollisionEvent> startedCollisions;
+        std::vector<CollisionEvent> endedCollisions;
 
         CollisionEngine() {
-            this->collisionsEventVec = std::vector<CollisionEvent>();
+            this->collisions = std::vector<CollisionEvent>();
         }
 
         void NarrowCollisionCheckNaive(
@@ -299,7 +302,7 @@ class CollisionEngine {
             for (auto collision: currentCollisions) {
                 bool found = false;
 
-                for (auto oldCollision: this->collisionsEventVec) {
+                for (auto oldCollision: this->collisions) {
                     if (
                         (oldCollision.collisionObjectA == collision.collisionObjectB &&
                         oldCollision.collisionObjectB == collision.collisionObjectA) || 
@@ -316,9 +319,11 @@ class CollisionEngine {
                 }
             }
 
+            this->startedCollisions = newCollisions;
+
             std::vector<CollisionEvent> endedCollisions;
 
-            for (auto oldCollision: this->collisionsEventVec) {
+            for (auto oldCollision: this->collisions) {
                 bool found = false;
 
                 for (auto collision: currentCollisions) {
@@ -338,16 +343,20 @@ class CollisionEngine {
                 }
             }
 
+            this->endedCollisions = endedCollisions;
+
             for (auto collision: newCollisions) {
                 collision.collisionObjectA->OnCollisionStarted({
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollisionStarted({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
@@ -356,11 +365,13 @@ class CollisionEngine {
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollision({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
@@ -369,15 +380,17 @@ class CollisionEngine {
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollisionEnded({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
-            this->collisionsEventVec = currentCollisions;
+            this->collisions = currentCollisions;
         }
 };
 

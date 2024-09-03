@@ -62,6 +62,7 @@ int main() {
     Size goalSize = { 15, screenHeight - 15 };
 
     auto leftGoal = Goal::NewGoal(
+        true,
         (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
         goalSize
     );
@@ -69,6 +70,7 @@ int main() {
     scene.get()->node_storage->AddNode(std::move(leftGoal));
 
     auto rightGoal = Goal::NewGoal(
+        false,
         (Vector2){ screenWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
         goalSize
     );
@@ -95,15 +97,21 @@ int main() {
         )
     );
 
-    // # Game Context
-    GameContext ctx = {
-        scene.get(),
-        screenWidth,
-        screenHeight
-    };
+    // # Score Manager
+    scene->node_storage->AddNode(
+        std::make_unique<ScoreManager>()
+    );
 
     // # Collision Engine
     CollisionEngine collisionEngine;
+
+    // # Game Context
+    GameContext ctx = {
+        scene.get(),
+        &collisionEngine,
+        screenWidth,
+        screenHeight
+    };
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key

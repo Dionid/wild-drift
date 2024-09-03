@@ -174,11 +174,19 @@ std::unique_ptr<Ball> Ball::NewBall(
 };
 
 void Ball::OnCollisionStarted(Collision collision) {
+    if (collision.other->TypeId() != Player::_id && collision.other->TypeId() != Enemy::_id) {
+        return;
+    }
+
     // TODO: Change this to over collision response (if you hit it from behind it reflects in wrong direction)
     this->velocity = Vector2Reflect(this->velocity, collision.hit.normal);
 };
 
 void Ball::OnCollision(Collision collision) {
+    if (collision.otherCollider->type != ColliderType::Solid) {
+        return;
+    }
+
     // # Resolve penetration
     this->position = Vector2Add(
         this->position,
@@ -350,17 +358,20 @@ void Enemy::Update(GameContext* ctx) {
 const uint64_t Goal::_id = TypeIdGenerator::getInstance().getNextId();
 
 Goal::Goal(
+    bool isLeft,
     Vector2 position,
     Size size
-) : Node2D(position)
+) : CollisionObject2D(position)
 {
+    this->isLeft = isLeft;
 };
 
 std::unique_ptr<Goal> Goal::NewGoal(
+    bool isLeft,
     Vector2 position,
     Size size
 ) {
-    auto goal = std::make_unique<Goal>(position, size);
+    auto goal = std::make_unique<Goal>(isLeft, position, size);
 
     goal->AddNode(
         std::make_unique<RectangleView>(
@@ -372,10 +383,78 @@ std::unique_ptr<Goal> Goal::NewGoal(
 
     goal->AddNode(
         std::make_unique<Collider>(
-            ColliderType::Solid,
+            ColliderType::Sensor,
             Shape::Rectangle(size)
         )
     );
 
     return goal;
+}
+
+// # Score Manager
+
+ScoreManager::ScoreManager(): Node() {
+    this->playerScore = 0;
+    this->enemyScore = 0;
+}
+
+void ScoreManager::PlayerScored() {
+    this->playerScore++;
+}
+
+void ScoreManager::EnemyScored() {
+    this->enemyScore++;
+}
+
+void ScoreManager::Update(GameContext* ctx) {
+    for (const auto& collision: ctx->collisionEngine->startedCollisions) {
+        bool predicate = (
+            collision.collisionObjectA->TypeId() == Ball::_id &&
+            collision.collisionObjectB->TypeId() == Goal::_id
+        ) || (
+            collision.collisionObjectA->TypeId() == Goal::_id &&
+            collision.collisionObjectB->TypeId() == Ball::_id
+        );
+
+        if (
+            !predicate
+        ) {
+            return;
+        }
+
+        Ball* ball;
+        Goal* goal;
+
+        if (collision.collisionObjectA->TypeId() == Ball::_id) {
+            ball = static_cast<Ball*>(collision.collisionObjectA);
+            goal = static_cast<Goal*>(collision.collisionObjectB);
+        } else {
+            ball = static_cast<Ball*>(collision.collisionObjectB);
+            goal = static_cast<Goal*>(collision.collisionObjectA);
+        }
+
+        if (goal->isLeft) {
+            this->EnemyScored();
+        } else {
+            this->PlayerScored();
+        }
+    }
+}
+
+void ScoreManager::Render(GameContext* ctx) {
+    DrawText(
+        std::to_string(this->playerScore).c_str(),
+        40,
+        20,
+        20,
+        GREEN
+    );
+
+    DrawText(
+        std::to_string(this->enemyScore).c_str(),
+        ctx->worldWidth - 40,
+        20,
+        20,
+        RED
+    );
 }

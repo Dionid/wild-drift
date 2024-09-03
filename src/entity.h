@@ -122,23 +122,41 @@ class Enemy: public Paddle {
 
 // # Goal
 
-class Goal: public Node2D {
+class Goal: public CollisionObject2D {
     public:
         static const uint64_t _id;
+        bool isLeft;
 
         uint64_t TypeId() const override {
             return Goal::_id;
         }
 
         Goal(
+            bool isLeft,
             Vector2 position,
             Size size
         );
 
         static std::unique_ptr<Goal> NewGoal(
+            bool isLeft,
             Vector2 position,
             Size size
         );
+};
+
+class ScoreManager: public Node {
+    public:
+        int playerScore;
+        int enemyScore;
+
+        ScoreManager();
+
+        void PlayerScored();
+
+        void EnemyScored();
+
+        void Update(GameContext* ctx) override;
+        void Render(GameContext* ctx) override;
 };
 
 #endif // CSP_ENTITY_H_
