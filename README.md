@@ -2,21 +2,18 @@
 
 # Roadmap
 
-1. GO Storage
-    1. Node id
-    1. NodeClass Id
-    1. unique_ptr
 1. Custom RTTI
-1. name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
-1. Remove raylib
-1. Debug (memory, performance)
 1. Goals
 1. Score
 1. Menu
 1. Release (macOS, Windows, Linux, web)
 1. Add units (meters, seconds, etc.)
+1. Remove raylib
 1. Fixed update
 1. Multithreading
+1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
+1. SAT
+1. ? Arena allocator
 
 # Questions
 
@@ -25,8 +22,6 @@
 # Useful Links
 
 1. [VSCode CLang](https://code.visualstudio.com/docs/cpp/config-clang-mac)
-
-
 
 # Global Position
 

@@ -48,6 +48,8 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
+const uint64_t Paddle::_id = TypeIdGenerator::getInstance().getNextId();
+
 // # Player
 Player::Player(
     Vector2 position,
@@ -58,6 +60,8 @@ Player::Player(
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 { 
 };
+
+const uint64_t Player::_id = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Player> Player::NewPlayer(
     Vector2 position,
@@ -138,6 +142,8 @@ Ball::Ball(
     this->maxVelocity = maxVelocity;
 };
 
+const uint64_t Ball::_id = TypeIdGenerator::getInstance().getNextId();
+
 std::unique_ptr<Ball> Ball::NewBall(
     float ballRadius,
     float screenWidth,
@@ -168,6 +174,7 @@ std::unique_ptr<Ball> Ball::NewBall(
 };
 
 void Ball::OnCollisionStarted(Collision collision) {
+    // TODO: Change this to over collision response (if you hit it from behind it reflects in wrong direction)
     this->velocity = Vector2Reflect(this->velocity, collision.hit.normal);
 };
 
@@ -180,7 +187,7 @@ void Ball::OnCollision(Collision collision) {
 
     // NOTE: This is other valid way of resolving collision
     // // # Reflect velocity
-    // auto other = dynamic_pointer_cast<Paddle>(collision.other);
+    // auto other = dynamic_cast<Paddle*>(collision.other);
 
     // if (other == nullptr) {
     //     return;
@@ -231,6 +238,7 @@ void Ball::Update(GameContext* ctx) {
 
 // # Enemy
 Enemy::Enemy(
+    Ball* ball,
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
@@ -238,9 +246,13 @@ Enemy::Enemy(
     float maxVelocity = 10.0f
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 {
+    this->ball = ball;
 };
 
+const uint64_t Enemy::_id = TypeIdGenerator::getInstance().getNextId();
+
 std::unique_ptr<Enemy> Enemy::NewEnemy(
+    Ball* ball,
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
@@ -248,6 +260,7 @@ std::unique_ptr<Enemy> Enemy::NewEnemy(
     float maxVelocity = 10.0f
 ) {
     auto enemy = std::make_unique<Enemy>(
+        ball,
         position,
         size,
         velocity,
@@ -280,30 +293,21 @@ void Enemy::Update(GameContext* ctx) {
     float directionY = 0;
 
     // # AI
-    for (const auto& node: ctx->scene->node_storage->nodes) {
-        if (node.get() == this) {
-            continue;
-        }
-
-        auto ball = dynamic_cast<Ball*>(node.get());
-        if (ball == nullptr) {
-            continue;
-        }
-
-        if (this->position.y > ball->position.y + ball->radius + 50) {
+    if (this->ball != nullptr) {
+        if (this->position.y > this->ball->position.y + this->ball->radius + 50) {
             directionY = -1;
-        } else if (this->position.y < ball->position.y - ball->radius - 50) {
+        } else if (this->position.y < this->ball->position.y - this->ball->radius - 50) {
             directionY = 1;
         }
 
-        if (ball->position.x < worldWidth/2) {
+        if (this->ball->position.x < worldWidth/2) {
             directionX = 1;
         } else {
             directionX = -1;
         }
 
         // # Ball is behind
-        if (ball->position.x + ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
+        if (this->ball->position.x + this->ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
             directionX = 1;
         }
     }

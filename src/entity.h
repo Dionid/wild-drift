@@ -9,6 +9,12 @@ class Paddle: public CharacterBody2D {
         float speed;
         float maxVelocity;
 
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Paddle::_id;
+        }
+
         Paddle(
             Vector2 position,
             Size size,
@@ -24,6 +30,12 @@ class Paddle: public CharacterBody2D {
 // # Player
 class Player: public Paddle {
     public:
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Player::_id;
+        }
+
         Player(
             Vector2 position,
             Size size,
@@ -44,9 +56,21 @@ class Player: public Paddle {
 };
 
 // # Enemy
+
+class Ball;
+
 class Enemy: public Paddle {
     public:
+        Ball* ball;
+
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Enemy::_id;
+        }
+
         Enemy(
+            Ball* ball,
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -57,6 +81,7 @@ class Enemy: public Paddle {
         void Update(GameContext* ctx) override;
 
         static std::unique_ptr<Enemy> NewEnemy(
+            Ball* ball,
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -70,6 +95,12 @@ class Ball: public CharacterBody2D {
     public:
         float radius;
         float maxVelocity;
+
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return Ball::_id;
+        }
 
         Ball(
             float radius,

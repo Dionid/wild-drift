@@ -165,6 +165,12 @@ struct Collision {
 
 class CollisionObject2D: public Node2D {
     public:
+        static const uint64_t _id;
+
+        uint64_t TypeId() const override {
+            return CollisionObject2D::_id;
+        }
+
         CollisionObject2D(Vector2 position, Node* parent = nullptr): Node2D(position, parent) {}
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
