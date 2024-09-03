@@ -49,7 +49,7 @@ int main() {
 
     auto enemy = scene.get()->node_storage->AddNode(
         Enemy::NewEnemy(
-            ball,
+            ball->id,
             (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
@@ -100,9 +100,9 @@ int main() {
     // # Score Manager
     scene->node_storage->AddNode(
         std::make_unique<LevelManager>(
-            ball,
-            player,
-            enemy,
+            ball->id,
+            player->id,
+            enemy->id,
             0,
             0
         )

@@ -18,20 +18,53 @@ class Updater {
         virtual void Update(GameContext* ctx) {};
 };
 
+// # Node Id Manager
+
+typedef uint64_t node_id_t;
+
+class NodeIdGenerator {
+public:
+    NodeIdGenerator(const NodeIdGenerator&) = delete;
+    NodeIdGenerator& operator=(const NodeIdGenerator&) = delete;
+
+    static NodeIdGenerator& GetInstance() {
+        static NodeIdGenerator instance;
+        return instance;
+    }
+
+    // Method to get the next ID
+    node_id_t GetNextId() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return ++counter_;
+    }
+
+    node_id_t typeZero() {
+        return 0;
+    }
+
+private:
+    NodeIdGenerator() : counter_(0) {}
+
+    node_id_t counter_;
+    std::mutex mutex_;
+};
+
 // # Node
 
 class Node: public Renderer, public Updater, public WithType {
     public:
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
+        node_id_t id;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return Node::_id;
+            return Node::_tid;
         }
 
         Node(
+            node_id_t id = 0,
             Node* parent = nullptr
         ) {
             this->parent = parent;
@@ -42,6 +75,9 @@ class Node: public Renderer, public Updater, public WithType {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
             node->parent = this;
             auto ptr = node.get();
+            if (ptr->id == 0) {
+                ptr->id = NodeIdGenerator::GetInstance().GetNextId();
+            }
             this->children.push_back(std::move(node));
             return ptr;
         }

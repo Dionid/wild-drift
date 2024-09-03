@@ -48,7 +48,7 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
-const uint64_t Paddle::_id = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Paddle::_tid = TypeIdGenerator::getInstance().getNextId();
 
 // # Player
 Player::Player(
@@ -61,7 +61,7 @@ Player::Player(
 { 
 };
 
-const uint64_t Player::_id = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Player::_tid = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Player> Player::NewPlayer(
     Vector2 position,
@@ -142,7 +142,7 @@ Ball::Ball(
     this->maxVelocity = maxVelocity;
 };
 
-const uint64_t Ball::_id = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Ball::_tid = TypeIdGenerator::getInstance().getNextId();
 
 std::unique_ptr<Ball> Ball::NewBall(
     float ballRadius,
@@ -174,7 +174,7 @@ std::unique_ptr<Ball> Ball::NewBall(
 };
 
 void Ball::OnCollisionStarted(Collision collision) {
-    if (collision.other->TypeId() != Player::_id && collision.other->TypeId() != Enemy::_id) {
+    if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
         return;
     }
 
@@ -246,10 +246,10 @@ void Ball::Update(GameContext* ctx) {
 
 // # Enemy
 
-const uint64_t Enemy::_id = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Enemy::_tid = TypeIdGenerator::getInstance().getNextId();
 
 Enemy::Enemy(
-    Ball* ball,
+    node_id_t ballId,
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
@@ -257,11 +257,11 @@ Enemy::Enemy(
     float maxVelocity = 10.0f
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 {
-    this->ball = ball;
+    this->ballId = ballId;
 };
 
 std::unique_ptr<Enemy> Enemy::NewEnemy(
-    Ball* ball,
+    node_id_t ballId,
     Vector2 position,
     Size size,
     Vector2 velocity = Vector2{},
@@ -269,7 +269,7 @@ std::unique_ptr<Enemy> Enemy::NewEnemy(
     float maxVelocity = 10.0f
 ) {
     auto enemy = std::make_unique<Enemy>(
-        ball,
+        ballId,
         position,
         size,
         velocity,
@@ -301,22 +301,24 @@ void Enemy::Update(GameContext* ctx) {
     float directionX = 0;
     float directionY = 0;
 
+    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+
     // # AI
-    if (this->ball != nullptr) {
-        if (this->position.y > this->ball->position.y + this->ball->radius + 50) {
+    if (ball != nullptr) {
+        if (this->position.y > ball->position.y + ball->radius + 50) {
             directionY = -1;
-        } else if (this->position.y < this->ball->position.y - this->ball->radius - 50) {
+        } else if (this->position.y < ball->position.y - ball->radius - 50) {
             directionY = 1;
         }
 
-        if (this->ball->position.x < worldWidth/2) {
+        if (ball->position.x < worldWidth/2) {
             directionX = 1;
         } else {
             directionX = -1;
         }
 
         // # Ball is behind
-        if (this->ball->position.x + this->ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
+        if (ball->position.x + ball->radius > this->position.x - this->size.width/2 + this->size.width/10) {
             directionX = 1;
         }
     }
@@ -355,7 +357,7 @@ void Enemy::Update(GameContext* ctx) {
 
 // # Goal
 
-const uint64_t Goal::_id = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Goal::_tid = TypeIdGenerator::getInstance().getNextId();
 
 Goal::Goal(
     bool isLeft,
@@ -394,15 +396,15 @@ std::unique_ptr<Goal> Goal::NewGoal(
 // # Score Manager
 
 LevelManager::LevelManager(
-    Ball* ball,
-    Player* player,
-    Enemy* enemy,
+    node_id_t ballId,
+    node_id_t playerId,
+    node_id_t enemyId,
     int playerScore = 0,
     int enemyScore = 0
 ): Node() {
-    this->ball = ball;
-    this->player = player;
-    this->enemy = enemy;
+    this->ballId = ballId;
+    this->playerId = playerId;
+    this->enemyId = enemyId;
     this->playerScore = playerScore;
     this->enemyScore = enemyScore;
 }
@@ -411,9 +413,9 @@ void LevelManager::Reset(GameContext* ctx) {
     this->playerScore = 0;
     this->enemyScore = 0;
 
-    auto ball = ctx->scene->node_storage->GetByPtr(this->ball);
-    auto player = ctx->scene->node_storage->GetByPtr(this->player);
-    auto enemy = ctx->scene->node_storage->GetByPtr(this->enemy);
+    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+    auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
+    auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
 
     if (ball == nullptr || player == nullptr || enemy == nullptr) {
         return;
@@ -439,11 +441,11 @@ void LevelManager::EnemyScored() {
 void LevelManager::Update(GameContext* ctx) {
     for (const auto& collision: ctx->collisionEngine->startedCollisions) {
         bool predicate = (
-            collision.collisionObjectA->TypeId() == Ball::_id &&
-            collision.collisionObjectB->TypeId() == Goal::_id
+            collision.collisionObjectA->TypeId() == Ball::_tid &&
+            collision.collisionObjectB->TypeId() == Goal::_tid
         ) || (
-            collision.collisionObjectA->TypeId() == Goal::_id &&
-            collision.collisionObjectB->TypeId() == Ball::_id
+            collision.collisionObjectA->TypeId() == Goal::_tid &&
+            collision.collisionObjectB->TypeId() == Ball::_tid
         );
 
         if (
@@ -455,7 +457,7 @@ void LevelManager::Update(GameContext* ctx) {
         Ball* ball;
         Goal* goal;
 
-        if (collision.collisionObjectA->TypeId() == Ball::_id) {
+        if (collision.collisionObjectA->TypeId() == Ball::_tid) {
             ball = static_cast<Ball*>(collision.collisionObjectA);
             goal = static_cast<Goal*>(collision.collisionObjectB);
         } else {

@@ -147,7 +147,13 @@ class Collider: public Node2D {
         ColliderType type;
         Shape shape;
 
-        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, Node* parent = nullptr): Node2D(position, parent) {
+        static const uint64_t _tid;
+
+        uint64_t TypeId() const override {
+            return Collider::_tid;
+        }
+
+        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {
             this->type = type;
             this->shape = shape;
         }
@@ -166,13 +172,13 @@ struct Collision {
 
 class CollisionObject2D: public Node2D {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return CollisionObject2D::_id;
+            return CollisionObject2D::_tid;
         }
 
-        CollisionObject2D(Vector2 position, Node* parent = nullptr): Node2D(position, parent) {}
+        CollisionObject2D(Vector2 position, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {}
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
         virtual void OnCollisionEnded(Collision c) {}

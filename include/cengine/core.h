@@ -60,7 +60,7 @@ struct Size {
     float height;
 };
 
-// Custom RTTI
+// # Custom RTTI
 
 class TypeIdGenerator {
 public:
@@ -91,7 +91,7 @@ private:
 
 class WithType {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
         virtual uint64_t TypeId() const = 0;
 };
 

@@ -9,10 +9,10 @@ class Paddle: public CharacterBody2D {
         float speed;
         float maxVelocity;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return Paddle::_id;
+            return Paddle::_tid;
         }
 
         Paddle(
@@ -30,10 +30,10 @@ class Paddle: public CharacterBody2D {
 // # Player
 class Player: public Paddle {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return Player::_id;
+            return Player::_tid;
         }
 
         Player(
@@ -61,10 +61,10 @@ class Ball: public CharacterBody2D {
         float radius;
         float maxVelocity;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return Ball::_id;
+            return Ball::_tid;
         }
 
         Ball(
@@ -91,16 +91,16 @@ class Ball: public CharacterBody2D {
 
 class Enemy: public Paddle {
     public:
-        Ball* ball;
+        node_id_t ballId;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
         uint64_t TypeId() const override {
-            return Enemy::_id;
+            return Enemy::_tid;
         }
 
         Enemy(
-            Ball* ball,
+            node_id_t ballId,
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -111,7 +111,7 @@ class Enemy: public Paddle {
         void Update(GameContext* ctx) override;
 
         static std::unique_ptr<Enemy> NewEnemy(
-            Ball* ball,
+            node_id_t ballId,
             Vector2 position,
             Size size,
             Vector2 velocity,
@@ -124,11 +124,11 @@ class Enemy: public Paddle {
 
 class Goal: public CollisionObject2D {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
         bool isLeft;
 
         uint64_t TypeId() const override {
-            return Goal::_id;
+            return Goal::_tid;
         }
 
         Goal(
@@ -146,16 +146,16 @@ class Goal: public CollisionObject2D {
 
 class LevelManager: public Node {
     public:
-        Ball* ball;
-        Player* player;
-        Enemy* enemy;
+        node_id_t ballId;
+        node_id_t playerId;
+        node_id_t enemyId;
         int playerScore;
         int enemyScore;
 
         LevelManager(
-            Ball* ball,
-            Player* player,
-            Enemy* enemy,
+            node_id_t ballId,
+            node_id_t playerId,
+            node_id_t enemyId,
             int playerScore,
             int enemyScore
         );
