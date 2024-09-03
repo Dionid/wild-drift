@@ -59,7 +59,7 @@ class Node: public Renderer, public Updater, public WithType {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Node::_tid;
         }
 

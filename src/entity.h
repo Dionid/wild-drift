@@ -11,7 +11,7 @@ class Paddle: public CharacterBody2D {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Paddle::_tid;
         }
 
@@ -32,7 +32,7 @@ class Player: public Paddle {
     public:
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Player::_tid;
         }
 
@@ -63,7 +63,7 @@ class Ball: public CharacterBody2D {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Ball::_tid;
         }
 
@@ -95,7 +95,7 @@ class Enemy: public Paddle {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Enemy::_tid;
         }
 
@@ -127,7 +127,7 @@ class Goal: public CollisionObject2D {
         static const uint64_t _tid;
         bool isLeft;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Goal::_tid;
         }
 

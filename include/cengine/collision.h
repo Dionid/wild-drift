@@ -149,7 +149,7 @@ class Collider: public Node2D {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Collider::_tid;
         }
 
@@ -174,7 +174,7 @@ class CollisionObject2D: public Node2D {
     public:
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return CollisionObject2D::_tid;
         }
 

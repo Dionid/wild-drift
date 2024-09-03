@@ -10,7 +10,7 @@ class Node2D: public Node {
 
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return Node2D::_tid;
         }
 

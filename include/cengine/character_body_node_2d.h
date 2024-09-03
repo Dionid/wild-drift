@@ -15,7 +15,7 @@ class CharacterBody2D: public CollisionObject2D {
     public:
         static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
+        type_id_t TypeId() const override {
             return CharacterBody2D::_tid;
         }
 
