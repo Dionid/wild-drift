@@ -13,10 +13,10 @@ enum class MotionMode {
 
 class CharacterBody2D: public CollisionObject2D {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
-            return CharacterBody2D::_id;
+        type_id_t TypeId() const override {
+            return CharacterBody2D::_tid;
         }
 
         Size size;
@@ -32,8 +32,9 @@ class CharacterBody2D: public CollisionObject2D {
             MotionMode motionMode = MotionMode::Floating,
             Vector2 up = Vector2Up,
             float skinWidth = 0.1f,
+            uint16_t id = 0,
             Node* parent = nullptr
-        ) : CollisionObject2D(position, parent) {
+        ) : CollisionObject2D(position, id, parent) {
             this->size = size;
             this->velocity = velocity;
         }

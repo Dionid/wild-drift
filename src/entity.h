@@ -9,10 +9,10 @@ class Paddle: public CharacterBody2D {
         float speed;
         float maxVelocity;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
-            return Paddle::_id;
+        type_id_t TypeId() const override {
+            return Paddle::_tid;
         }
 
         Paddle(
@@ -30,10 +30,10 @@ class Paddle: public CharacterBody2D {
 // # Player
 class Player: public Paddle {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
-            return Player::_id;
+        type_id_t TypeId() const override {
+            return Player::_tid;
         }
 
         Player(
@@ -55,51 +55,16 @@ class Player: public Paddle {
         void Update(GameContext* ctx) override;
 };
 
-// # Enemy
-
-class Ball;
-
-class Enemy: public Paddle {
-    public:
-        Ball* ball;
-
-        static const uint64_t _id;
-
-        uint64_t TypeId() const override {
-            return Enemy::_id;
-        }
-
-        Enemy(
-            Ball* ball,
-            Vector2 position,
-            Size size,
-            Vector2 velocity,
-            float speed,
-            float maxVelocity
-        );
-
-        void Update(GameContext* ctx) override;
-
-        static std::unique_ptr<Enemy> NewEnemy(
-            Ball* ball,
-            Vector2 position,
-            Size size,
-            Vector2 velocity,
-            float speed,
-            float maxVelocity
-        );
-};
-
 // # Ball
 class Ball: public CharacterBody2D {
     public:
         float radius;
         float maxVelocity;
 
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
-            return Ball::_id;
+        type_id_t TypeId() const override {
+            return Ball::_tid;
         }
 
         Ball(
@@ -120,6 +85,89 @@ class Ball: public CharacterBody2D {
             float screenHeight,
             float randomAngle
         );
+};
+
+// # Enemy
+
+class Enemy: public Paddle {
+    public:
+        node_id_t ballId;
+
+        static const uint64_t _tid;
+
+        type_id_t TypeId() const override {
+            return Enemy::_tid;
+        }
+
+        Enemy(
+            node_id_t ballId,
+            Vector2 position,
+            Size size,
+            Vector2 velocity,
+            float speed,
+            float maxVelocity
+        );
+
+        void Update(GameContext* ctx) override;
+
+        static std::unique_ptr<Enemy> NewEnemy(
+            node_id_t ballId,
+            Vector2 position,
+            Size size,
+            Vector2 velocity,
+            float speed,
+            float maxVelocity
+        );
+};
+
+// # Goal
+
+class Goal: public CollisionObject2D {
+    public:
+        static const uint64_t _tid;
+        bool isLeft;
+
+        type_id_t TypeId() const override {
+            return Goal::_tid;
+        }
+
+        Goal(
+            bool isLeft,
+            Vector2 position,
+            Size size
+        );
+
+        static std::unique_ptr<Goal> NewGoal(
+            bool isLeft,
+            Vector2 position,
+            Size size
+        );
+};
+
+class LevelManager: public Node {
+    public:
+        node_id_t ballId;
+        node_id_t playerId;
+        node_id_t enemyId;
+        int playerScore;
+        int enemyScore;
+
+        LevelManager(
+            node_id_t ballId,
+            node_id_t playerId,
+            node_id_t enemyId,
+            int playerScore,
+            int enemyScore
+        );
+
+        void Reset(GameContext* ctx);
+
+        void PlayerScored();
+
+        void EnemyScored();
+
+        void Update(GameContext* ctx) override;
+        void Render(GameContext* ctx) override;
 };
 
 #endif // CSP_ENTITY_H_

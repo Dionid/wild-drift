@@ -147,7 +147,13 @@ class Collider: public Node2D {
         ColliderType type;
         Shape shape;
 
-        Collider(ColliderType type, Shape shape, Vector2 position, Node* parent = nullptr): Node2D(position, parent) {
+        static const uint64_t _tid;
+
+        type_id_t TypeId() const override {
+            return Collider::_tid;
+        }
+
+        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {
             this->type = type;
             this->shape = shape;
         }
@@ -161,17 +167,18 @@ struct Collision {
     CollisionHit hit;
     Collider* selfCollider;
     CollisionObject2D* other;
+    Collider* otherCollider;
 };
 
 class CollisionObject2D: public Node2D {
     public:
-        static const uint64_t _id;
+        static const uint64_t _tid;
 
-        uint64_t TypeId() const override {
-            return CollisionObject2D::_id;
+        type_id_t TypeId() const override {
+            return CollisionObject2D::_tid;
         }
 
-        CollisionObject2D(Vector2 position, Node* parent = nullptr): Node2D(position, parent) {}
+        CollisionObject2D(Vector2 position, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {}
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
         virtual void OnCollisionEnded(Collision c) {}
@@ -189,10 +196,13 @@ struct CollisionEvent {
 
 class CollisionEngine {
     public:
-        std::vector<CollisionEvent> collisionsEventVec;
+        // # TODO: change to key value with node.id + node.id as key 
+        std::vector<CollisionEvent> collisions;
+        std::vector<CollisionEvent> startedCollisions;
+        std::vector<CollisionEvent> endedCollisions;
 
         CollisionEngine() {
-            this->collisionsEventVec = std::vector<CollisionEvent>();
+            this->collisions = std::vector<CollisionEvent>();
         }
 
         void NarrowCollisionCheckNaive(
@@ -298,7 +308,7 @@ class CollisionEngine {
             for (auto collision: currentCollisions) {
                 bool found = false;
 
-                for (auto oldCollision: this->collisionsEventVec) {
+                for (auto oldCollision: this->collisions) {
                     if (
                         (oldCollision.collisionObjectA == collision.collisionObjectB &&
                         oldCollision.collisionObjectB == collision.collisionObjectA) || 
@@ -315,9 +325,11 @@ class CollisionEngine {
                 }
             }
 
+            this->startedCollisions = newCollisions;
+
             std::vector<CollisionEvent> endedCollisions;
 
-            for (auto oldCollision: this->collisionsEventVec) {
+            for (auto oldCollision: this->collisions) {
                 bool found = false;
 
                 for (auto collision: currentCollisions) {
@@ -337,16 +349,20 @@ class CollisionEngine {
                 }
             }
 
+            this->endedCollisions = endedCollisions;
+
             for (auto collision: newCollisions) {
                 collision.collisionObjectA->OnCollisionStarted({
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollisionStarted({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
@@ -355,11 +371,13 @@ class CollisionEngine {
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollision({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
@@ -368,15 +386,17 @@ class CollisionEngine {
                     collision.hit,
                     collision.colliderA,
                     collision.collisionObjectB,
+                    collision.colliderB,
                 });
                 collision.collisionObjectB->OnCollisionEnded({
                     collision.hit,
                     collision.colliderB,
                     collision.collisionObjectA,
+                    collision.colliderA,
                 });
             }
 
-            this->collisionsEventVec = currentCollisions;
+            this->collisions = currentCollisions;
         }
 };
 

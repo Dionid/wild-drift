@@ -60,7 +60,9 @@ struct Size {
     float height;
 };
 
-// Custom RTTI
+// # Custom RTTI
+
+typedef uint64_t type_id_t;
 
 class TypeIdGenerator {
 public:
@@ -85,14 +87,14 @@ public:
 private:
     TypeIdGenerator() : counter_(0) {}
 
-    uint64_t counter_;
+    type_id_t counter_;
     std::mutex mutex_;
 };
 
 class WithType {
     public:
-        static const uint64_t _id;
-        virtual uint64_t TypeId() const = 0;
+        static const type_id_t _tid;
+        virtual type_id_t TypeId() const = 0;
 };
 
 // # For future
