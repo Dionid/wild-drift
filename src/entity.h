@@ -146,10 +146,21 @@ class Goal: public CollisionObject2D {
 
 class ScoreManager: public Node {
     public:
+        Ball* ball;
+        Player* player;
+        Enemy* enemy;
         int playerScore;
         int enemyScore;
 
-        ScoreManager();
+        ScoreManager(
+            Ball* ball,
+            Player* player,
+            Enemy* enemy,
+            int playerScore,
+            int enemyScore
+        );
+
+        void ResetLevel(GameContext* ctx);
 
         void PlayerScored();
 

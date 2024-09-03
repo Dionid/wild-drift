@@ -393,9 +393,31 @@ std::unique_ptr<Goal> Goal::NewGoal(
 
 // # Score Manager
 
-ScoreManager::ScoreManager(): Node() {
+ScoreManager::ScoreManager(
+    Ball* ball,
+    Player* player,
+    Enemy* enemy,
+    int playerScore = 0,
+    int enemyScore = 0
+): Node() {
+    this->ball = ball;
+    this->player = player;
+    this->enemy = enemy;
+    this->playerScore = playerScore;
+    this->enemyScore = enemyScore;
+}
+
+void ScoreManager::ResetLevel(GameContext* ctx) {
     this->playerScore = 0;
     this->enemyScore = 0;
+
+    this->ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+
+    this->player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
+    this->player->velocity = (Vector2){ 0.0f, 0.0f };
+
+    this->enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
+    this->enemy->velocity = (Vector2){ 0.0f, 0.0f };
 }
 
 void ScoreManager::PlayerScored() {
@@ -438,23 +460,30 @@ void ScoreManager::Update(GameContext* ctx) {
         } else {
             this->PlayerScored();
         }
+
+        if (this->playerScore >= 2 || this->enemyScore >= 2) {
+            this->ResetLevel(ctx);
+        }
     }
 }
 
 void ScoreManager::Render(GameContext* ctx) {
+    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
+    auto fontSize = 50;
+
     DrawText(
         std::to_string(this->playerScore).c_str(),
-        40,
-        20,
-        20,
-        GREEN
+        screenWidthQuoter - fontSize / 2,
+        ctx->worldHeight / 2 - fontSize / 2,
+        fontSize,
+        ColorAlpha(WHITE, 0.5f)
     );
 
     DrawText(
         std::to_string(this->enemyScore).c_str(),
-        ctx->worldWidth - 40,
-        20,
-        20,
-        RED
+        ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
+        ctx->worldHeight / 2 - fontSize / 2,
+        fontSize,
+        ColorAlpha(WHITE, 0.5f)
     );
 }

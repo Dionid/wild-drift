@@ -26,15 +26,15 @@ int main() {
     // # Player
     const float sixthScreen = screenWidth/6.0f;
 
-    auto player = Player::NewPlayer(
-        (Vector2){ sixthScreen, screenHeight/2.0f },
-        (Size){ 40.0f, 120.0f },
-        (Vector2){ 0.0f, 0.0f },
-        1.0f,
-        10.0f
+    auto player = scene.get()->node_storage->AddNode(
+        Player::NewPlayer(
+            (Vector2){ sixthScreen, screenHeight/2.0f },
+            (Size){ 40.0f, 120.0f },
+            (Vector2){ 0.0f, 0.0f },
+            1.0f,
+            10.0f
+        )
     );
-
-    scene.get()->node_storage->AddNode(std::move(player));
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
@@ -43,20 +43,20 @@ int main() {
             ballRadius,
             screenWidth,
             screenHeight,
-            7.0f
+            10.0f
         )
     );
 
-    auto enemy = Enemy::NewEnemy(
-        ball,
-        (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-        (Size){ 40.0f, 120.0f },
-        (Vector2){ 0.0f, 0.0f },
-        1.0f,
-        10.0f
+    auto enemy = scene.get()->node_storage->AddNode(
+        Enemy::NewEnemy(
+            ball,
+            (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
+            (Size){ 40.0f, 120.0f },
+            (Vector2){ 0.0f, 0.0f },
+            1.0f,
+            10.0f
+        )
     );
-
-    scene.get()->node_storage->AddNode(std::move(enemy));
 
     // # Goals
     Size goalSize = { 15, screenHeight - 15 };
@@ -99,7 +99,13 @@ int main() {
 
     // # Score Manager
     scene->node_storage->AddNode(
-        std::make_unique<ScoreManager>()
+        std::make_unique<ScoreManager>(
+            ball,
+            player,
+            enemy,
+            0,
+            0
+        )
     );
 
     // # Collision Engine
