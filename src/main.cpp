@@ -10,7 +10,7 @@ int main() {
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "super pong");
-    DisableCursor();
+    // DisableCursor();
     SetTargetFPS(FPS);
 
     Debugger debugger;
