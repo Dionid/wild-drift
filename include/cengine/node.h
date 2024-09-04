@@ -18,6 +18,11 @@ class Updater {
         virtual void Update(GameContext* ctx) {};
 };
 
+class Initer {
+    public:
+        virtual void Init(GameContext* ctx) {};
+};
+
 // # Node Id Manager
 
 typedef uint64_t node_id_t;
@@ -51,7 +56,7 @@ private:
 
 // # Node
 
-class Node: public Renderer, public Updater, public WithType {
+class Node: public WithType, public Renderer, public Updater, public Initer {
     public:
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;

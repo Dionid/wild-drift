@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "entity.h"
 #include "main_level.h"
-#include "gui.h"
+#include "main_menu.h"
 
 int main() {
     // # Init
@@ -46,23 +46,28 @@ int main() {
         screenHeight
     };
 
-    // Main game loop
+    // # Init
+    for (const auto& node: ctx.scene->node_storage->nodes) {
+        node->Init(&ctx);
+    }
+
+    // # Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // Update
+        // ## Update
         //----------------------------------------------------------------------------------
 
-        // # Initial
+        // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
             node->TraverseNodeUpdate(&ctx);
         }
 
-        // # Collision
+        // ## Collision
         collisionEngine.NarrowCollisionCheckNaive(&ctx);
 
         //----------------------------------------------------------------------------------
 
-        // Draw
+        // ## Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
@@ -74,7 +79,7 @@ int main() {
         //----------------------------------------------------------------------------------
     }
 
-    // De-Initialization
+    // ## De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------

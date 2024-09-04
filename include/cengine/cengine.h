@@ -8,6 +8,7 @@
 #include "scene.h"
 #include "game_context.h"
 #include "node.h"
+#include "gui.h"
 #include "node-2d.h"
 #include "view.h"
 #include "collision.h"
