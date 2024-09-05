@@ -159,21 +159,25 @@ std::unique_ptr<Ball> Ball::NewBall(
         (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
         7.0f
     );
-    ball->AddNode(
-        std::make_unique<CircleView>(
-            ballRadius
-        )
-    );
-    ball->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Solid,
-            Shape::Circle(ballRadius),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
 
     return ball;
 };
+
+void Ball::Init(GameContext* ctx) {
+    this->AddNode(
+        std::make_unique<CircleView>(
+            this->radius
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<Collider>(
+            ColliderType::Solid,
+            Shape::Circle(this->radius),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
+}
 
 void Ball::OnCollisionStarted(Collision collision) {
     if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
@@ -278,22 +282,37 @@ std::unique_ptr<Enemy> Enemy::NewEnemy(
         speed,
         maxVelocity
     );
-    enemy->AddNode(
+    // enemy->AddNode(
+    //     std::make_unique<RectangleView>(
+    //         size,
+    //         RED
+    //     )
+    // );
+    // enemy->AddNode(
+    //     std::make_unique<Collider>(
+    //         ColliderType::Solid,
+    //         Shape::Rectangle(size),
+    //         (Vector2){ 0.0f, 0.0f }
+    //     )
+    // );
+    return enemy;
+};
+
+void Enemy::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<RectangleView>(
-            size,
+            this->size,
             RED
         )
     );
-    enemy->AddNode(
+    this->AddNode(
         std::make_unique<Collider>(
             ColliderType::Solid,
-            Shape::Rectangle(size),
+            Shape::Rectangle(this->size),
             (Vector2){ 0.0f, 0.0f }
         )
     );
-
-    return enemy;
-};
+}
 
 void Enemy::Update(GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
@@ -368,6 +387,8 @@ Goal::Goal(
 ) : CollisionObject2D(position)
 {
     this->isLeft = isLeft;
+    this->size = size;
+    this->position = position;
 };
 
 std::unique_ptr<Goal> Goal::NewGoal(
@@ -377,20 +398,22 @@ std::unique_ptr<Goal> Goal::NewGoal(
 ) {
     auto goal = std::make_unique<Goal>(isLeft, position, size);
 
-    goal->AddNode(
+    return goal;
+};
+
+void Goal::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<RectangleView>(
-            size,
+            this->size,
             WHITE,
             0.3f
         )
     );
 
-    goal->AddNode(
+    this->AddNode(
         std::make_unique<Collider>(
             ColliderType::Sensor,
-            Shape::Rectangle(size)
+            Shape::Rectangle(this->size)
         )
     );
-
-    return goal;
-};
+}

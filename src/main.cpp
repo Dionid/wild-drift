@@ -30,7 +30,6 @@ int main() {
         0,
         0
     ));
-
     // scene.node_storage->AddNode(std::make_unique<MainMenu>());
     // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 

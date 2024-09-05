@@ -76,6 +76,7 @@ class Ball: public CharacterBody2D {
             float maxVelocity
         );
 
+        void Init(GameContext* ctx) override;
         void Update(GameContext* ctx) override;
         void OnCollision(Collision c) override;
         void OnCollisionStarted(Collision c) override;
@@ -109,6 +110,7 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
+        void Init(GameContext* ctx) override;
         void Update(GameContext* ctx) override;
 
         static std::unique_ptr<Enemy> NewEnemy(
@@ -127,6 +129,8 @@ class Goal: public CollisionObject2D {
     public:
         static const uint64_t _tid;
         bool isLeft;
+        Size size;
+        Vector2 position;
 
         type_id_t TypeId() const override {
             return Goal::_tid;
@@ -137,6 +141,8 @@ class Goal: public CollisionObject2D {
             Vector2 position,
             Size size
         );
+
+        void Init(GameContext* ctx) override;
 
         static std::unique_ptr<Goal> NewGoal(
             bool isLeft,

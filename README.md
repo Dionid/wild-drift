@@ -7,7 +7,6 @@
     1. Start, end and reset match
 1. Audio
 1. Release (macOS, Windows, Linux, web)
-1. Move all logic from cengine headers
 1. Add units (meters, seconds, etc.)
 1. Remove raylib
 1. Fixed update
@@ -33,4 +32,5 @@
 
 1. Use global position to know position of the Node in the world (i.e. combining all parent positions).
 1. Put Collider directly into ColliderBody2D.
+1. Initial nested Nodes must be added in Init method.
 1. ...

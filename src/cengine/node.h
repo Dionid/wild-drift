@@ -79,16 +79,39 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         template <typename T>
-        T* AddNode(std::unique_ptr<T> node) {
+        T* AddNode(std::unique_ptr<T> node);
+
+        // template <typename T>
+        // T* AddNode(std::unique_ptr<T> node) {
+        //     static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+        //     node->storage = this->storage;
+        //     node->parent = this;
+        //     auto ptr = node.get();
+        //     if (ptr->id == 0) {
+        //         ptr->id = NodeIdGenerator::GetInstance().GetNextId();
+        //     }
+        //     this->children.push_back(std::move(node));
+        //     return ptr;
+        // }
+
+        template <typename T>
+        T* GetById(node_id_t targetId) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
-            node->storage = this->storage;
-            node->parent = this;
-            auto ptr = node.get();
-            if (ptr->id == 0) {
-                ptr->id = NodeIdGenerator::GetInstance().GetNextId();
+
+            if (auto nPtr = dynamic_cast<T*>(this)) {
+                if (nPtr->id == targetId) {
+                    return nPtr;
+                }
             }
-            this->children.push_back(std::move(node));
-            return ptr;
+
+            for (const auto& node: this->children) {
+                auto nestedFound = node->GetById<T>(targetId);
+                if (nestedFound != nullptr) {
+                    return nestedFound;
+                }
+            }
+
+            return nullptr;
         }
 
         template <typename T>

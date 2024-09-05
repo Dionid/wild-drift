@@ -55,21 +55,21 @@ void MatchManager::Init(GameContext* ctx) {
     // # Goals
     Size goalSize = { 15, (float)ctx->worldHeight - 15 };
 
-    auto leftGoal = Goal::NewGoal(
-        true,
-        (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
-        goalSize
+    ctx->scene->node_storage->AddNode(
+        std::make_unique<Goal>(
+            true,
+            (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
+            goalSize
+        )
     );
 
-    ctx->scene->node_storage->AddNode(std::move(leftGoal));
-
-    auto rightGoal = Goal::NewGoal(
-        false,
-        (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
-        goalSize
+    ctx->scene->node_storage->AddNode(
+        std::make_unique<Goal>(
+            false,
+            (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
+            goalSize
+        )
     );
-
-    ctx->scene->node_storage->AddNode(std::move(rightGoal));
 
     // # Field
     ctx->scene->node_storage->AddNode(

@@ -20,6 +20,10 @@ class NodeStorage {
             return ++this->nextId;
         }
 
+        void OnNestedNodeCreated(Node* newNode) {
+            this->flatNodes.push_back(newNode);
+        }
+
         template <typename T>
         T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
@@ -38,9 +42,9 @@ class NodeStorage {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
 
             for (const auto& node: this->nodes) {
-                auto nPtr = node.get();
-                if (nPtr->id == targetId && T::_tid == nPtr->TypeId()) {
-                    return static_cast<T*>(nPtr);
+                auto result = node->GetById<T>(targetId);
+                if (result != nullptr) {
+                    return result;
                 }
             }
 
