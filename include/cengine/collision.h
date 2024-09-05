@@ -218,7 +218,7 @@ class CollisionEngine {
                     collisionObjects.push_back(co);
                 }
 
-                node->GetByTypeDeep<CollisionObject2D>(collisionObjects);
+                node->GetChildByTypeDeep<CollisionObject2D>(collisionObjects);
             }
 
             for (auto i = 0; i < collisionObjects.size(); i++) {

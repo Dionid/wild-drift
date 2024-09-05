@@ -66,7 +66,7 @@ int main() {
 
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
-            node->TraverseNodeUpdate(&ctx);
+            node->TraverseUpdate(&ctx);
         }
 
         // ## Collision
@@ -79,7 +79,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (const auto& node: ctx.scene->node_storage->nodes) {
-                node->TraverseNodeRender(&ctx);
+                node->TraverseRender(&ctx);
             }
             debugger.Render(&ctx);
         EndDrawing();

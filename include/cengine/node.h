@@ -88,7 +88,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         template <typename T>
-        void GetByType(std::vector<T*>& nodes) {
+        void GetChildByType(std::vector<T*>& nodes) {
             for (const auto& node: this->children) {
                 if (T* targetType = dynamic_cast<T*>(node.get())) {
                     nodes.push_back(targetType);
@@ -97,17 +97,17 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         template <typename T>
-        void GetByTypeDeep(std::vector<T*>& targetNodes) {
+        void GetChildByTypeDeep(std::vector<T*>& targetNodes) {
             for (const auto& childNode: this->children) {
                 if (T* targetType = dynamic_cast<T*>(childNode.get())) {
                     targetNodes.push_back(targetType);
                 }
-                childNode->GetByTypeDeep<T>(targetNodes);
+                childNode->GetChildByTypeDeep<T>(targetNodes);
             }
         }
 
         template <typename T>
-        T* GetFirstByType() {
+        T* GetFirstChildByType() {
             for (const auto& node: this->children) {
                 if (auto targetNode = dynamic_cast<T*>(node.get())) {
                     return targetNode;
@@ -117,7 +117,16 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             return nullptr;
         }
 
-        void RemoveNode(Node* node) {
+        template <typename T>
+        T* GetFirstByType() {
+            if (auto targetNode = dynamic_cast<T*>(this)) {
+                return targetNode;
+            }
+
+            return this->GetFirstChildByType<T>();
+        }
+
+        void RemoveChild(Node* node) {
             for (auto it = this->children.begin(); it != this->children.end(); it++) {
                 if (it->get() == node) {
                     this->children.erase(it);
@@ -142,17 +151,17 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         // TODO: rename
-        void TraverseNodeUpdate(GameContext* ctx) {
+        void TraverseUpdate(GameContext* ctx) {
             this->Update(ctx);
             for (const auto& node: this->children) {
-                node->TraverseNodeUpdate(ctx);
+                node->TraverseUpdate(ctx);
             }
         }
 
-        void TraverseNodeRender(GameContext* ctx) {
+        void TraverseRender(GameContext* ctx) {
             this->Render(ctx);
             for (const auto& node: this->children) {
-                node->TraverseNodeRender(ctx);
+                node->TraverseRender(ctx);
             }
         }
 };
