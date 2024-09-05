@@ -78,21 +78,9 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             this->parent = parent;
         }
 
+        // implementation in node_node_storage.h
         template <typename T>
         T* AddNode(std::unique_ptr<T> node);
-
-        // template <typename T>
-        // T* AddNode(std::unique_ptr<T> node) {
-        //     static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
-        //     node->storage = this->storage;
-        //     node->parent = this;
-        //     auto ptr = node.get();
-        //     if (ptr->id == 0) {
-        //         ptr->id = NodeIdGenerator::GetInstance().GetNextId();
-        //     }
-        //     this->children.push_back(std::move(node));
-        //     return ptr;
-        // }
 
         Node* GetById(node_id_t targetId) {
             if (this->id == targetId) {
