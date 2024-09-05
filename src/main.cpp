@@ -33,10 +33,11 @@ int main() {
     // );
     // mainLevel.InitMainLevel();
 
-    scene.node_storage->AddNode(std::make_unique<MatchManager>(
+    auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         0,
         0
     ));
+
     // scene.node_storage->AddNode(std::make_unique<MainMenu>());
     // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 

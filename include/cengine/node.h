@@ -88,23 +88,29 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         template <typename T>
-        std::vector<Node*> GetByType() {
-            std::vector<Node*> nodes;
-
+        void GetByType(std::vector<T*>& nodes) {
             for (const auto& node: this->children) {
-                if (dynamic_cast<T*>(node.get())) {
-                    nodes.push_back(node.get());
+                if (T* targetType = dynamic_cast<T*>(node.get())) {
+                    nodes.push_back(targetType);
                 }
             }
-
-            return nodes;
         }
 
         template <typename T>
-        Node* GetFirstByType() {
+        void GetByTypeDeep(std::vector<T*>& targetNodes) {
+            for (const auto& childNode: this->children) {
+                if (T* targetType = dynamic_cast<T*>(childNode.get())) {
+                    targetNodes.push_back(targetType);
+                }
+                childNode->GetByTypeDeep<T>(targetNodes);
+            }
+        }
+
+        template <typename T>
+        T* GetFirstByType() {
             for (const auto& node: this->children) {
-                if (dynamic_cast<T*>(node.get())) {
-                    return node.get();
+                if (auto targetNode = dynamic_cast<T*>(node.get())) {
+                    return targetNode;
                 }
             }
 

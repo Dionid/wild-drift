@@ -66,7 +66,10 @@ class CharacterBody2D: public CollisionObject2D {
                 auto collider = dynamic_cast<Collider*>(node.get());
 
                 if (collider == nullptr) {
-                    continue;
+                    collider = node->GetFirstByType<Collider>();
+                    if (collider == nullptr) {
+                        continue;
+                    }
                 }
 
                 if (collider->type == ColliderType::Sensor) {
