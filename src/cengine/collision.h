@@ -211,18 +211,13 @@ class CollisionEngine {
         ) {
             std::vector<CollisionEvent> currentCollisions;
 
-            std::vector<CollisionObject2D*> collisionObjects;
+            for (auto i = 0; i < ctx->scene->node_storage->flatNodes.size(); i++) {
+                auto node = ctx->scene->node_storage->flatNodes[i];
 
-            for (const auto& node: ctx->scene->node_storage->nodes) {
-                if (CollisionObject2D* co = dynamic_cast<CollisionObject2D*>(node.get())) {
-                    collisionObjects.push_back(co);
+                const auto& co = dynamic_cast<CollisionObject2D*>(node);
+                if (co == nullptr) {
+                    continue;
                 }
-
-                node->GetChildByTypeDeep<CollisionObject2D>(collisionObjects);
-            }
-
-            for (auto i = 0; i < collisionObjects.size(); i++) {
-                const auto& co = collisionObjects[i];
 
                 for (const auto& childNode: co->children) {
                     auto collider = dynamic_cast<Collider*>(childNode.get());
@@ -231,8 +226,13 @@ class CollisionEngine {
                         continue;
                     }
 
-                    for (auto j = i + 1; j < collisionObjects.size(); j++) {
-                        const auto& otherCo = collisionObjects[j];
+                    for (auto j = i + 1; j < ctx->scene->node_storage->flatNodes.size(); j++) {
+                        auto otherNode = ctx->scene->node_storage->flatNodes[j];
+
+                        const auto& otherCo = dynamic_cast<CollisionObject2D*>(otherNode);
+                        if (otherCo == nullptr) {
+                            continue;
+                        }
 
                         if (co == otherCo) {
                             continue;

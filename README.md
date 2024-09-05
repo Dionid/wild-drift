@@ -2,9 +2,13 @@
 
 # Roadmap
 
-1. ? Remove "Node::AddNode" and change it to "NodeStorage::AddNode"
+1. NodeStorage
+    1. flatNodes
+    1. index by class
+1. Node.id on BitMask
 1. Menu
     1. Start, end and reset match
+1. Change to key value with node.id + node.id as key 
 1. Audio
 1. Release (macOS, Windows, Linux, web)
 1. Add units (meters, seconds, etc.)
@@ -15,6 +19,8 @@
 1. SAT
 1. Z index
 1. Remove CharacterNode2D.size
+1. NodeGenerator id graveyard
+1. Defer Node Add & Remove 
 1. Maybe
     1. ? Arena allocator
 

@@ -37,6 +37,46 @@ class NodeStorage {
             return nPtr;
         }
 
+        void RemoveFromIndex(Node* node) {
+            for (auto i = 0; i < this->flatNodes.size(); i++) {
+                if (this->flatNodes[i] == node) {
+                    this->flatNodes.erase(this->flatNodes.begin() + i);
+                    break;
+                }
+            }
+        }
+
+        void RemoveFromIndexById(node_id_t id) {
+            for (auto i = 0; i < this->flatNodes.size(); i++) {
+                if (this->flatNodes[i]->id == id) {
+                    this->flatNodes.erase(this->flatNodes.begin() + i);
+                    break;
+                }
+            }
+        }
+
+        void RemoveNode(Node* node) {
+            this->RemoveFromIndex(node);
+
+            for (auto i = 0; i < this->nodes.size(); i++) {
+                if (this->nodes[i].get() == node) {
+                    this->nodes.erase(this->nodes.begin() + i);
+                    break;
+                }
+            }
+        }
+
+        void RemoveNodeById(node_id_t id) {
+            this->RemoveFromIndexById(id);
+
+            for (auto i = 0; i < this->nodes.size(); i++) {
+                if (this->nodes[i]->id == id) {
+                    this->nodes.erase(this->nodes.begin() + i);
+                    break;
+                }
+            }
+        }
+
         Node* GetById(node_id_t targetId) {
             for (const auto& node: this->nodes) {
                 auto result = node->GetById(targetId);

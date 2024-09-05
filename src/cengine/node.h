@@ -78,9 +78,15 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             this->parent = parent;
         }
 
-        // implementation in node_node_storage.h
+        // # implementations in node_node_storage.h
         template <typename T>
         T* AddNode(std::unique_ptr<T> node);
+
+        // # implementations in node_node_storage.h
+        void RemoveChild(Node* node);
+        
+        // # implementations in node_node_storage.h
+        void RemoveChildById(node_id_t id);
 
         Node* GetById(node_id_t targetId) {
             if (this->id == targetId) {
@@ -154,15 +160,6 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
 
             return this->GetFirstChildByType<T>();
-        }
-
-        void RemoveChild(Node* node) {
-            for (auto it = this->children.begin(); it != this->children.end(); it++) {
-                if (it->get() == node) {
-                    this->children.erase(it);
-                    return;
-                }
-            }
         }
 
         Node* RootNode() {
