@@ -2,8 +2,9 @@
 
 # Roadmap
 
-1. End match and reset
+1. ? Remove "Node::AddNode" and change it to "NodeStorage::AddNode"
 1. Menu
+    1. Start, end and reset match
 1. Audio
 1. Release (macOS, Windows, Linux, web)
 1. Add units (meters, seconds, etc.)

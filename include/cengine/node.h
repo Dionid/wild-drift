@@ -135,6 +135,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
+        // TODO: rename
         void TraverseNodeUpdate(GameContext* ctx) {
             this->Update(ctx);
             for (const auto& node: this->children) {
