@@ -37,6 +37,17 @@ class NodeStorage {
             return nPtr;
         }
 
+        Node* GetById(node_id_t targetId) {
+            for (const auto& node: this->nodes) {
+                auto result = node->GetById(targetId);
+                if (result != nullptr) {
+                    return result;
+                }
+            }
+
+            return nullptr;
+        }
+
         template <typename T>
         T* GetById(node_id_t targetId) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");

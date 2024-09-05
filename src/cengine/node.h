@@ -94,6 +94,21 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         //     return ptr;
         // }
 
+        Node* GetById(node_id_t targetId) {
+            if (this->id == targetId) {
+                return this;
+            }
+
+            for (const auto& node: this->children) {
+                auto nestedFound = node->GetById(targetId);
+                if (nestedFound != nullptr) {
+                    return nestedFound;
+                }
+            }
+
+            return nullptr;
+        }
+
         template <typename T>
         T* GetById(node_id_t targetId) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
@@ -162,7 +177,13 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
-        Node* RootNode();
+        Node* RootNode() {
+            if (this->parent != nullptr) {
+                return this->parent->RootNode();
+            }
+
+            return this;
+        };
 
         void TraverseInit(GameContext* ctx) {
             this->Init(ctx);
@@ -171,7 +192,12 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
-        void TraverseUpdate(GameContext* ctx);
+        void TraverseUpdate(GameContext* ctx) {
+            this->Update(ctx);
+            for (const auto& node: this->children) {
+                node->TraverseUpdate(ctx);
+            }
+        };
 
         void TraverseRender(GameContext* ctx) {
             this->Render(ctx);
