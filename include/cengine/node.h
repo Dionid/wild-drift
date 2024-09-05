@@ -18,6 +18,11 @@ class Updater {
         virtual void Update(GameContext* ctx) {};
 };
 
+class Initer {
+    public:
+        virtual void Init(GameContext* ctx) {};
+};
+
 // # Node Id Manager
 
 typedef uint64_t node_id_t;
@@ -51,7 +56,7 @@ private:
 
 // # Node
 
-class Node: public Renderer, public Updater, public WithType {
+class Node: public WithType, public Renderer, public Updater, public Initer {
     public:
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
@@ -83,23 +88,29 @@ class Node: public Renderer, public Updater, public WithType {
         }
 
         template <typename T>
-        std::vector<Node*> GetByType() {
-            std::vector<Node*> nodes;
-
+        void GetByType(std::vector<T*>& nodes) {
             for (const auto& node: this->children) {
-                if (dynamic_cast<T*>(node.get())) {
-                    nodes.push_back(node.get());
+                if (T* targetType = dynamic_cast<T*>(node.get())) {
+                    nodes.push_back(targetType);
                 }
             }
-
-            return nodes;
         }
 
         template <typename T>
-        Node* GetFirstByType() {
+        void GetByTypeDeep(std::vector<T*>& targetNodes) {
+            for (const auto& childNode: this->children) {
+                if (T* targetType = dynamic_cast<T*>(childNode.get())) {
+                    targetNodes.push_back(targetType);
+                }
+                childNode->GetByTypeDeep<T>(targetNodes);
+            }
+        }
+
+        template <typename T>
+        T* GetFirstByType() {
             for (const auto& node: this->children) {
-                if (dynamic_cast<T*>(node.get())) {
-                    return node.get();
+                if (auto targetNode = dynamic_cast<T*>(node.get())) {
+                    return targetNode;
                 }
             }
 
@@ -123,6 +134,14 @@ class Node: public Renderer, public Updater, public WithType {
             return this;
         }
 
+        void TraverseInit(GameContext* ctx) {
+            this->Init(ctx);
+            for (const auto& node: this->children) {
+                node->TraverseInit(ctx);
+            }
+        }
+
+        // TODO: rename
         void TraverseNodeUpdate(GameContext* ctx) {
             this->Update(ctx);
             for (const auto& node: this->children) {

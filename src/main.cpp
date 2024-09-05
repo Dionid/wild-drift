@@ -1,6 +1,8 @@
 #include "cengine/cengine.h"
 #include "utils.h"
 #include "entity.h"
+#include "match.h"
+#include "menus.h"
 
 int main() {
     // # Init
@@ -8,7 +10,7 @@ int main() {
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "super pong");
-    DisableCursor();
+    // DisableCursor();
     SetTargetFPS(FPS);
 
     Debugger debugger;
@@ -21,121 +23,58 @@ int main() {
     camera.zoom = 1.0f;
 
     // # Scene
-    auto scene = std::make_unique<Scene>();
+    Scene scene;
 
-    // # Player
-    const float sixthScreen = screenWidth/6.0f;
+    // # Level
+    // auto mainLevel = MatchManager(
+    //     screenWidth,
+    //     screenHeight,
+    //     &scene
+    // );
+    // mainLevel.InitMainLevel();
 
-    auto player = scene.get()->node_storage->AddNode(
-        Player::NewPlayer(
-            (Vector2){ sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.0f,
-            10.0f
-        )
-    );
+    auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
+        0,
+        0
+    ));
 
-    float ballRadius = 15.0f;
-    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
-    auto ball = scene.get()->node_storage->AddNode(
-        Ball::NewBall(
-            ballRadius,
-            screenWidth,
-            screenHeight,
-            10.0f
-        )
-    );
-
-    auto enemy = scene.get()->node_storage->AddNode(
-        Enemy::NewEnemy(
-            ball->id,
-            (Vector2){ screenWidth - sixthScreen, screenHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.0f,
-            10.0f
-        )
-    );
-
-    // # Goals
-    Size goalSize = { 15, screenHeight - 15 };
-
-    auto leftGoal = Goal::NewGoal(
-        true,
-        (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
-        goalSize
-    );
-
-    scene.get()->node_storage->AddNode(std::move(leftGoal));
-
-    auto rightGoal = Goal::NewGoal(
-        false,
-        (Vector2){ screenWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
-        goalSize
-    );
-
-    scene.get()->node_storage->AddNode(std::move(rightGoal));
-
-    // # Field
-    scene.get()->node_storage->AddNode(
-        std::make_unique<LineView>(
-            (Vector2){ screenWidth/2.0f, 80 },
-            screenHeight - 160,
-            WHITE,
-            0.5f
-        )
-    );
-
-    scene.get()->node_storage->AddNode(
-        std::make_unique<CircleView>(
-            80,
-            (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-            WHITE,
-            0.5f,
-            false
-        )
-    );
-
-    // # Score Manager
-    scene->node_storage->AddNode(
-        std::make_unique<LevelManager>(
-            ball->id,
-            player->id,
-            enemy->id,
-            0,
-            0
-        )
-    );
+    // scene.node_storage->AddNode(std::make_unique<MainMenu>());
+    // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
     // # Collision Engine
     CollisionEngine collisionEngine;
 
     // # Game Context
     GameContext ctx = {
-        scene.get(),
+        &scene,
         &collisionEngine,
         screenWidth,
         screenHeight
     };
 
-    // Main game loop
+    // # Init
+    // # While nodes are initing more of them can be added
+    for (int i = 0; i < scene.node_storage->nodes.size(); i++) {
+        scene.node_storage->nodes[i]->TraverseInit(&ctx);
+    }
+
+    // # Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // Update
+        // ## Update
         //----------------------------------------------------------------------------------
 
-        // # Initial
+        // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
             node->TraverseNodeUpdate(&ctx);
         }
 
-        // # Collision
+        // ## Collision
         collisionEngine.NarrowCollisionCheckNaive(&ctx);
 
         //----------------------------------------------------------------------------------
 
-        // Draw
+        // ## Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
@@ -147,7 +86,7 @@ int main() {
         //----------------------------------------------------------------------------------
     }
 
-    // De-Initialization
+    // ## De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------

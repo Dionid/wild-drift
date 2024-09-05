@@ -72,23 +72,25 @@ std::unique_ptr<Player> Player::NewPlayer(
 ) {
     auto player = std::make_unique<Player>(position, size, velocity, speed, maxVelocity);
 
-    player->AddNode(
+    return player;
+}
+
+void Player::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<RectangleView>(
-            size,
+            this->size,
             BLUE
         )
     );
 
-    player->AddNode(
+    this->AddNode(
         std::make_unique<Collider>(
             ColliderType::Solid,
-            Shape::Rectangle(size),
+            Shape::Rectangle(this->size),
             (Vector2){ 0.0f, 0.0f }
         )
     );
-
-    return player;
-}
+};
 
 // # Player Update function
 void Player::Update(GameContext* ctx) {
@@ -391,109 +393,4 @@ std::unique_ptr<Goal> Goal::NewGoal(
     );
 
     return goal;
-}
-
-// # Score Manager
-
-LevelManager::LevelManager(
-    node_id_t ballId,
-    node_id_t playerId,
-    node_id_t enemyId,
-    int playerScore = 0,
-    int enemyScore = 0
-): Node() {
-    this->ballId = ballId;
-    this->playerId = playerId;
-    this->enemyId = enemyId;
-    this->playerScore = playerScore;
-    this->enemyScore = enemyScore;
-}
-
-void LevelManager::Reset(GameContext* ctx) {
-    this->playerScore = 0;
-    this->enemyScore = 0;
-
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
-    auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
-    auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
-
-    if (ball == nullptr || player == nullptr || enemy == nullptr) {
-        return;
-    }
-
-    ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
-
-    player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
-    player->velocity = (Vector2){ 0.0f, 0.0f };
-
-    enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
-    enemy->velocity = (Vector2){ 0.0f, 0.0f };
-}
-
-void LevelManager::PlayerScored() {
-    this->playerScore++;
-}
-
-void LevelManager::EnemyScored() {
-    this->enemyScore++;
-}
-
-void LevelManager::Update(GameContext* ctx) {
-    for (const auto& collision: ctx->collisionEngine->startedCollisions) {
-        bool predicate = (
-            collision.collisionObjectA->TypeId() == Ball::_tid &&
-            collision.collisionObjectB->TypeId() == Goal::_tid
-        ) || (
-            collision.collisionObjectA->TypeId() == Goal::_tid &&
-            collision.collisionObjectB->TypeId() == Ball::_tid
-        );
-
-        if (
-            !predicate
-        ) {
-            return;
-        }
-
-        Ball* ball;
-        Goal* goal;
-
-        if (collision.collisionObjectA->TypeId() == Ball::_tid) {
-            ball = static_cast<Ball*>(collision.collisionObjectA);
-            goal = static_cast<Goal*>(collision.collisionObjectB);
-        } else {
-            ball = static_cast<Ball*>(collision.collisionObjectB);
-            goal = static_cast<Goal*>(collision.collisionObjectA);
-        }
-
-        if (goal->isLeft) {
-            this->EnemyScored();
-        } else {
-            this->PlayerScored();
-        }
-
-        if (this->playerScore >= 2 || this->enemyScore >= 2) {
-            this->Reset(ctx);
-        }
-    }
-}
-
-void LevelManager::Render(GameContext* ctx) {
-    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
-    auto fontSize = 50;
-
-    DrawText(
-        std::to_string(this->playerScore).c_str(),
-        screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-
-    DrawText(
-        std::to_string(this->enemyScore).c_str(),
-        ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-}
+};

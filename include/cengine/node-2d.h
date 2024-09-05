@@ -10,7 +10,7 @@ class Node2D: public Node {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        uint64_t TypeId() const override {
             return Node2D::_tid;
         }
 
@@ -18,19 +18,22 @@ class Node2D: public Node {
             this->position = position;
         }
 
-        Node2D* ClosestNode2DParent() {
-            auto currentParent = this->parent;
+        Node2D* ClosestNode2DParent(Node* targetParent = nullptr) {
+            auto currentParent = targetParent == nullptr ? this->parent : targetParent;
             if (currentParent == nullptr) {
                 return nullptr;
             }
 
-            auto parent = dynamic_cast<Node2D*>(currentParent);
+            auto n2dParent = dynamic_cast<Node2D*>(currentParent);
+            if (n2dParent == nullptr) {
+                if (currentParent->parent == nullptr) {
+                    return nullptr;
+                }
 
-            if (parent != nullptr) {
-                return parent;
+                return this->ClosestNode2DParent(currentParent->parent);
             }
 
-            return parent->ClosestNode2DParent();
+            return n2dParent;
         }
 
         Vector2 GlobalPosition() {

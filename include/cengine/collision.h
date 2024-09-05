@@ -179,6 +179,7 @@ class CollisionObject2D: public Node2D {
         }
 
         CollisionObject2D(Vector2 position, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {}
+        
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}
         virtual void OnCollisionEnded(Collision c) {}
@@ -210,35 +211,35 @@ class CollisionEngine {
         ) {
             std::vector<CollisionEvent> currentCollisions;
 
-            for (auto i = 0; i < ctx->scene->node_storage->nodes.size(); i++) {
-                const auto& node = ctx->scene->node_storage->nodes[i];
+            std::vector<CollisionObject2D*> collisionObjects;
 
-                auto co = dynamic_cast<CollisionObject2D*>(node.get());
-                if (co == nullptr) {
-                    continue;
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                if (CollisionObject2D* co = dynamic_cast<CollisionObject2D*>(node.get())) {
+                    collisionObjects.push_back(co);
                 }
 
-                for (const auto& n: node->children) {
-                    auto collider = dynamic_cast<Collider*>(n.get());
+                node->GetByTypeDeep<CollisionObject2D>(collisionObjects);
+            }
+
+            for (auto i = 0; i < collisionObjects.size(); i++) {
+                const auto& co = collisionObjects[i];
+
+                for (const auto& childNode: co->children) {
+                    auto collider = dynamic_cast<Collider*>(childNode.get());
 
                     if (collider == nullptr) {
                         continue;
                     }
 
-                    for (auto j = i + 1; j < ctx->scene->node_storage->nodes.size(); j++) {
-                        const auto& otherNode = ctx->scene->node_storage->nodes[j];
+                    for (auto j = i + 1; j < collisionObjects.size(); j++) {
+                        const auto& otherCo = collisionObjects[j];
 
-                        if (otherNode == node) {
+                        if (co == otherCo) {
                             continue;
                         }
 
-                        auto otherCo = dynamic_cast<CollisionObject2D*>(otherNode.get());
-                        if (otherCo == nullptr) {
-                            continue;
-                        }
-
-                        for (const auto& on: otherNode->children) {
-                            auto otherCollider = dynamic_cast<Collider*>(on.get());
+                        for (const auto& otherChildNode: otherCo->children) {
+                            auto otherCollider = dynamic_cast<Collider*>(otherChildNode.get());
 
                             if (otherCollider == nullptr) {
                                 continue;

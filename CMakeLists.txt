@@ -20,6 +20,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
+set(RAYGUI_VERSION 4.0)
+FetchContent_Declare(
+    raygui
+    URL https://github.com/raysan5/raygui/archive/refs/tags/${RAYGUI_VERSION}.tar.gz
+    FIND_PACKAGE_ARGS ${RAYGUI_VERSION}
+)
+
+FetchContent_MakeAvailable(raygui)
+
 # Adding our source files
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
 set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
@@ -28,6 +37,7 @@ set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/raygui-src/src/)
 target_link_libraries(${PROJECT_NAME} raylib)
 
 # Setting ASSETS_PATH
