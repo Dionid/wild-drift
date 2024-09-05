@@ -3,7 +3,7 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-#include "cengine/gui.h"
+#include "gui.h"
 
 Btn::Btn(
     const char* btnText,

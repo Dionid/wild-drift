@@ -7,6 +7,7 @@
 class NodeStorage {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
+        std::vector<Node*> flatNodes;
         uint64_t nextId;
 
         NodeStorage(
@@ -22,11 +23,13 @@ class NodeStorage {
         template <typename T>
         T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+            node->storage = this;
             T* nPtr = node.get();
             if (nPtr->id == 0) {
                 nPtr->id = NodeIdGenerator::GetInstance().GetNextId();
             }
             this->nodes.push_back(std::move(node));
+            this->flatNodes.push_back(nPtr);
             return nPtr;
         }
 

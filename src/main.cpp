@@ -25,14 +25,7 @@ int main() {
     // # Scene
     Scene scene;
 
-    // # Level
-    // auto mainLevel = MatchManager(
-    //     screenWidth,
-    //     screenHeight,
-    //     &scene
-    // );
-    // mainLevel.InitMainLevel();
-
+    // # Match
     auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         0,
         0

@@ -56,8 +56,11 @@ private:
 
 // # Node
 
+class NodeStorage;
+
 class Node: public WithType, public Renderer, public Updater, public Initer {
     public:
+        NodeStorage* storage;
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
         node_id_t id;
@@ -78,6 +81,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         template <typename T>
         T* AddNode(std::unique_ptr<T> node) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+            node->storage = this->storage;
             node->parent = this;
             auto ptr = node.get();
             if (ptr->id == 0) {
@@ -135,13 +139,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
-        Node* RootNode() {
-            if (this->parent != nullptr) {
-                return this->parent->RootNode();
-            }
-
-            return this;
-        }
+        Node* RootNode();
 
         void TraverseInit(GameContext* ctx) {
             this->Init(ctx);
@@ -150,13 +148,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
-        // TODO: rename
-        void TraverseUpdate(GameContext* ctx) {
-            this->Update(ctx);
-            for (const auto& node: this->children) {
-                node->TraverseUpdate(ctx);
-            }
-        }
+        void TraverseUpdate(GameContext* ctx);
 
         void TraverseRender(GameContext* ctx) {
             this->Render(ctx);
