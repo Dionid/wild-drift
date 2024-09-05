@@ -4,20 +4,6 @@
 #include "cengine/cengine.h"
 #include "entity.h"
 
-// class Match {
-//     public:
-//         int screenWidth;
-//         int screenHeight;
-//         Scene* scene;
-
-//         Match(
-//             const int screenWidth,
-//             const int screenHeight,
-//             Scene* scene
-//         );
-//         void InitMatch(); 
-// };
-
 class MatchManager: public Node {
     public:
         node_id_t ballId;

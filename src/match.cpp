@@ -15,7 +15,7 @@ void MatchManager::Init(GameContext* ctx) {
     const float sixthScreen = ctx->worldWidth/6.0f;
 
     auto player = this->AddNode(
-        Player::NewPlayer(
+        std::make_unique<Player>(
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
             (Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
@@ -28,19 +28,20 @@ void MatchManager::Init(GameContext* ctx) {
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * PI * 2;
-    auto ball = ctx->scene->node_storage->AddNode(
-        Ball::NewBall(
+    auto ball = this->AddNode(
+        std::make_unique<Ball>(
             ballRadius,
-            ctx->worldWidth,
-            ctx->worldHeight,
-            10.0f
+            (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
+            (Size){ ballRadius*2, ballRadius*2 },
+            (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
+            7.0f
         )
     );
 
     this->ballId = ball->id;
 
-    auto enemy = ctx->scene->node_storage->AddNode(
-        Enemy::NewEnemy(
+    auto enemy = this->AddNode(
+        std::make_unique<Enemy>(
             ball->id,
             (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
             (Size){ 40.0f, 120.0f },
@@ -55,24 +56,24 @@ void MatchManager::Init(GameContext* ctx) {
     // # Goals
     Size goalSize = { 15, (float)ctx->worldHeight - 15 };
 
-    auto leftGoal = Goal::NewGoal(
-        true,
-        (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
-        goalSize
+    this->AddNode(
+        std::make_unique<Goal>(
+            true,
+            (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
+            goalSize
+        )
     );
 
-    ctx->scene->node_storage->AddNode(std::move(leftGoal));
-
-    auto rightGoal = Goal::NewGoal(
-        false,
-        (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
-        goalSize
+    this->AddNode(
+        std::make_unique<Goal>(
+            false,
+            (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
+            goalSize
+        )
     );
-
-    ctx->scene->node_storage->AddNode(std::move(rightGoal));
 
     // # Field
-    ctx->scene->node_storage->AddNode(
+    this->AddNode(
         std::make_unique<LineView>(
             (Vector2){ ctx->worldWidth/2.0f, 80 },
             ctx->worldHeight - 160,
@@ -81,7 +82,7 @@ void MatchManager::Init(GameContext* ctx) {
         )
     );
 
-    ctx->scene->node_storage->AddNode(
+    this->AddNode(
         std::make_unique<CircleView>(
             80,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },

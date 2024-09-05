@@ -63,18 +63,6 @@ Player::Player(
 
 const uint64_t Player::_tid = TypeIdGenerator::getInstance().getNextId();
 
-std::unique_ptr<Player> Player::NewPlayer(
-    Vector2 position,
-    Size size,
-    Vector2 velocity = Vector2{},
-    float speed = 5.0f,
-    float maxVelocity = 10.0f
-) {
-    auto player = std::make_unique<Player>(position, size, velocity, speed, maxVelocity);
-
-    return player;
-}
-
 void Player::Init(GameContext* ctx) {
     this->AddNode(
         std::make_unique<RectangleView>(
@@ -146,34 +134,21 @@ Ball::Ball(
 
 const uint64_t Ball::_tid = TypeIdGenerator::getInstance().getNextId();
 
-std::unique_ptr<Ball> Ball::NewBall(
-    float ballRadius,
-    float screenWidth,
-    float screenHeight,
-    float randomAngle
-) {
-    auto ball = std::make_unique<Ball>(
-        ballRadius,
-        (Vector2){ screenWidth/2.0f, screenHeight/2.0f },
-        (Size){ ballRadius*2, ballRadius*2 },
-        (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
-        7.0f
-    );
-    ball->AddNode(
+void Ball::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<CircleView>(
-            ballRadius
-        )
-    );
-    ball->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Solid,
-            Shape::Circle(ballRadius),
-            (Vector2){ 0.0f, 0.0f }
+            this->radius
         )
     );
 
-    return ball;
-};
+    this->AddNode(
+        std::make_unique<Collider>(
+            ColliderType::Solid,
+            Shape::Circle(this->radius),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
+}
 
 void Ball::OnCollisionStarted(Collision collision) {
     if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
@@ -262,38 +237,21 @@ Enemy::Enemy(
     this->ballId = ballId;
 };
 
-std::unique_ptr<Enemy> Enemy::NewEnemy(
-    node_id_t ballId,
-    Vector2 position,
-    Size size,
-    Vector2 velocity = Vector2{},
-    float speed = 5.0f,
-    float maxVelocity = 10.0f
-) {
-    auto enemy = std::make_unique<Enemy>(
-        ballId,
-        position,
-        size,
-        velocity,
-        speed,
-        maxVelocity
-    );
-    enemy->AddNode(
+void Enemy::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<RectangleView>(
-            size,
+            this->size,
             RED
         )
     );
-    enemy->AddNode(
+    this->AddNode(
         std::make_unique<Collider>(
             ColliderType::Solid,
-            Shape::Rectangle(size),
+            Shape::Rectangle(this->size),
             (Vector2){ 0.0f, 0.0f }
         )
     );
-
-    return enemy;
-};
+}
 
 void Enemy::Update(GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
@@ -368,29 +326,23 @@ Goal::Goal(
 ) : CollisionObject2D(position)
 {
     this->isLeft = isLeft;
+    this->size = size;
+    this->position = position;
 };
 
-std::unique_ptr<Goal> Goal::NewGoal(
-    bool isLeft,
-    Vector2 position,
-    Size size
-) {
-    auto goal = std::make_unique<Goal>(isLeft, position, size);
-
-    goal->AddNode(
+void Goal::Init(GameContext* ctx) {
+    this->AddNode(
         std::make_unique<RectangleView>(
-            size,
+            this->size,
             WHITE,
             0.3f
         )
     );
 
-    goal->AddNode(
+    this->AddNode(
         std::make_unique<Collider>(
             ColliderType::Sensor,
-            Shape::Rectangle(size)
+            Shape::Rectangle(this->size)
         )
     );
-
-    return goal;
-};
+}

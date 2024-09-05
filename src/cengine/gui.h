@@ -2,7 +2,7 @@
 #define CENGINE_GUI_H_
 
 #include "raylib.h"
-#include "cengine/node.h"
+#include "node.h"
 
 enum class BtnState {
     Normal,

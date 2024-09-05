@@ -25,19 +25,11 @@ int main() {
     // # Scene
     Scene scene;
 
-    // # Level
-    // auto mainLevel = MatchManager(
-    //     screenWidth,
-    //     screenHeight,
-    //     &scene
-    // );
-    // mainLevel.InitMainLevel();
-
+    // # Match
     auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         0,
         0
     ));
-
     // scene.node_storage->AddNode(std::make_unique<MainMenu>());
     // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
@@ -66,7 +58,7 @@ int main() {
 
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
-            node->TraverseNodeUpdate(&ctx);
+            node->TraverseUpdate(&ctx);
         }
 
         // ## Collision
@@ -79,7 +71,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (const auto& node: ctx.scene->node_storage->nodes) {
-                node->TraverseNodeRender(&ctx);
+                node->TraverseRender(&ctx);
             }
             debugger.Render(&ctx);
         EndDrawing();

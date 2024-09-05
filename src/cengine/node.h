@@ -56,8 +56,11 @@ private:
 
 // # Node
 
+class NodeStorage;
+
 class Node: public WithType, public Renderer, public Updater, public Initer {
     public:
+        NodeStorage* storage;
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
         node_id_t id;
@@ -75,20 +78,53 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             this->parent = parent;
         }
 
+        // # implementations in node_node_storage.h
         template <typename T>
-        T* AddNode(std::unique_ptr<T> node) {
-            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
-            node->parent = this;
-            auto ptr = node.get();
-            if (ptr->id == 0) {
-                ptr->id = NodeIdGenerator::GetInstance().GetNextId();
+        T* AddNode(std::unique_ptr<T> node);
+
+        // # implementations in node_node_storage.h
+        void RemoveChild(Node* node);
+        
+        // # implementations in node_node_storage.h
+        void RemoveChildById(node_id_t id);
+
+        Node* GetById(node_id_t targetId) {
+            if (this->id == targetId) {
+                return this;
             }
-            this->children.push_back(std::move(node));
-            return ptr;
+
+            for (const auto& node: this->children) {
+                auto nestedFound = node->GetById(targetId);
+                if (nestedFound != nullptr) {
+                    return nestedFound;
+                }
+            }
+
+            return nullptr;
         }
 
         template <typename T>
-        void GetByType(std::vector<T*>& nodes) {
+        T* GetById(node_id_t targetId) {
+            static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
+
+            if (auto nPtr = dynamic_cast<T*>(this)) {
+                if (nPtr->id == targetId) {
+                    return nPtr;
+                }
+            }
+
+            for (const auto& node: this->children) {
+                auto nestedFound = node->GetById<T>(targetId);
+                if (nestedFound != nullptr) {
+                    return nestedFound;
+                }
+            }
+
+            return nullptr;
+        }
+
+        template <typename T>
+        void GetChildByType(std::vector<T*>& nodes) {
             for (const auto& node: this->children) {
                 if (T* targetType = dynamic_cast<T*>(node.get())) {
                     nodes.push_back(targetType);
@@ -97,17 +133,17 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         template <typename T>
-        void GetByTypeDeep(std::vector<T*>& targetNodes) {
+        void GetChildByTypeDeep(std::vector<T*>& targetNodes) {
             for (const auto& childNode: this->children) {
                 if (T* targetType = dynamic_cast<T*>(childNode.get())) {
                     targetNodes.push_back(targetType);
                 }
-                childNode->GetByTypeDeep<T>(targetNodes);
+                childNode->GetChildByTypeDeep<T>(targetNodes);
             }
         }
 
         template <typename T>
-        T* GetFirstByType() {
+        T* GetFirstChildByType() {
             for (const auto& node: this->children) {
                 if (auto targetNode = dynamic_cast<T*>(node.get())) {
                     return targetNode;
@@ -117,13 +153,13 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             return nullptr;
         }
 
-        void RemoveNode(Node* node) {
-            for (auto it = this->children.begin(); it != this->children.end(); it++) {
-                if (it->get() == node) {
-                    this->children.erase(it);
-                    return;
-                }
+        template <typename T>
+        T* GetFirstByType() {
+            if (auto targetNode = dynamic_cast<T*>(this)) {
+                return targetNode;
             }
+
+            return this->GetFirstChildByType<T>();
         }
 
         Node* RootNode() {
@@ -132,7 +168,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
 
             return this;
-        }
+        };
 
         void TraverseInit(GameContext* ctx) {
             this->Init(ctx);
@@ -141,18 +177,17 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             }
         }
 
-        // TODO: rename
-        void TraverseNodeUpdate(GameContext* ctx) {
+        void TraverseUpdate(GameContext* ctx) {
             this->Update(ctx);
             for (const auto& node: this->children) {
-                node->TraverseNodeUpdate(ctx);
+                node->TraverseUpdate(ctx);
             }
-        }
+        };
 
-        void TraverseNodeRender(GameContext* ctx) {
+        void TraverseRender(GameContext* ctx) {
             this->Render(ctx);
             for (const auto& node: this->children) {
-                node->TraverseNodeRender(ctx);
+                node->TraverseRender(ctx);
             }
         }
 };

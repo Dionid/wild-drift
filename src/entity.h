@@ -44,14 +44,6 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        static std::unique_ptr<Player> NewPlayer(
-            Vector2 position,
-            Size size,
-            Vector2 velocity,
-            float speed,
-            float maxVelocity
-        );
-
         void Update(GameContext* ctx) override;
         void Init(GameContext* ctx) override;
 };
@@ -76,16 +68,10 @@ class Ball: public CharacterBody2D {
             float maxVelocity
         );
 
+        void Init(GameContext* ctx) override;
         void Update(GameContext* ctx) override;
         void OnCollision(Collision c) override;
         void OnCollisionStarted(Collision c) override;
-
-        static std::unique_ptr<Ball> NewBall(
-            float ballRadius,
-            float screenWidth,
-            float screenHeight,
-            float randomAngle
-        );
 };
 
 // # Enemy
@@ -109,16 +95,8 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
+        void Init(GameContext* ctx) override;
         void Update(GameContext* ctx) override;
-
-        static std::unique_ptr<Enemy> NewEnemy(
-            node_id_t ballId,
-            Vector2 position,
-            Size size,
-            Vector2 velocity,
-            float speed,
-            float maxVelocity
-        );
 };
 
 // # Goal
@@ -127,6 +105,8 @@ class Goal: public CollisionObject2D {
     public:
         static const uint64_t _tid;
         bool isLeft;
+        Size size;
+        Vector2 position;
 
         type_id_t TypeId() const override {
             return Goal::_tid;
@@ -138,11 +118,7 @@ class Goal: public CollisionObject2D {
             Size size
         );
 
-        static std::unique_ptr<Goal> NewGoal(
-            bool isLeft,
-            Vector2 position,
-            Size size
-        );
+        void Init(GameContext* ctx) override;
 };
 
 #endif // CSP_ENTITY_H_

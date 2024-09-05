@@ -1,5 +1,5 @@
-#include "cengine/scene.h"
-#include "cengine/collision.h"
+#include "scene.h"
+#include "collision.h"
 
 const uint64_t Collider::_tid = TypeIdGenerator::getInstance().getNextId();
 

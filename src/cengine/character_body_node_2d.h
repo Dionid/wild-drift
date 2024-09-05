@@ -63,13 +63,10 @@ class CharacterBody2D: public CollisionObject2D {
             );
 
             for (const auto& node: this->children) {
-                auto collider = dynamic_cast<Collider*>(node.get());
+                auto collider = node->GetFirstByType<Collider>();
 
                 if (collider == nullptr) {
-                    collider = node->GetFirstByType<Collider>();
-                    if (collider == nullptr) {
-                        continue;
-                    }
+                    continue;
                 }
 
                 if (collider->type == ColliderType::Sensor) {
@@ -81,15 +78,13 @@ class CharacterBody2D: public CollisionObject2D {
                         continue;
                     }
 
-                    // TODO: refactor
-                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
+                    auto otherCollisionObject = otherNode->GetFirstByType<CollisionObject2D>();
 
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
-                    // TODO: recursive nodes
-                    for (const auto& otherN: otherNode->children) {
+                    for (const auto& otherN: otherCollisionObject->children) {
                         auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
                         if (otherCollider == nullptr) {
@@ -182,14 +177,11 @@ class CharacterBody2D: public CollisionObject2D {
                         continue;
                     }
 
-                    // TODO: refactor
-                    auto otherCollisionObject = dynamic_cast<CollisionObject2D*>(otherNode.get());
-
+                    auto otherCollisionObject = otherNode->GetFirstByType<CollisionObject2D>();
                     if (otherCollisionObject == nullptr) {
                         continue;
                     }
 
-                    // TODO: recursive nodes
                     for (const auto& otherN: otherNode->children) {
                         auto otherCollider = dynamic_cast<Collider*>(otherN.get());
 
