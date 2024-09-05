@@ -128,6 +128,13 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             return this;
         }
 
+        void TraverseInit(GameContext* ctx) {
+            this->Init(ctx);
+            for (const auto& node: this->children) {
+                node->TraverseInit(ctx);
+            }
+        }
+
         void TraverseNodeUpdate(GameContext* ctx) {
             this->Update(ctx);
             for (const auto& node: this->children) {

@@ -53,6 +53,7 @@ class Player: public Paddle {
         );
 
         void Update(GameContext* ctx) override;
+        void Init(GameContext* ctx) override;
 };
 
 // # Ball
@@ -142,32 +143,6 @@ class Goal: public CollisionObject2D {
             Vector2 position,
             Size size
         );
-};
-
-class LevelManager: public Node {
-    public:
-        node_id_t ballId;
-        node_id_t playerId;
-        node_id_t enemyId;
-        int playerScore;
-        int enemyScore;
-
-        LevelManager(
-            node_id_t ballId,
-            node_id_t playerId,
-            node_id_t enemyId,
-            int playerScore,
-            int enemyScore
-        );
-
-        void Reset(GameContext* ctx);
-
-        void PlayerScored();
-
-        void EnemyScored();
-
-        void Update(GameContext* ctx) override;
-        void Render(GameContext* ctx) override;
 };
 
 #endif // CSP_ENTITY_H_

@@ -1,8 +1,8 @@
 #include "cengine/cengine.h"
 #include "utils.h"
 #include "entity.h"
-#include "main_level.h"
-#include "main_menu.h"
+#include "match.h"
+#include "menus.h"
 
 int main() {
     // # Init
@@ -26,14 +26,19 @@ int main() {
     Scene scene;
 
     // # Level
-    // auto mainLevel = MainLevel(
+    // auto mainLevel = MatchManager(
     //     screenWidth,
     //     screenHeight,
     //     &scene
     // );
     // mainLevel.InitMainLevel();
 
-    scene.node_storage->AddNode(std::make_unique<MainMenu>());
+    scene.node_storage->AddNode(std::make_unique<MatchManager>(
+        0,
+        0
+    ));
+    // scene.node_storage->AddNode(std::make_unique<MainMenu>());
+    // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
     // # Collision Engine
     CollisionEngine collisionEngine;
@@ -47,8 +52,9 @@ int main() {
     };
 
     // # Init
-    for (const auto& node: ctx.scene->node_storage->nodes) {
-        node->Init(&ctx);
+    // # While nodes are initing more of them can be added
+    for (int i = 0; i < scene.node_storage->nodes.size(); i++) {
+        scene.node_storage->nodes[i]->TraverseInit(&ctx);
     }
 
     // # Main game loop

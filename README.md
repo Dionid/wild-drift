@@ -2,7 +2,7 @@
 
 # Roadmap
 
-1. Node::Init
+1. End match and reset
 1. Menu
 1. Audio
 1. Release (macOS, Windows, Linux, web)
