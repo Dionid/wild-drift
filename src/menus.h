@@ -16,7 +16,7 @@ class MainMenu: public Node {
         std::function<void(GameContext*)> onStart;
 
         MainMenu(
-            std::function<void(GameContext*)> onStart
+            std::function<void(GameContext*)> onStart = std::function<void(GameContext*)>()
         );
 
         void Render(GameContext* ctx) override;
@@ -32,8 +32,8 @@ class MatchEndMenu: public Node {
         std::function<void(GameContext*)> onRestart;
 
         MatchEndMenu(
-            std::function<void(GameContext*)> onRestart,
-            bool playerWon
+            std::function<void(GameContext*)> onRestart = std::function<void(GameContext*)>(),
+            bool playerWon = false
         );
 
         void Render(GameContext* ctx) override;

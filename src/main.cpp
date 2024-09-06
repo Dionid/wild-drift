@@ -26,10 +26,7 @@ int main() {
     Scene scene;
 
     // # MatchEndMenu
-    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
-        [](GameContext* ctx) {},
-        false
-    ));
+    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
     matchEndMenu->Deactivate();
 

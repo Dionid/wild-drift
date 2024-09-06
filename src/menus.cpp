@@ -23,7 +23,9 @@ void MainMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 [this](GameContext* ctx, Btn* btn) {
-                    this->onStart(ctx);
+                    if (this->onStart) {
+                        this->onStart(ctx);
+                    }
                 }
             )
         )
@@ -66,7 +68,9 @@ void MatchEndMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 [this](GameContext* ctx, Btn* btn) {
-                    this->onRestart(ctx);
+                    if (this->onRestart) {
+                        this->onRestart(ctx);
+                    }
                 }
             )
         )
