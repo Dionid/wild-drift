@@ -26,11 +26,24 @@ int main() {
     Scene scene;
 
     // # Match
-    auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
-        0,
-        0
+    // scene.node_storage->AddNode(std::make_unique<MatchManager>(
+    //     0,
+    //     0
+    // ));
+    // scene.node_storage->AddNode(std::make_unique<MatchManager>(
+    //     0,
+    //     0
+    // ));
+    MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
+        [&scene]() {
+            // scene.node_storage->RemoveNodeById(mainMenu->id);
+            scene.node_storage->AddNode(std::make_unique<MatchManager>(
+                0,
+                0
+            ));
+            std::cout << "start" << std::endl;
+        }
     ));
-    // scene.node_storage->AddNode(std::make_unique<MainMenu>());
     // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
     // # Collision Engine
@@ -46,15 +59,18 @@ int main() {
 
     // # Init
     // # While nodes are initing more of them can be added
-    for (int i = 0; i < scene.node_storage->nodes.size(); i++) {
-        scene.node_storage->nodes[i]->TraverseInit(&ctx);
+    for (const auto& node: ctx.scene->node_storage->nodes) {
+        node->TraverseInit(&ctx);
     }
+
+    ctx.scene->node_storage->Init();
 
     // # Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // ## Update
         //----------------------------------------------------------------------------------
+        scene.node_storage->InitNewNodes(&ctx);
 
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {

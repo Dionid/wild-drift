@@ -1,6 +1,12 @@
 #include "cengine/cengine.h"
 #include "menus.h"
 
+MainMenu::MainMenu(
+    std::function<void()> startCallback
+) {
+    this->startCallback = startCallback;
+}
+
 void MainMenu::Init(GameContext* ctx) {
     this->AddNode(
         std::make_unique<Btn>(
@@ -16,8 +22,8 @@ void MainMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [](Btn* btn) {
-                    printf("Button clicked!\n");
+                [this](Btn* btn) {
+                    this->startCallback();
                 }
             )
         )
@@ -33,6 +39,8 @@ void MainMenu::Render(GameContext* ctx) {
         WHITE
     );
 };
+
+// # MatchEndMenu
 
 void MatchEndMenu::Init(GameContext* ctx) {
     this->AddNode(

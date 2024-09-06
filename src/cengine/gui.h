@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "node.h"
+#include <functional>
 
 enum class BtnState {
     Normal,
@@ -13,16 +14,16 @@ enum class BtnState {
 class Btn;
 
 struct Callbacks {
-    void (*onHover)(Btn* btn);
-    void (*onDown)(Btn* btn);
-    void (*onUp)(Btn* btn);
-    void (*onClick)(Btn* btn);
+    std::function<void(Btn*)> onHover;
+    std::function<void(Btn*)> onDown;
+    std::function<void(Btn*)> onUp;
+    std::function<void(Btn*)> onClick;
 
     Callbacks(
-        void (*onHover)(Btn* btn) = nullptr,
-        void (*onDown)(Btn* btn) = nullptr,
-        void (*onUp)(Btn* btn) = nullptr,
-        void (*onClick)(Btn* btn) = nullptr
+        std::function<void(Btn*)> onHover = nullptr,
+        std::function<void(Btn*)> onDown = nullptr,
+        std::function<void(Btn*)> onUp = nullptr,
+        std::function<void(Btn*)> onClick = nullptr
     ) {
         this->onHover = onHover;
         this->onDown = onDown;

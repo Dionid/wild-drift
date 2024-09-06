@@ -170,6 +170,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             return this;
         };
 
+        // QUESTION: maybe remove
         void TraverseInit(GameContext* ctx) {
             this->Init(ctx);
             for (const auto& node: this->children) {
