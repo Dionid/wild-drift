@@ -1,6 +1,7 @@
 #ifndef CENGINE_MENUS_H_
 #define CENGINE_MENUS_H_
 
+#include <functional>
 #include "cengine/node.h"
 
 const int defaultTitleFontSize = 50;
@@ -12,6 +13,11 @@ class MainMenu: public Node {
         const int btnFontSize = defaultBtnFontSize;
         const char* title = "Super Pong";
         const char* start = "Start";
+        std::function<void(GameContext*)> onStart;
+
+        MainMenu(
+            std::function<void(GameContext*)> onStart
+        );
 
         void Render(GameContext* ctx) override;
         void Init(GameContext* ctx) override;
@@ -21,6 +27,15 @@ class MatchEndMenu: public Node {
     public:
         const int titleFontSize = defaultTitleFontSize;
         const int btnFontSize = defaultBtnFontSize;
+        bool playerWon = false;
+
+        std::function<void(GameContext*)> onRestart;
+
+        MatchEndMenu(
+            std::function<void(GameContext*)> onRestart,
+            bool playerWon
+        );
+
         void Render(GameContext* ctx) override;
         void Init(GameContext* ctx) override;
 };

@@ -4,16 +4,27 @@
 #include <vector>
 #include "node.h"
 
+enum class NodeStorageState {
+    CREATED,
+    INITIALIZED
+};
+
 class NodeStorage {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
         std::vector<Node*> flatNodes;
+        std::vector<Node*> newNodes;
         uint64_t nextId;
+        NodeStorageState state = NodeStorageState::CREATED;
 
         NodeStorage(
             uint64_t nextId = 0
         ) {
             this->nextId = nextId;
+        }
+
+        void Init() {
+            this->state = NodeStorageState::INITIALIZED;
         }
 
         uint64_t GetNextId() {
@@ -22,6 +33,17 @@ class NodeStorage {
 
         void OnNestedNodeCreated(Node* newNode) {
             this->flatNodes.push_back(newNode);
+            if (this->state == NodeStorageState::INITIALIZED) {
+                this->newNodes.push_back(newNode);
+            }
+        }
+
+        void InitNewNodes(GameContext* ctx) {
+            for (auto i = 0; i < this->newNodes.size(); i++) {
+                this->newNodes[i]->Init(ctx);
+            }
+ 
+            this->newNodes.clear();
         }
 
         template <typename T>
@@ -34,6 +56,9 @@ class NodeStorage {
             }
             this->nodes.push_back(std::move(node));
             this->flatNodes.push_back(nPtr);
+            if (this->state == NodeStorageState::INITIALIZED) {
+                this->newNodes.push_back(nPtr);
+            }
             return nPtr;
         }
 
@@ -44,12 +69,26 @@ class NodeStorage {
                     break;
                 }
             }
+
+            for (auto i = 0; i < this->newNodes.size(); i++) {
+                if (this->newNodes[i] == node) {
+                    this->newNodes.erase(this->newNodes.begin() + i);
+                    break;
+                }
+            }
         }
 
         void RemoveFromIndexById(node_id_t id) {
             for (auto i = 0; i < this->flatNodes.size(); i++) {
                 if (this->flatNodes[i]->id == id) {
                     this->flatNodes.erase(this->flatNodes.begin() + i);
+                    break;
+                }
+            }
+
+            for (auto i = 0; i < this->newNodes.size(); i++) {
+                if (this->newNodes[i]->id == id) {
+                    this->newNodes.erase(this->newNodes.begin() + i);
                     break;
                 }
             }

@@ -25,13 +25,41 @@ int main() {
     // # Scene
     Scene scene;
 
+    // # MatchEndMenu
+    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
+        [](GameContext* ctx) {},
+        false
+    ));
+
+    matchEndMenu->Deactivate();
+
     // # Match
-    auto mm = scene.node_storage->AddNode(std::make_unique<MatchManager>(
+    MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
+        [&]() {
+            matchManager->Deactivate();
+            matchEndMenu->Activate();
+        },
         0,
         0
     ));
-    // scene.node_storage->AddNode(std::make_unique<MainMenu>());
-    // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
+
+    matchManager->Deactivate();
+
+    // # MainMenu
+
+    MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
+        [&](GameContext* ctx) {
+            mainMenu->Deactivate();
+            matchManager->Reset(ctx);
+            matchManager->Activate();
+        }
+    ));
+
+    matchEndMenu->onRestart = [&](GameContext* ctx) {
+        matchEndMenu->Deactivate();
+        matchManager->Reset(ctx);
+        matchManager->Activate();
+    };
 
     // # Collision Engine
     CollisionEngine collisionEngine;
@@ -46,15 +74,19 @@ int main() {
 
     // # Init
     // # While nodes are initing more of them can be added
-    for (int i = 0; i < scene.node_storage->nodes.size(); i++) {
-        scene.node_storage->nodes[i]->TraverseInit(&ctx);
+    for (const auto& node: ctx.scene->node_storage->nodes) {
+        node->TraverseInit(&ctx);
     }
+
+    // # Node Storage
+    ctx.scene->node_storage->Init();
 
     // # Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // ## Update
         //----------------------------------------------------------------------------------
+        scene.node_storage->InitNewNodes(&ctx);
 
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {

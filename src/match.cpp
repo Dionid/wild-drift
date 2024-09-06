@@ -3,9 +3,11 @@
 // # Match Manager
 
 MatchManager::MatchManager(
+    std::function<void()> onEnd,
     int playerScore,
     int enemyScore
 ): Node() {
+    this->onEnd = onEnd;
     this->playerScore = playerScore;
     this->enemyScore = enemyScore;
 };
@@ -114,12 +116,32 @@ void MatchManager::Reset(GameContext* ctx) {
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
 }
 
-void MatchManager::PlayerScored() {
-    this->playerScore++;
+void MatchManager::PointScored(GameContext* ctx) {
+    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+    auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
+    auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
+
+    if (ball == nullptr || player == nullptr || enemy == nullptr) {
+        return;
+    }
+
+    ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+
+    player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
+    player->velocity = (Vector2){ 0.0f, 0.0f };
+
+    enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
+    enemy->velocity = (Vector2){ 0.0f, 0.0f };
 }
 
-void MatchManager::EnemyScored() {
+void MatchManager::PlayerScored(GameContext* ctx) {
+    this->playerScore++;
+    this->PointScored(ctx);
+}
+
+void MatchManager::EnemyScored(GameContext* ctx) {
     this->enemyScore++;
+    this->PointScored(ctx);
 }
 
 void MatchManager::Update(GameContext* ctx) {
@@ -150,13 +172,14 @@ void MatchManager::Update(GameContext* ctx) {
         }
 
         if (goal->isLeft) {
-            this->EnemyScored();
+            this->EnemyScored(ctx);
         } else {
-            this->PlayerScored();
+            this->PlayerScored(ctx);
         }
 
         if (this->playerScore >= 2 || this->enemyScore >= 2) {
-            this->Reset(ctx);
+            // this->Reset(ctx);
+            this->onEnd();
         }
     }
 }
