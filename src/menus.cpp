@@ -78,7 +78,7 @@ void MatchEndMenu::Init(GameContext* ctx) {
 }
 
 void MatchEndMenu::Render(GameContext* ctx) {
-    const char* text = this->playerWon ? "YOU WIN" : "YOU LOSE";
+    const char* text = this->playerWon ? "YOU WON" : "YOU LOST";
     DrawText(
         text,
         ctx->worldWidth / 2 - MeasureText(text, titleFontSize) / 2,

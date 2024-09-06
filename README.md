@@ -2,7 +2,6 @@
 
 # Roadmap
 
-1. Fix ball collision
 1. Audio
 1. Release (macOS, Windows, Linux, web)
 1. CollisionEngine pair.id
@@ -11,6 +10,7 @@
 1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
 1. SAT
 1. Z-index
+1. Timers
 1. Animations
 1. Events
 1. Remove CharacterNode2D.size

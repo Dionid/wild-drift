@@ -155,8 +155,24 @@ void Ball::OnCollisionStarted(Collision collision) {
         return;
     }
 
-    // TODO: Change this to over collision response (if you hit it from behind it reflects in wrong direction)
-    this->velocity = Vector2Reflect(this->velocity, collision.hit.normal);
+    auto other = dynamic_cast<Paddle*>(collision.other);
+
+    if (other == nullptr) {
+        return;
+    }
+
+    // # Resolve velocity
+    // ## Calculate velocity separation
+    float velocitySeparation = Vector2DotProduct(
+        Vector2Subtract(this->velocity, other->velocity),
+        collision.hit.normal
+    );
+
+    // ## Apply velocity separation
+    this->velocity = Vector2Add(
+        this->velocity,
+        Vector2Scale(collision.hit.normal, -2 * velocitySeparation)
+    );
 };
 
 void Ball::OnCollision(Collision collision) {
@@ -169,27 +185,6 @@ void Ball::OnCollision(Collision collision) {
         this->position,
         Vector2Scale(collision.hit.normal, collision.hit.penetration)
     );
-
-    // NOTE: This is other valid way of resolving collision
-    // // # Reflect velocity
-    // auto other = dynamic_cast<Paddle*>(collision.other);
-
-    // if (other == nullptr) {
-    //     return;
-    // }
-
-    // // # Resolve velocity
-    // // ## Calculate velocity separation
-    // float velocitySeparation = Vector2DotProduct(
-    //     Vector2Subtract(this->velocity, other->velocity),
-    //     collision.hit.normal
-    // );
-
-    // // ## Apply velocity separation
-    // this->velocity = Vector2Add(
-    //     this->velocity,
-    //     Vector2Scale(collision.hit.normal, -2 * velocitySeparation)
-    // );
 };
 
 void Ball::Update(GameContext* ctx) {

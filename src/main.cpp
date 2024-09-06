@@ -1,3 +1,4 @@
+#include <ctime>
 #include "cengine/cengine.h"
 #include "utils.h"
 #include "entity.h"
@@ -10,7 +11,7 @@ int main() {
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "super pong");
-    // DisableCursor();
+    EnableCursor();
     SetTargetFPS(FPS);
 
     Debugger debugger;
@@ -34,10 +35,11 @@ int main() {
     MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         [&]() {
             matchManager->Deactivate();
+            matchEndMenu->playerWon = matchManager->playerScore > matchManager->enemyScore;
             matchEndMenu->Activate();
+            EnableCursor();
         },
-        0,
-        0
+        3
     ));
 
     matchManager->Deactivate();
@@ -49,6 +51,7 @@ int main() {
             mainMenu->Deactivate();
             matchManager->Reset(ctx);
             matchManager->Activate();
+            DisableCursor();
         }
     ));
 
@@ -56,6 +59,7 @@ int main() {
         matchEndMenu->Deactivate();
         matchManager->Reset(ctx);
         matchManager->Activate();
+        DisableCursor();
     };
 
     // # Collision Engine
