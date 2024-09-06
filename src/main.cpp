@@ -1,9 +1,14 @@
 #include <ctime>
 #include "cengine/cengine.h"
 #include "utils.h"
+#include "audio.h"
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
+
+#ifndef ASSETS_PATH
+#define ASSETS_PATH "/assets/"
+#endif
 
 int main() {
     // # Init
@@ -23,6 +28,27 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    // # Audio
+    InitAudioDevice();
+
+    SpcAudio gameAudio = {
+        Sound(
+            LoadSound(ASSETS_PATH "start.wav")
+        ),
+        Sound(
+            LoadSound(ASSETS_PATH "hit.wav")
+        ),
+        Sound(
+            LoadSound(ASSETS_PATH "score.wav")
+        ),
+        Sound(
+            LoadSound(ASSETS_PATH "lost.wav")
+        ),
+        Sound(
+            LoadSound(ASSETS_PATH "win.wav")
+        )
+    };
+
     // # Scene
     Scene scene;
 
@@ -33,6 +59,7 @@ int main() {
 
     // # Match
     MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
+        &gameAudio,
         [&]() {
             matchManager->Deactivate();
             matchEndMenu->playerWon = matchManager->playerScore > matchManager->enemyScore;
@@ -48,6 +75,7 @@ int main() {
 
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
         [&](GameContext* ctx) {
+            PlaySound(gameAudio.start);
             mainMenu->Deactivate();
             matchManager->Reset(ctx);
             matchManager->Activate();

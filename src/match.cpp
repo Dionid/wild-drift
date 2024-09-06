@@ -3,11 +3,13 @@
 // # Match Manager
 
 MatchManager::MatchManager(
+    SpcAudio* gameAudio,
     std::function<void()> onEnd,
     int winScore,
     int playerScore,
     int enemyScore
 ): Node() {
+    this->gameAudio = gameAudio;
     this->onEnd = onEnd;
     this->winScore = winScore;
     this->playerScore = playerScore;
@@ -34,6 +36,7 @@ void MatchManager::Init(GameContext* ctx) {
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
     auto ball = this->AddNode(
         std::make_unique<Ball>(
+            this->gameAudio,
             ballRadius,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
             (Size){ ballRadius*2, ballRadius*2 },
@@ -170,7 +173,16 @@ void MatchManager::Update(GameContext* ctx) {
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
             this->onEnd();
+            if (this->playerScore > this->enemyScore) {
+                PlaySound(this->gameAudio->win);
+            } else {
+                PlaySound(this->gameAudio->lost);
+            }
+
+            return;
         }
+
+        PlaySound(this->gameAudio->score);
     }
 }
 

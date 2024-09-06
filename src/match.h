@@ -4,9 +4,11 @@
 #include <functional>
 #include "cengine/cengine.h"
 #include "entity.h"
+#include "audio.h"
 
 class MatchManager: public Node {
     public:
+        SpcAudio* gameAudio;
         node_id_t ballId;
         node_id_t playerId;
         node_id_t enemyId;
@@ -16,6 +18,7 @@ class MatchManager: public Node {
         std::function<void()> onEnd;
 
         MatchManager(
+            SpcAudio* gameAudio,
             std::function<void()> onEnd,
             int winScore = 3,
             int playerScore = 0,

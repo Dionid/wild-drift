@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "utils.h"
+#include "audio.h"
 
 // # Paddle
 
@@ -121,6 +122,7 @@ void Player::Update(GameContext* ctx) {
 
 // # Ball
 Ball::Ball(
+    SpcAudio* gameAudio,
     float radius,
     Vector2 position,
     Size size,
@@ -128,6 +130,7 @@ Ball::Ball(
     float maxVelocity = 10.0f
 ) : CharacterBody2D(position, size, velocity)
 {
+    this->gameAudio = gameAudio;
     this->radius = radius;
     this->maxVelocity = maxVelocity;
 };
@@ -154,6 +157,8 @@ void Ball::OnCollisionStarted(Collision collision) {
     if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
         return;
     }
+
+    PlaySound(this->gameAudio->hit);
 
     auto other = dynamic_cast<Paddle*>(collision.other);
 

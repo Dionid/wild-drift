@@ -2,6 +2,7 @@
 #define CSP_ENTITY_H_
 
 #include "cengine/cengine.h"
+#include "audio.h"
 
 // # Paddle
 class Paddle: public CharacterBody2D {
@@ -53,6 +54,7 @@ class Ball: public CharacterBody2D {
     public:
         float radius;
         float maxVelocity;
+        SpcAudio* gameAudio;
 
         static const uint64_t _tid;
 
@@ -61,6 +63,7 @@ class Ball: public CharacterBody2D {
         }
 
         Ball(
+            SpcAudio* gameAudio,
             float radius,
             Vector2 position,
             Size size,
