@@ -42,7 +42,7 @@ class NodeStorage {
             for (auto i = 0; i < this->newNodes.size(); i++) {
                 this->newNodes[i]->Init(ctx);
             }
-
+ 
             this->newNodes.clear();
         }
 

@@ -64,6 +64,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         Node* parent;
         std::vector<std::unique_ptr<Node>> children;
         node_id_t id;
+        bool activated = true;
 
         static const uint64_t _tid;
 
@@ -76,6 +77,14 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             Node* parent = nullptr
         ) {
             this->parent = parent;
+        }
+
+        void Deactivate() {
+            this->activated = false;
+        }
+
+        void Activate() {
+            this->activated = true;
         }
 
         // # implementations in node_node_storage.h
@@ -170,8 +179,11 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
             return this;
         };
 
-        // QUESTION: maybe remove
         void TraverseInit(GameContext* ctx) {
+            if (this->activated == false) {
+                return;
+            }
+
             this->Init(ctx);
             for (const auto& node: this->children) {
                 node->TraverseInit(ctx);
@@ -179,6 +191,10 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         }
 
         void TraverseUpdate(GameContext* ctx) {
+            if (this->activated == false) {
+                return;
+            }
+
             this->Update(ctx);
             for (const auto& node: this->children) {
                 node->TraverseUpdate(ctx);
@@ -186,6 +202,10 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         };
 
         void TraverseRender(GameContext* ctx) {
+            if (this->activated == false) {
+                return;
+            }
+
             this->Render(ctx);
             for (const auto& node: this->children) {
                 node->TraverseRender(ctx);

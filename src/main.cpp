@@ -35,13 +35,13 @@ int main() {
     //     0
     // ));
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
-        [&scene]() {
-            // scene.node_storage->RemoveNodeById(mainMenu->id);
+        [&]() {
             scene.node_storage->AddNode(std::make_unique<MatchManager>(
                 0,
                 0
             ));
-            std::cout << "start" << std::endl;
+            mainMenu->Deactivate();
+            // scene.node_storage->RemoveNodeById(mainMenu->id);
         }
     ));
     // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
@@ -63,6 +63,7 @@ int main() {
         node->TraverseInit(&ctx);
     }
 
+    // # Node Storage
     ctx.scene->node_storage->Init();
 
     // # Main game loop
