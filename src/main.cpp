@@ -25,26 +25,41 @@ int main() {
     // # Scene
     Scene scene;
 
+    // # MatchEndMenu
+    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
+        [](GameContext* ctx) {},
+        false
+    ));
+
+    matchEndMenu->Deactivate();
+
     // # Match
-    // scene.node_storage->AddNode(std::make_unique<MatchManager>(
-    //     0,
-    //     0
-    // ));
-    // scene.node_storage->AddNode(std::make_unique<MatchManager>(
-    //     0,
-    //     0
-    // ));
-    MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
+    MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         [&]() {
-            scene.node_storage->AddNode(std::make_unique<MatchManager>(
-                0,
-                0
-            ));
+            matchManager->Deactivate();
+            matchEndMenu->Activate();
+        },
+        0,
+        0
+    ));
+
+    matchManager->Deactivate();
+
+    // # MainMenu
+
+    MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
+        [&](GameContext* ctx) {
             mainMenu->Deactivate();
-            // scene.node_storage->RemoveNodeById(mainMenu->id);
+            matchManager->Reset(ctx);
+            matchManager->Activate();
         }
     ));
-    // scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
+
+    matchEndMenu->onRestart = [&](GameContext* ctx) {
+        matchEndMenu->Deactivate();
+        matchManager->Reset(ctx);
+        matchManager->Activate();
+    };
 
     // # Collision Engine
     CollisionEngine collisionEngine;

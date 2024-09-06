@@ -49,7 +49,7 @@ void Btn::Render(GameContext* ctx) {
             state = BtnState::Pressing;
         } else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
             if (this->callbacks.onClick != nullptr) {
-                this->callbacks.onClick(this);
+                this->callbacks.onClick(ctx, this);
             }
         }
     }

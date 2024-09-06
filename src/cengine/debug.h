@@ -63,6 +63,10 @@ class Debugger: public Renderer {
             DrawDebugInfo();
 
             for (const auto& node: ctx->scene->node_storage->nodes) {
+                if (!node->activated) {
+                    continue;
+                }
+
                 DrawCharacter2dDebug(node.get());
             }
         }

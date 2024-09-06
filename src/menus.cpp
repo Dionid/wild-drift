@@ -2,9 +2,9 @@
 #include "menus.h"
 
 MainMenu::MainMenu(
-    std::function<void()> startCallback
+    std::function<void(GameContext*)> onStart
 ) {
-    this->startCallback = startCallback;
+    this->onStart = onStart;
 }
 
 void MainMenu::Init(GameContext* ctx) {
@@ -22,8 +22,8 @@ void MainMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](Btn* btn) {
-                    this->startCallback();
+                [this](GameContext* ctx, Btn* btn) {
+                    this->onStart(ctx);
                 }
             )
         )
@@ -42,6 +42,14 @@ void MainMenu::Render(GameContext* ctx) {
 
 // # MatchEndMenu
 
+MatchEndMenu::MatchEndMenu(
+    std::function<void(GameContext*)> onRestart,
+    bool playerWon
+) {
+    this->onRestart = onRestart;
+    this->playerWon = playerWon;
+}
+
 void MatchEndMenu::Init(GameContext* ctx) {
     this->AddNode(
         std::make_unique<Btn>(
@@ -57,8 +65,8 @@ void MatchEndMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [](Btn* btn) {
-                    printf("Button clicked!\n");
+                [this](GameContext* ctx, Btn* btn) {
+                    this->onRestart(ctx);
                 }
             )
         )
@@ -66,9 +74,10 @@ void MatchEndMenu::Init(GameContext* ctx) {
 }
 
 void MatchEndMenu::Render(GameContext* ctx) {
+    const char* text = this->playerWon ? "YOU WIN" : "YOU LOSE";
     DrawText(
-        "YOU WIN",
-        ctx->worldWidth / 2 - MeasureText("YOU WIN", titleFontSize) / 2,
+        text,
+        ctx->worldWidth / 2 - MeasureText(text, titleFontSize) / 2,
         ctx->worldHeight / 2 - titleFontSize / 2 - 30,
         titleFontSize,
         WHITE

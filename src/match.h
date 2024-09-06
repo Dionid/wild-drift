@@ -1,6 +1,7 @@
 #ifndef CSP_MATCH_H_
 #define CSP_MATCH_H_
 
+#include <functional>
 #include "cengine/cengine.h"
 #include "entity.h"
 
@@ -11,16 +12,19 @@ class MatchManager: public Node {
         node_id_t enemyId;
         int playerScore;
         int enemyScore;
+        std::function<void()> onEnd;
 
         MatchManager(
+            std::function<void()> onEnd,
             int playerScore = 0,
             int enemyScore = 0
         );
 
         void Reset(GameContext* ctx);
 
-        void PlayerScored();
-        void EnemyScored();
+        void PlayerScored(GameContext* ctx);
+        void EnemyScored(GameContext* ctx);
+        void PointScored(GameContext* ctx);
 
         void Init(GameContext* ctx) override;
         void Update(GameContext* ctx) override;

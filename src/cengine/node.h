@@ -180,10 +180,6 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
         };
 
         void TraverseInit(GameContext* ctx) {
-            if (this->activated == false) {
-                return;
-            }
-
             this->Init(ctx);
             for (const auto& node: this->children) {
                 node->TraverseInit(ctx);

@@ -14,16 +14,16 @@ enum class BtnState {
 class Btn;
 
 struct Callbacks {
-    std::function<void(Btn*)> onHover;
-    std::function<void(Btn*)> onDown;
-    std::function<void(Btn*)> onUp;
-    std::function<void(Btn*)> onClick;
+    std::function<void(GameContext*, Btn*)> onHover;
+    std::function<void(GameContext*, Btn*)> onDown;
+    std::function<void(GameContext*, Btn*)> onUp;
+    std::function<void(GameContext*, Btn*)> onClick;
 
     Callbacks(
-        std::function<void(Btn*)> onHover = nullptr,
-        std::function<void(Btn*)> onDown = nullptr,
-        std::function<void(Btn*)> onUp = nullptr,
-        std::function<void(Btn*)> onClick = nullptr
+        std::function<void(GameContext*, Btn*)> onHover = nullptr,
+        std::function<void(GameContext*, Btn*)> onDown = nullptr,
+        std::function<void(GameContext*, Btn*)> onUp = nullptr,
+        std::function<void(GameContext*, Btn*)> onClick = nullptr
     ) {
         this->onHover = onHover;
         this->onDown = onDown;
