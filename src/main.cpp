@@ -65,8 +65,7 @@ int main() {
             matchEndMenu->playerWon = matchManager->playerScore > matchManager->enemyScore;
             matchEndMenu->Activate();
             EnableCursor();
-        },
-        3
+        }
     ));
 
     matchManager->Deactivate();
@@ -84,6 +83,7 @@ int main() {
     ));
 
     matchEndMenu->onRestart = [&](GameContext* ctx) {
+        PlaySound(gameAudio.start);
         matchEndMenu->Deactivate();
         matchManager->Reset(ctx);
         matchManager->Activate();
@@ -138,6 +138,8 @@ int main() {
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
+
+    CloseAudioDevice();
 
     // ## De-Initialization
     //--------------------------------------------------------------------------------------

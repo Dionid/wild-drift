@@ -2,7 +2,6 @@
 
 # Roadmap
 
-1. Audio
 1. Release (macOS, Windows, Linux, web)
 1. CollisionEngine pair.id
 1. Add units (meters, seconds, etc.)

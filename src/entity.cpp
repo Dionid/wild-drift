@@ -158,6 +158,7 @@ void Ball::OnCollisionStarted(Collision collision) {
         return;
     }
 
+    SetSoundPitch(this->gameAudio->hit, GetRandomValue(80, 120) / 100.0f);
     PlaySound(this->gameAudio->hit);
 
     auto other = dynamic_cast<Paddle*>(collision.other);

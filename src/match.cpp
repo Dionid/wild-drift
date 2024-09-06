@@ -182,6 +182,7 @@ void MatchManager::Update(GameContext* ctx) {
             return;
         }
 
+        SetSoundPitch(this->gameAudio->score, GetRandomValue(80, 120) / 100.0f);
         PlaySound(this->gameAudio->score);
     }
 }
