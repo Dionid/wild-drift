@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(cme CXX)
+project(spc CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(PROJECT_VERSION "0.1.0")
 
 # Adding Raylib
 include(FetchContent)
@@ -36,12 +38,50 @@ add_library(cengine ${CENGINE_SOURCES})
 target_include_directories(cengine PRIVATE ${CMAKE_BINARY_DIR}/_deps/raygui-src/src/)
 target_link_libraries(cengine raylib)
 
-# Adding our source files
-file(GLOB PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
-set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
-
 # Declaring our executable
-add_executable(${PROJECT_NAME} src/main.cpp)
+if (APPLE)
+    # Game audio
+    file(GLOB_RECURSE game_audio "${CMAKE_SOURCE_DIR}/assets/*.wav")
+    foreach (FILE ${game_audio})
+        file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
+        get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+        set_source_files_properties(${FILE}
+            PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources/audio/${NEW_FILE_PATH}"
+        )
+    endforeach()
+
+    # Icon
+    set(MACOSX_BUNDLE_ICON_FILE spc.icns)
+    set(APPLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/assets/spc.icns)
+    set_source_files_properties(${APPLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    
+    # Executable
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${APPLE_ICON} ${game_audio} src/main.cpp)
+
+    # Adding our source files
+    file(GLOB PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+    set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
+
+    find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
+    if(COREFOUNDATION_FRAMEWORK)
+        target_link_libraries(${PROJECT_NAME} ${COREFOUNDATION_FRAMEWORK})
+    else()
+        message(FATAL_ERROR "CoreFoundation framework not found")
+    endif()
+
+    # Set bundle properties
+    set_target_properties(${CMAKE_PROJECT_NAME}
+        PROPERTIES # https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE_INFO_PLIST.html
+            MACOSX_BUNDLE_BUNDLE_NAME "${CMAKE_PROJECT_NAME}" # CFBundleIdentifier
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.our-company"
+            MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION} # CFBundleLongVersionString, deprecated
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION} # CFBundleShortVersionString
+    )
+else()
+    add_executable(${PROJECT_NAME} src/main.cpp)
+endif()
+
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
 # target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/raygui-src/src/)

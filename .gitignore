@@ -34,5 +34,7 @@ coverage
 
 # production
 build
+release
+debug
 
 main

@@ -4,16 +4,16 @@
 
 1. Release (macOS, Windows, Linux, web)
 1. CollisionEngine pair.id
-1. Add units (meters, seconds, etc.)
-1. Remove raylib
 1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
-1. SAT
 1. Z-index
 1. Timers
+1. SAT
 1. Animations
 1. Events
 1. Remove CharacterNode2D.size
 1. NodeGenerator id graveyard
+1. Add units (meters, seconds, etc.)
+1. Remove raylib
 1. Defer Node Add & Remove
 1. (RTTI) Node.id on BitMask
     1. NodeStorage index by class
