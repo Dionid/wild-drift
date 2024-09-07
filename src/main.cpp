@@ -1,14 +1,11 @@
 #include <ctime>
 #include "cengine/cengine.h"
+#include "cengine/loader.h"
 #include "utils.h"
 #include "audio.h"
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
-
-#ifndef ASSETS_PATH
-#define ASSETS_PATH "/assets/"
-#endif
 
 int main() {
     // # Init
@@ -33,19 +30,19 @@ int main() {
 
     SpcAudio gameAudio = {
         Sound(
-            LoadSound(ASSETS_PATH "start.wav")
+            LoadSound(GetResourcePath("audio/start.wav").c_str())
         ),
         Sound(
-            LoadSound(ASSETS_PATH "hit.wav")
+            LoadSound(GetResourcePath("audio/hit.wav").c_str())
         ),
         Sound(
-            LoadSound(ASSETS_PATH "score.wav")
+            LoadSound(GetResourcePath("audio/score.wav").c_str())
         ),
         Sound(
-            LoadSound(ASSETS_PATH "lost.wav")
+            LoadSound(GetResourcePath("audio/lost.wav").c_str())
         ),
         Sound(
-            LoadSound(ASSETS_PATH "win.wav")
+            LoadSound(GetResourcePath("audio/win.wav").c_str())
         )
     };
 

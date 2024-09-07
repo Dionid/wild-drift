@@ -3,8 +3,8 @@
 # Roadmap
 
 1. Release (macOS, Windows, Linux, web)
+1. ? Namespace
 1. CollisionEngine pair.id
-1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
 1. Z-index
 1. Timers
 1. SAT
@@ -19,6 +19,7 @@
     1. NodeStorage index by class
 1. Multithreading
     1. Physics and Render pipelines
+1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
 1. Maybe
     1. ? Arena allocator
 

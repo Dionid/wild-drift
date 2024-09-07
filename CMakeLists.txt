@@ -41,9 +41,9 @@ target_link_libraries(cengine raylib)
 # Declaring our executable
 if (APPLE)
     # Game audio
-    file(GLOB_RECURSE game_audio "${CMAKE_SOURCE_DIR}/assets/*.wav")
+    file(GLOB_RECURSE game_audio "${CMAKE_SOURCE_DIR}/assets/audio/*.wav")
     foreach (FILE ${game_audio})
-        file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
+        file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets/audio" ${FILE})
         get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
         set_source_files_properties(${FILE}
             PROPERTIES
@@ -63,6 +63,7 @@ if (APPLE)
     file(GLOB PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
     set(PROJECT_INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 
+    # Linking CoreFoundation
     find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
     if(COREFOUNDATION_FRAMEWORK)
         target_link_libraries(${PROJECT_NAME} ${COREFOUNDATION_FRAMEWORK})
@@ -79,6 +80,10 @@ if (APPLE)
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION} # CFBundleShortVersionString
     )
 else()
+    # Setting ASSETS_PATH
+    # target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/") # Set the asset path macro to the absolute path on the dev machine
+    # target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="./assets") # Set the asset path macro in release mode to a relative path that assumes the assets folder is in the same directory as the game executable
+    
     add_executable(${PROJECT_NAME} src/main.cpp)
 endif()
 
@@ -86,10 +91,6 @@ target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
 # target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/_deps/raygui-src/src/)
 target_link_libraries(${PROJECT_NAME} cengine)
-
-# Setting ASSETS_PATH
-target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/") # Set the asset path macro to the absolute path on the dev machine
-#target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="./assets") # Set the asset path macro in release mode to a relative path that assumes the assets folder is in the same directory as the game executable
 
 # Checks if OSX and links appropriate frameworks (only required on MacOS)
 if (APPLE)
