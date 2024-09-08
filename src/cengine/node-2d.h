@@ -4,6 +4,8 @@
 #include <raymath.h>
 #include "node.h"
 
+namespace cen {
+
 class Node2D: public Node {
     public:
         Vector2 position;
@@ -56,5 +58,7 @@ class Node2D: public Node {
             return p->RootNode2D();
         }
 };
+
+} // namespace cen
 
 #endif // CENGINE_NODES_H

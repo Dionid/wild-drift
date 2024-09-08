@@ -4,6 +4,8 @@
 #include "node.h"
 #include "node_storage.h"
 
+namespace cen {
+
 template <typename T>
 T* Node::AddNode(std::unique_ptr<T> node) {
     static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
@@ -42,5 +44,7 @@ inline void Node::RemoveChildById(node_id_t id) {
         }
     }
 }
+
+} // namespace cen
 
 #endif // CENGINE_NODE_NODE_STORAGE_H_

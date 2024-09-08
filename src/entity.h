@@ -81,7 +81,7 @@ class Ball: public cen::CharacterBody2D {
 
 class Enemy: public Paddle {
     public:
-        node_id_t ballId;
+        cen::node_id_t ballId;
 
         static const uint64_t _tid;
 
@@ -90,7 +90,7 @@ class Enemy: public Paddle {
         }
 
         Enemy(
-            node_id_t ballId,
+            cen::node_id_t ballId,
             Vector2 position,
             cen::Size size,
             Vector2 velocity,

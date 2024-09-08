@@ -8,7 +8,7 @@ MatchManager::MatchManager(
     int winScore,
     int playerScore,
     int enemyScore
-): Node() {
+): cen::Node() {
     this->gameAudio = gameAudio;
     this->onEnd = onEnd;
     this->winScore = winScore;
@@ -81,7 +81,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
 
     // # Field
     this->AddNode(
-        std::make_unique<LineView>(
+        std::make_unique<cen::LineView>(
             (Vector2){ ctx->worldWidth/2.0f, 80 },
             ctx->worldHeight - 160,
             WHITE,
@@ -90,7 +90,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
     );
 
     this->AddNode(
-        std::make_unique<CircleView>(
+        std::make_unique<cen::CircleView>(
             80,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
             WHITE,

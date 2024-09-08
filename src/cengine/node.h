@@ -6,6 +6,8 @@
 #include "core.h"
 #include "game_context.h"
 
+namespace cen {
+
 // # Renderer and Updater
 
 class Renderer {
@@ -208,5 +210,7 @@ class Node: public cen::WithType, public Renderer, public Updater, public Initer
             }
         }
 };
+
+} // namespace cen
 
 #endif // CENGINE_NODE_H_

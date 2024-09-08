@@ -4,6 +4,8 @@
 #include <vector>
 #include "node.h"
 
+namespace cen {
+
 enum class NodeStorageState {
     CREATED,
     INITIALIZED
@@ -169,5 +171,7 @@ class NodeStorage {
             return nullptr;
         }
 };
+
+} // namespace cen
 
 #endif // CENGINE_STORAGE_H_

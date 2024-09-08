@@ -6,12 +6,12 @@
 #include "entity.h"
 #include "audio.h"
 
-class MatchManager: public Node {
+class MatchManager: public cen::Node {
     public:
         SpcAudio* gameAudio;
-        node_id_t ballId;
-        node_id_t playerId;
-        node_id_t enemyId;
+        cen::node_id_t ballId;
+        cen::node_id_t playerId;
+        cen::node_id_t enemyId;
         int playerScore;
         int enemyScore;
         int winScore;

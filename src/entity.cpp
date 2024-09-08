@@ -66,7 +66,7 @@ const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 void Player::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<RectangleView>(
+        std::make_unique<cen::RectangleView>(
             this->size,
             BLUE
         )
@@ -139,7 +139,7 @@ const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 void Ball::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<CircleView>(
+        std::make_unique<cen::CircleView>(
             this->radius
         )
     );
@@ -227,7 +227,7 @@ void Ball::Update(cen::GameContext* ctx) {
 const uint64_t Enemy::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 Enemy::Enemy(
-    node_id_t ballId,
+    cen::node_id_t ballId,
     Vector2 position,
     cen::Size size,
     Vector2 velocity = Vector2{},
@@ -240,7 +240,7 @@ Enemy::Enemy(
 
 void Enemy::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<RectangleView>(
+        std::make_unique<cen::RectangleView>(
             this->size,
             RED
         )
@@ -333,7 +333,7 @@ Goal::Goal(
 
 void Goal::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<RectangleView>(
+        std::make_unique<cen::RectangleView>(
             this->size,
             WHITE,
             0.3f
