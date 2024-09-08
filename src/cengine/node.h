@@ -8,23 +8,6 @@
 
 namespace cen {
 
-// # Renderer and Updater
-
-class Renderer {
-    public:
-        virtual void Render(cen::GameContext* ctx) {};
-};
-
-class Updater {
-    public:
-        virtual void Update(cen::GameContext* ctx) {};
-};
-
-class Initer {
-    public:
-        virtual void Init(cen::GameContext* ctx) {};
-};
-
 // # Node Id Manager
 
 typedef uint64_t node_id_t;
@@ -60,7 +43,7 @@ private:
 
 class NodeStorage;
 
-class Node: public cen::WithType, public Renderer, public Updater, public Initer {
+class Node: public cen::WithType {
     public:
         NodeStorage* storage;
         Node* parent;
@@ -88,6 +71,10 @@ class Node: public cen::WithType, public Renderer, public Updater, public Initer
         void Activate() {
             this->activated = true;
         }
+
+        virtual void Init(cen::GameContext* ctx) {};
+        virtual void Update(cen::GameContext* ctx) {};
+        virtual void Render(cen::GameContext* ctx) {};
 
         // # implementations in node_node_storage.h
         template <typename T>

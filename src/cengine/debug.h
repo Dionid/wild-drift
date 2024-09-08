@@ -59,9 +59,9 @@ static void DrawCharacter2dDebug(Node* node) {
     }
 }
 
-class Debugger: public Renderer {
+class Debugger {
     public:
-        void Render(cen::GameContext* ctx) override {
+        void Render(cen::GameContext* ctx) {
             DrawDebugInfo();
 
             for (const auto& node: ctx->scene->node_storage->nodes) {
