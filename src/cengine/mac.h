@@ -2,6 +2,8 @@
 #ifndef SPC_MAC_H_
 #define SPC_MAC_H_
 
+namespace cen {
+
 namespace macutils {
     #include <string>
     #include <CoreFoundation/CoreFoundation.h>
@@ -16,6 +18,8 @@ namespace macutils {
 
         return std::string(path);
     }
+}
+
 }
 
 #endif // SPC_MAC_H_

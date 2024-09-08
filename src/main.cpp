@@ -30,19 +30,19 @@ int main() {
 
     SpcAudio gameAudio = {
         Sound(
-            LoadSound(GetResourcePath("audio/start.wav").c_str())
+            LoadSound(cen::GetResourcePath("audio/start.wav").c_str())
         ),
         Sound(
-            LoadSound(GetResourcePath("audio/hit.wav").c_str())
+            LoadSound(cen::GetResourcePath("audio/hit.wav").c_str())
         ),
         Sound(
-            LoadSound(GetResourcePath("audio/score.wav").c_str())
+            LoadSound(cen::GetResourcePath("audio/score.wav").c_str())
         ),
         Sound(
-            LoadSound(GetResourcePath("audio/lost.wav").c_str())
+            LoadSound(cen::GetResourcePath("audio/lost.wav").c_str())
         ),
         Sound(
-            LoadSound(GetResourcePath("audio/win.wav").c_str())
+            LoadSound(cen::GetResourcePath("audio/win.wav").c_str())
         )
     };
 

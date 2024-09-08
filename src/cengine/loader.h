@@ -5,11 +5,14 @@
 #define ASSETS_PATH "/assets/"
 #endif
 
+namespace cen {
+
 std::string GetResourcePath(const std::string& resource) {
     if (__APPLE__) {
-        return macutils::GetResourcePath(resource);
+        return cen::macutils::GetResourcePath(resource);
     } else {
         return ASSETS_PATH + resource;
     }
 }
 
+}

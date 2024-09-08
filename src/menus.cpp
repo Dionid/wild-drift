@@ -9,7 +9,7 @@ MainMenu::MainMenu(
 
 void MainMenu::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<Btn>(
+        std::make_unique<cen::Btn>(
             start,
             btnFontSize,
             Vector2{
@@ -18,11 +18,11 @@ void MainMenu::Init(cen::GameContext* ctx) {
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
-            Callbacks(
+            cen::Callbacks(
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, Btn* btn) {
+                [this](cen::GameContext* ctx, cen::Btn* btn) {
                     if (this->onStart) {
                         this->onStart(ctx);
                     }
@@ -54,7 +54,7 @@ MatchEndMenu::MatchEndMenu(
 
 void MatchEndMenu::Init(cen::GameContext* ctx) {
     this->AddNode(
-        std::make_unique<Btn>(
+        std::make_unique<cen::Btn>(
             "Play again",
             btnFontSize,
             Vector2{
@@ -63,11 +63,11 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
-            Callbacks(
+            cen::Callbacks(
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, Btn* btn) {
+                [this](cen::GameContext* ctx, cen::Btn* btn) {
                     if (this->onRestart) {
                         this->onRestart(ctx);
                     }

@@ -5,6 +5,8 @@
 #include "node.h"
 #include <functional>
 
+namespace cen {
+
 enum class BtnState {
     Normal,
     Hover,
@@ -53,5 +55,7 @@ class Btn: public Node {
 
         void Render(cen::GameContext* ctx);
 };
+
+}
 
 #endif // CENGINE_GUI_H_

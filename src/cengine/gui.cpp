@@ -5,6 +5,8 @@
 
 #include "gui.h"
 
+namespace cen {
+
 Btn::Btn(
     const char* btnText,
     int btnTextFontSize,
@@ -83,3 +85,5 @@ void Btn::Render(cen::GameContext* ctx) {
         BLACK
     );
 };
+
+}
