@@ -9,6 +9,7 @@ namespace cen {
 class Node2D: public Node {
     public:
         Vector2 position;
+        int zOrder = 0;
 
         static const uint64_t _tid;
 
@@ -16,8 +17,9 @@ class Node2D: public Node {
             return Node2D::_tid;
         }
 
-        Node2D(Vector2 position, uint16_t id = 0, Node* parent = nullptr): Node(id, parent) {
+        Node2D(Vector2 position, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node(id, parent) {
             this->position = position;
+            this->zOrder = zOrder;
         }
 
         Node2D* ClosestNode2DParent(Node* targetParent = nullptr) {

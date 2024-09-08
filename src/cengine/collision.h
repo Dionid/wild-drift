@@ -155,7 +155,7 @@ class Collider: public Node2D {
             return Collider::_tid;
         }
 
-        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {
+        Collider(ColliderType type, Shape shape, Vector2 position = Vector2{}, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node2D(position, zOrder, id, parent) {
             this->type = type;
             this->shape = shape;
         }
@@ -180,7 +180,7 @@ class CollisionObject2D: public Node2D {
             return CollisionObject2D::_tid;
         }
 
-        CollisionObject2D(Vector2 position, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {}
+        CollisionObject2D(Vector2 position, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node2D(position, zOrder, id, parent) {}
         
         virtual void OnCollision(Collision c) {}
         virtual void OnCollisionStarted(Collision c) {}

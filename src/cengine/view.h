@@ -15,7 +15,7 @@ class LineView: public cen::Node2D {
         float alpha;
         Color color;
 
-        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, id, parent) {
+        LineView(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f,  Vector2 globalPosition = Vector2{}, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, zOrder, id, parent) {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
@@ -39,7 +39,7 @@ class CircleView: public cen::Node2D {
         Color color;
         bool fill;
 
-        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, id, parent) {
+        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, zOrder, id, parent) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;
@@ -64,7 +64,7 @@ class RectangleView: public cen::Node2D {
         Color color;
         float alpha;
 
-        RectangleView(cen::Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, id, parent) {
+        RectangleView(cen::Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, zOrder, id, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;
