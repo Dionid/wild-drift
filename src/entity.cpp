@@ -73,9 +73,9 @@ void Player::Init(cen::GameContext* ctx) {
     );
 
     this->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Solid,
-            Shape::Rectangle(this->size),
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Solid,
+            cen::Shape::Rectangle(this->size),
             (Vector2){ 0.0f, 0.0f }
         )
     );
@@ -145,15 +145,15 @@ void Ball::Init(cen::GameContext* ctx) {
     );
 
     this->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Solid,
-            Shape::Circle(this->radius),
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Solid,
+            cen::Shape::Circle(this->radius),
             (Vector2){ 0.0f, 0.0f }
         )
     );
 }
 
-void Ball::OnCollisionStarted(Collision collision) {
+void Ball::OnCollisionStarted(cen::Collision collision) {
     if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
         return;
     }
@@ -181,8 +181,8 @@ void Ball::OnCollisionStarted(Collision collision) {
     );
 };
 
-void Ball::OnCollision(Collision collision) {
-    if (collision.otherCollider->type != ColliderType::Solid) {
+void Ball::OnCollision(cen::Collision collision) {
+    if (collision.otherCollider->type != cen::ColliderType::Solid) {
         return;
     }
 
@@ -246,9 +246,9 @@ void Enemy::Init(cen::GameContext* ctx) {
         )
     );
     this->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Solid,
-            Shape::Rectangle(this->size),
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Solid,
+            cen::Shape::Rectangle(this->size),
             (Vector2){ 0.0f, 0.0f }
         )
     );
@@ -341,9 +341,9 @@ void Goal::Init(cen::GameContext* ctx) {
     );
 
     this->AddNode(
-        std::make_unique<Collider>(
-            ColliderType::Sensor,
-            Shape::Rectangle(this->size)
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Sensor,
+            cen::Shape::Rectangle(this->size)
         )
     );
 }

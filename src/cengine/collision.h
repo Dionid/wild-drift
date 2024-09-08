@@ -7,6 +7,8 @@
 #include "node.h"
 #include "node-2d.h"
 
+namespace cen {
+
 // # Collision
 
 struct CollisionHit {
@@ -400,5 +402,7 @@ class CollisionEngine {
             this->collisions = currentCollisions;
         }
 };
+
+}
 
 #endif //CENGINE_COLLISION_H

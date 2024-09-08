@@ -6,6 +6,8 @@
 #include "node-2d.h"
 #include "collision.h"
 
+namespace cen {
+
 enum class MotionMode {
     Floating,
     Grounded,
@@ -240,5 +242,7 @@ class CharacterBody2D: public CollisionObject2D {
             return collisions;
         }
 };
+
+}
 
 #endif // CENGINE_CHARACTER_BODY_NODE_H

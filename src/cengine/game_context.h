@@ -4,11 +4,11 @@
 #include <vector>
 
 class Node;
-class CollisionEngine;
 
 namespace cen {
 
 class Scene;
+class CollisionEngine;
 
 struct GameContext {
     Scene* scene;

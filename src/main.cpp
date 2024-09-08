@@ -16,7 +16,7 @@ int main() {
     EnableCursor();
     SetTargetFPS(FPS);
 
-    Debugger debugger;
+    cen::Debugger debugger;
 
     // # Camera
     Camera2D camera = { 0 };
@@ -88,7 +88,7 @@ int main() {
     };
 
     // # Collision Engine
-    CollisionEngine collisionEngine;
+    cen::CollisionEngine collisionEngine;
 
     // # Game Context
     cen::GameContext ctx = {

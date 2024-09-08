@@ -5,7 +5,7 @@
 #include "audio.h"
 
 // # Paddle
-class Paddle: public CharacterBody2D {
+class Paddle: public cen::CharacterBody2D {
     public:
         float speed;
         float maxVelocity;
@@ -50,7 +50,7 @@ class Player: public Paddle {
 };
 
 // # Ball
-class Ball: public CharacterBody2D {
+class Ball: public cen::CharacterBody2D {
     public:
         float radius;
         float maxVelocity;
@@ -73,8 +73,8 @@ class Ball: public CharacterBody2D {
 
         void Init(cen::GameContext* ctx) override;
         void Update(cen::GameContext* ctx) override;
-        void OnCollision(Collision c) override;
-        void OnCollisionStarted(Collision c) override;
+        void OnCollision(cen::Collision c) override;
+        void OnCollisionStarted(cen::Collision c) override;
 };
 
 // # Enemy
@@ -104,7 +104,7 @@ class Enemy: public Paddle {
 
 // # Goal
 
-class Goal: public CollisionObject2D {
+class Goal: public cen::CollisionObject2D {
     public:
         static const uint64_t _tid;
         bool isLeft;

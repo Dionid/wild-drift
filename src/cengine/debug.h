@@ -7,6 +7,8 @@
 #include "character_body_node_2d.h"
 #include <unistd.h>
 
+namespace cen {
+
 static long get_mem_usage() {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
@@ -71,5 +73,7 @@ class Debugger: public Renderer {
             }
         }
 };
+
+}
 
 #endif // CENGINE_DEBUG_H_
