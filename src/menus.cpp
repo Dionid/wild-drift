@@ -2,12 +2,12 @@
 #include "menus.h"
 
 MainMenu::MainMenu(
-    std::function<void(GameContext*)> onStart
+    std::function<void(cen::GameContext*)> onStart
 ) {
     this->onStart = onStart;
 }
 
-void MainMenu::Init(GameContext* ctx) {
+void MainMenu::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<Btn>(
             start,
@@ -22,7 +22,7 @@ void MainMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](GameContext* ctx, Btn* btn) {
+                [this](cen::GameContext* ctx, Btn* btn) {
                     if (this->onStart) {
                         this->onStart(ctx);
                     }
@@ -32,7 +32,7 @@ void MainMenu::Init(GameContext* ctx) {
     );
 }
 
-void MainMenu::Render(GameContext* ctx) {
+void MainMenu::Render(cen::GameContext* ctx) {
     DrawText(
         title,
         ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
@@ -45,14 +45,14 @@ void MainMenu::Render(GameContext* ctx) {
 // # MatchEndMenu
 
 MatchEndMenu::MatchEndMenu(
-    std::function<void(GameContext*)> onRestart,
+    std::function<void(cen::GameContext*)> onRestart,
     bool playerWon
 ) {
     this->onRestart = onRestart;
     this->playerWon = playerWon;
 }
 
-void MatchEndMenu::Init(GameContext* ctx) {
+void MatchEndMenu::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<Btn>(
             "Play again",
@@ -67,7 +67,7 @@ void MatchEndMenu::Init(GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](GameContext* ctx, Btn* btn) {
+                [this](cen::GameContext* ctx, Btn* btn) {
                     if (this->onRestart) {
                         this->onRestart(ctx);
                     }
@@ -77,7 +77,7 @@ void MatchEndMenu::Init(GameContext* ctx) {
     );
 }
 
-void MatchEndMenu::Render(GameContext* ctx) {
+void MatchEndMenu::Render(cen::GameContext* ctx) {
     const char* text = this->playerWon ? "YOU WON" : "YOU LOST";
     DrawText(
         text,

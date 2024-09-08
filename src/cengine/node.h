@@ -10,17 +10,17 @@
 
 class Renderer {
     public:
-        virtual void Render(GameContext* ctx) {};
+        virtual void Render(cen::GameContext* ctx) {};
 };
 
 class Updater {
     public:
-        virtual void Update(GameContext* ctx) {};
+        virtual void Update(cen::GameContext* ctx) {};
 };
 
 class Initer {
     public:
-        virtual void Init(GameContext* ctx) {};
+        virtual void Init(cen::GameContext* ctx) {};
 };
 
 // # Node Id Manager
@@ -179,14 +179,14 @@ class Node: public cen::WithType, public Renderer, public Updater, public Initer
             return this;
         };
 
-        void TraverseInit(GameContext* ctx) {
+        void TraverseInit(cen::GameContext* ctx) {
             this->Init(ctx);
             for (const auto& node: this->children) {
                 node->TraverseInit(ctx);
             }
         }
 
-        void TraverseUpdate(GameContext* ctx) {
+        void TraverseUpdate(cen::GameContext* ctx) {
             if (this->activated == false) {
                 return;
             }
@@ -197,7 +197,7 @@ class Node: public cen::WithType, public Renderer, public Updater, public Initer
             }
         };
 
-        void TraverseRender(GameContext* ctx) {
+        void TraverseRender(cen::GameContext* ctx) {
             if (this->activated == false) {
                 return;
             }

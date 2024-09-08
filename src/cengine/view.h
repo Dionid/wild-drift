@@ -19,7 +19,7 @@ class LineView: public Node2D {
             this->color = color;
         }
 
-        void Render(GameContext* ctx) override {
+        void Render(cen::GameContext* ctx) override {
             auto globalPosition = this->GlobalPosition();
 
             Vector2 end = {
@@ -44,7 +44,7 @@ class CircleView: public Node2D {
             this->fill = fill;
         }
 
-        void Render(GameContext* ctx) override {
+        void Render(cen::GameContext* ctx) override {
             auto globalPosition = this->GlobalPosition();
 
             if (this->fill) {
@@ -68,7 +68,7 @@ class RectangleView: public Node2D {
             this->alpha = alpha;
         }
 
-        void Render(GameContext* ctx) override {
+        void Render(cen::GameContext* ctx) override {
             auto globalPosition = this->GlobalPosition();
 
             DrawRectangle(globalPosition.x - this->size.width * 0.5, globalPosition.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));

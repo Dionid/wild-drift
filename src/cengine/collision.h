@@ -207,7 +207,7 @@ class CollisionEngine {
         }
 
         void NarrowCollisionCheckNaive(
-            GameContext* ctx
+            cen::GameContext* ctx
         ) {
             std::vector<CollisionEvent> currentCollisions;
 

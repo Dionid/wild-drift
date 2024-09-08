@@ -38,7 +38,7 @@ class NodeStorage {
             }
         }
 
-        void InitNewNodes(GameContext* ctx) {
+        void InitNewNodes(cen::GameContext* ctx) {
             for (auto i = 0; i < this->newNodes.size(); i++) {
                 this->newNodes[i]->Init(ctx);
             }

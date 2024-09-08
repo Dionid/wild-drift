@@ -13,14 +13,14 @@ class MainMenu: public Node {
         const int btnFontSize = defaultBtnFontSize;
         const char* title = "Super Pong";
         const char* start = "Start";
-        std::function<void(GameContext*)> onStart;
+        std::function<void(cen::GameContext*)> onStart;
 
         MainMenu(
-            std::function<void(GameContext*)> onStart = std::function<void(GameContext*)>()
+            std::function<void(cen::GameContext*)> onStart = std::function<void(cen::GameContext*)>()
         );
 
-        void Render(GameContext* ctx) override;
-        void Init(GameContext* ctx) override;
+        void Render(cen::GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
 };
 
 class MatchEndMenu: public Node {
@@ -29,15 +29,15 @@ class MatchEndMenu: public Node {
         const int btnFontSize = defaultBtnFontSize;
         bool playerWon = false;
 
-        std::function<void(GameContext*)> onRestart;
+        std::function<void(cen::GameContext*)> onRestart;
 
         MatchEndMenu(
-            std::function<void(GameContext*)> onRestart = std::function<void(GameContext*)>(),
+            std::function<void(cen::GameContext*)> onRestart = std::function<void(cen::GameContext*)>(),
             bool playerWon = false
         );
 
-        void Render(GameContext* ctx) override;
-        void Init(GameContext* ctx) override;
+        void Render(cen::GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
 };
 
 #endif // CENGINE_MENUS_H_

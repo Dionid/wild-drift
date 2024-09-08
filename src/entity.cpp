@@ -64,7 +64,7 @@ Player::Player(
 
 const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Player::Init(GameContext* ctx) {
+void Player::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<RectangleView>(
             this->size,
@@ -82,7 +82,7 @@ void Player::Init(GameContext* ctx) {
 };
 
 // # Player Update function
-void Player::Update(GameContext* ctx) {
+void Player::Update(cen::GameContext* ctx) {
     float deltaTime = DeltaTime();
 
     // # Calc velocity
@@ -137,7 +137,7 @@ Ball::Ball(
 
 const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Ball::Init(GameContext* ctx) {
+void Ball::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<CircleView>(
             this->radius
@@ -193,7 +193,7 @@ void Ball::OnCollision(Collision collision) {
     );
 };
 
-void Ball::Update(GameContext* ctx) {
+void Ball::Update(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
 
@@ -238,7 +238,7 @@ Enemy::Enemy(
     this->ballId = ballId;
 };
 
-void Enemy::Init(GameContext* ctx) {
+void Enemy::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<RectangleView>(
             this->size,
@@ -254,7 +254,7 @@ void Enemy::Init(GameContext* ctx) {
     );
 }
 
-void Enemy::Update(GameContext* ctx) {
+void Enemy::Update(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
     float deltaTime = DeltaTime();
@@ -331,7 +331,7 @@ Goal::Goal(
     this->position = position;
 };
 
-void Goal::Init(GameContext* ctx) {
+void Goal::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<RectangleView>(
             this->size,

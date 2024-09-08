@@ -16,7 +16,7 @@ MatchManager::MatchManager(
     this->enemyScore = enemyScore;
 };
 
-void MatchManager::Init(GameContext* ctx) {
+void MatchManager::Init(cen::GameContext* ctx) {
     // # Player
     const float sixthScreen = ctx->worldWidth/6.0f;
 
@@ -100,7 +100,7 @@ void MatchManager::Init(GameContext* ctx) {
     );
 };
 
-void MatchManager::ResetEntities(GameContext* ctx) {
+void MatchManager::ResetEntities(cen::GameContext* ctx) {
     auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
     auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
     auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
@@ -121,24 +121,24 @@ void MatchManager::ResetEntities(GameContext* ctx) {
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
 }
 
-void MatchManager::Reset(GameContext* ctx) {
+void MatchManager::Reset(cen::GameContext* ctx) {
     this->playerScore = 0;
     this->enemyScore = 0;
 
     this->ResetEntities(ctx);
 }
 
-void MatchManager::PlayerScored(GameContext* ctx) {
+void MatchManager::PlayerScored(cen::GameContext* ctx) {
     this->playerScore++;
     this->ResetEntities(ctx);
 }
 
-void MatchManager::EnemyScored(GameContext* ctx) {
+void MatchManager::EnemyScored(cen::GameContext* ctx) {
     this->enemyScore++;
     this->ResetEntities(ctx);
 }
 
-void MatchManager::Update(GameContext* ctx) {
+void MatchManager::Update(cen::GameContext* ctx) {
     for (const auto& collision: ctx->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_tid &&
@@ -187,7 +187,7 @@ void MatchManager::Update(GameContext* ctx) {
     }
 }
 
-void MatchManager::Render(GameContext* ctx) {
+void MatchManager::Render(cen::GameContext* ctx) {
     auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
     auto fontSize = 50;
 

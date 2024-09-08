@@ -45,8 +45,8 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        void Update(GameContext* ctx) override;
-        void Init(GameContext* ctx) override;
+        void Update(cen::GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
 };
 
 // # Ball
@@ -71,8 +71,8 @@ class Ball: public CharacterBody2D {
             float maxVelocity
         );
 
-        void Init(GameContext* ctx) override;
-        void Update(GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
+        void Update(cen::GameContext* ctx) override;
         void OnCollision(Collision c) override;
         void OnCollisionStarted(Collision c) override;
 };
@@ -98,8 +98,8 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
-        void Init(GameContext* ctx) override;
-        void Update(GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
+        void Update(cen::GameContext* ctx) override;
 };
 
 // # Goal
@@ -121,7 +121,7 @@ class Goal: public CollisionObject2D {
             cen::Size size
         );
 
-        void Init(GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
 };
 
 #endif // CSP_ENTITY_H_

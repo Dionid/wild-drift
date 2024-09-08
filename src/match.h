@@ -25,15 +25,15 @@ class MatchManager: public Node {
             int enemyScore = 0
         );
 
-        void Reset(GameContext* ctx);
+        void Reset(cen::GameContext* ctx);
 
-        void PlayerScored(GameContext* ctx);
-        void EnemyScored(GameContext* ctx);
-        void ResetEntities(GameContext* ctx);
+        void PlayerScored(cen::GameContext* ctx);
+        void EnemyScored(cen::GameContext* ctx);
+        void ResetEntities(cen::GameContext* ctx);
 
-        void Init(GameContext* ctx) override;
-        void Update(GameContext* ctx) override;
-        void Render(GameContext* ctx) override;
+        void Init(cen::GameContext* ctx) override;
+        void Update(cen::GameContext* ctx) override;
+        void Render(cen::GameContext* ctx) override;
 };
 
 #endif // CSP_MATCH_H_

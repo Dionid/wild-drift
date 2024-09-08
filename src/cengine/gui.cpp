@@ -35,7 +35,7 @@ Btn::Btn(
     };
 };
 
-void Btn::Render(GameContext* ctx) {
+void Btn::Render(cen::GameContext* ctx) {
     state = BtnState::Normal;
 
     Vector2 mousePoint = GetMousePosition();

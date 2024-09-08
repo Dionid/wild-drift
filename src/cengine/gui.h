@@ -14,16 +14,16 @@ enum class BtnState {
 class Btn;
 
 struct Callbacks {
-    std::function<void(GameContext*, Btn*)> onHover;
-    std::function<void(GameContext*, Btn*)> onDown;
-    std::function<void(GameContext*, Btn*)> onUp;
-    std::function<void(GameContext*, Btn*)> onClick;
+    std::function<void(cen::GameContext*, Btn*)> onHover;
+    std::function<void(cen::GameContext*, Btn*)> onDown;
+    std::function<void(cen::GameContext*, Btn*)> onUp;
+    std::function<void(cen::GameContext*, Btn*)> onClick;
 
     Callbacks(
-        std::function<void(GameContext*, Btn*)> onHover = nullptr,
-        std::function<void(GameContext*, Btn*)> onDown = nullptr,
-        std::function<void(GameContext*, Btn*)> onUp = nullptr,
-        std::function<void(GameContext*, Btn*)> onClick = nullptr
+        std::function<void(cen::GameContext*, Btn*)> onHover = nullptr,
+        std::function<void(cen::GameContext*, Btn*)> onDown = nullptr,
+        std::function<void(cen::GameContext*, Btn*)> onUp = nullptr,
+        std::function<void(cen::GameContext*, Btn*)> onClick = nullptr
     ) {
         this->onHover = onHover;
         this->onDown = onDown;
@@ -51,7 +51,7 @@ class Btn: public Node {
             Callbacks callbacks
         );
 
-        void Render(GameContext* ctx);
+        void Render(cen::GameContext* ctx);
 };
 
 #endif // CENGINE_GUI_H_

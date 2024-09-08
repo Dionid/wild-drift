@@ -3,11 +3,12 @@
 
 #include <vector>
 
-// # GameContext
-
 class Node;
-class Scene;
 class CollisionEngine;
+
+namespace cen {
+
+class Scene;
 
 struct GameContext {
     Scene* scene;
@@ -15,5 +16,7 @@ struct GameContext {
     float worldWidth;
     float worldHeight;
 };
+
+}
 
 #endif // GAME_CONTEXT_H_

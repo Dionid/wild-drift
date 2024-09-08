@@ -47,7 +47,7 @@ int main() {
     };
 
     // # Scene
-    Scene scene;
+    cen::Scene scene;
 
     // # MatchEndMenu
     auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
@@ -70,7 +70,7 @@ int main() {
     // # MainMenu
 
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
-        [&](GameContext* ctx) {
+        [&](cen::GameContext* ctx) {
             PlaySound(gameAudio.start);
             mainMenu->Deactivate();
             matchManager->Reset(ctx);
@@ -79,7 +79,7 @@ int main() {
         }
     ));
 
-    matchEndMenu->onRestart = [&](GameContext* ctx) {
+    matchEndMenu->onRestart = [&](cen::GameContext* ctx) {
         PlaySound(gameAudio.start);
         matchEndMenu->Deactivate();
         matchManager->Reset(ctx);
@@ -91,7 +91,7 @@ int main() {
     CollisionEngine collisionEngine;
 
     // # Game Context
-    GameContext ctx = {
+    cen::GameContext ctx = {
         &scene,
         &collisionEngine,
         screenWidth,

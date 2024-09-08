@@ -45,7 +45,7 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         void MoveAndSlide(
-            GameContext* ctx
+            cen::GameContext* ctx
         ) {
             if (this->velocity.x == 0 && this->velocity.y == 0) {
                 return;
@@ -146,7 +146,7 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         std::vector<Collision> MoveAndCollide(
-            GameContext* ctx
+            cen::GameContext* ctx
         ) {
             std::vector<Collision> collisions;
 
