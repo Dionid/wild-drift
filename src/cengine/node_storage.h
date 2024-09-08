@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "node.h"
-#include "node-2d.h"
+#include "node_2d.h"
 
 namespace cen {
 

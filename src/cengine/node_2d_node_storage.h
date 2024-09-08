@@ -1,7 +1,7 @@
 #ifndef CENGINE_NODE_2D_NODE_STORAGE_H_
 #define CENGINE_NODE_2D_NODE_STORAGE_H_
 
-#include "node-2d.h"
+#include "node_2d.h"
 #include "node_storage.h"
 
 namespace cen {

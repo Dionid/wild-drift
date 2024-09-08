@@ -3,7 +3,7 @@
 
 #include <raymath.h>
 #include "core.h"
-#include "node-2d.h"
+#include "node_2d.h"
 #include "collision.h"
 
 namespace cen {
