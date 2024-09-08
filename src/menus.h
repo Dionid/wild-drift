@@ -7,7 +7,7 @@
 const int defaultTitleFontSize = 50;
 const int defaultBtnFontSize = 20;
 
-class MainMenu: public cen::Node {
+class MainMenu: public cen::Node2D {
     public:
         const int titleFontSize = defaultTitleFontSize;
         const int btnFontSize = defaultBtnFontSize;
@@ -23,7 +23,7 @@ class MainMenu: public cen::Node {
         void Init(cen::GameContext* ctx) override;
 };
 
-class MatchEndMenu: public cen::Node {
+class MatchEndMenu: public cen::Node2D {
     public:
         const int titleFontSize = defaultTitleFontSize;
         const int btnFontSize = defaultBtnFontSize;

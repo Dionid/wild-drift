@@ -10,8 +10,6 @@ LaunchBallTimer::LaunchBallTimer(
 }
 
 void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
-    std::cout << "LaunchBallTimer::OnTimerEnd" << std::endl;
-
     auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
 
     if (ball == nullptr) {
@@ -31,7 +29,7 @@ MatchManager::MatchManager(
     int winScore,
     int playerScore,
     int enemyScore
-): cen::Node() {
+): cen::Node2D(Vector2{}) {
     this->gameAudio = gameAudio;
     this->onEnd = onEnd;
     this->winScore = winScore;

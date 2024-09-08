@@ -27,7 +27,6 @@ class Timer: public Node {
         void Reset() {
             this->createdAt = GetTime();
             this->Activate();
-            std::cout << "Timer::Reset" << this->createdAt << std::endl;
         }
 
         virtual void OnTimerEnd(cen::GameContext* ctx) = 0;
@@ -37,8 +36,6 @@ class Timer: public Node {
                 this->OnTimerEnd(ctx);
                 this->Deactivate();
             }
-
-
         }
 };
 

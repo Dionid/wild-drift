@@ -74,7 +74,6 @@ class Node: public cen::WithType {
 
         virtual void Init(cen::GameContext* ctx) {};
         virtual void Update(cen::GameContext* ctx) {};
-        virtual void Render(cen::GameContext* ctx) {};
 
         // # implementations in node_node_storage.h
         template <typename T>
@@ -185,17 +184,6 @@ class Node: public cen::WithType {
                 node->TraverseUpdate(ctx);
             }
         };
-
-        void TraverseRender(cen::GameContext* ctx) {
-            if (this->activated == false) {
-                return;
-            }
-
-            this->Render(ctx);
-            for (const auto& node: this->children) {
-                node->TraverseRender(ctx);
-            }
-        }
 };
 
 } // namespace cen

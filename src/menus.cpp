@@ -3,7 +3,7 @@
 
 MainMenu::MainMenu(
     std::function<void(cen::GameContext*)> onStart
-) {
+): cen::Node2D(Vector2{}) {
     this->onStart = onStart;
 }
 
@@ -47,7 +47,7 @@ void MainMenu::Render(cen::GameContext* ctx) {
 MatchEndMenu::MatchEndMenu(
     std::function<void(cen::GameContext*)> onRestart,
     bool playerWon
-) {
+): cen::Node2D(Vector2{}) {
     this->onRestart = onRestart;
     this->playerWon = playerWon;
 }

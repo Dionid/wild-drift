@@ -129,7 +129,13 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             for (const auto& node: ctx.scene->node_storage->nodes) {
-                node->TraverseRender(&ctx);
+                auto node2D = dynamic_cast<cen::Node2D*>(node.get());
+
+                if (node2D == nullptr) {
+                    continue;
+                }
+
+                node2D->TraverseRender(&ctx);
             }
             debugger.Render(&ctx);
         EndDrawing();

@@ -2,7 +2,7 @@
 #define CENGINE_GUI_H_
 
 #include "raylib.h"
-#include "node.h"
+#include "node-2d.h"
 #include <functional>
 
 namespace cen {
@@ -34,12 +34,11 @@ struct Callbacks {
     }
 };
 
-class Btn: public Node {
+class Btn: public cen::Node2D {
     public:
         BtnState state = BtnState::Normal;
         const char* text;
         int fontSize;
-        Vector2 position;
         Vector2 anchor;
         Rectangle btnRect;
         Callbacks callbacks;

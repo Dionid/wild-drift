@@ -20,7 +20,7 @@ class LaunchBallTimer: public cen::Timer {
         void OnTimerEnd(cen::GameContext* ctx) override;
 };
 
-class MatchManager: public cen::Node {
+class MatchManager: public cen::Node2D {
     public:
         SpcAudio* gameAudio;
         cen::node_id_t ballId;
