@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "node_storage.h"
 #include "node_node_storage.h"
+#include "node_2d_node_storage.h"
 #include "gui.h"
 #include "node-2d.h"
 #include "view.h"

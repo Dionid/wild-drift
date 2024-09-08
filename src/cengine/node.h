@@ -72,6 +72,18 @@ class Node: public cen::WithType {
             this->activated = true;
         }
 
+        bool AnyParentDeactivated() {
+            if (this->activated == false) {
+                return true;
+            }
+
+            if (this->parent != nullptr) {
+                return this->parent->AnyParentDeactivated();
+            }
+
+            return false;
+        }
+
         virtual void Init(cen::GameContext* ctx) {};
         virtual void Update(cen::GameContext* ctx) {};
 

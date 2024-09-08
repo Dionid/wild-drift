@@ -41,7 +41,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
     // # Player
     const float sixthScreen = ctx->worldWidth/6.0f;
 
-    auto player = this->AddNode(
+    Player* player = this->AddNode(
         std::make_unique<Player>(
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
@@ -51,11 +51,12 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
+    player->setZOrder(1);
     this->playerId = player->id;
 
     float ballRadius = 15.0f;
     float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
-    auto ball = this->AddNode(
+    Ball* ball = this->AddNode(
         std::make_unique<Ball>(
             this->gameAudio,
             ballRadius,
@@ -66,9 +67,10 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
+    ball->setZOrder(1);
     this->ballId = ball->id;
 
-    auto enemy = this->AddNode(
+    Enemy* enemy = this->AddNode(
         std::make_unique<Enemy>(
             ball->id,
             (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
@@ -79,26 +81,31 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
+    enemy->setZOrder(1);
     this->enemyId = enemy->id;
 
     // # Goals
-    cen::Size goalSize = { 15, (float)ctx->worldHeight - 15 };
+    cen::Size goalSize = { 10, (float)ctx->worldHeight - 20 };
 
-    this->AddNode(
+    Goal* lGoal = this->AddNode(
         std::make_unique<Goal>(
             true,
-            (Vector2){ goalSize.width / 2 + 5, goalSize.height / 2 + 15 },
+            (Vector2){ goalSize.width / 2 + 10, goalSize.height / 2 + 10 },
             goalSize
         )
     );
 
-    this->AddNode(
+    lGoal->setZOrder(2);
+
+    Goal* rGoal = this->AddNode(
         std::make_unique<Goal>(
             false,
             (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
             goalSize
         )
     );
+
+    rGoal->setZOrder(2);
 
     // # Field
     this->AddNode(

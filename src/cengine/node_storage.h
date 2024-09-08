@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "node.h"
+#include "node-2d.h"
 
 namespace cen {
 
@@ -16,6 +17,7 @@ class NodeStorage {
         std::vector<std::unique_ptr<Node>> nodes;
         std::vector<Node*> flatNodes;
         std::vector<Node*> newNodes;
+        std::vector<Node2D*> renderNodes;
         uint64_t nextId;
         NodeStorageState state = NodeStorageState::CREATED;
 
@@ -33,10 +35,20 @@ class NodeStorage {
             return ++this->nextId;
         }
 
+        void SortRenderNodes() {
+            std::sort(this->renderNodes.begin(),this->renderNodes.end(), [](Node2D* a, Node2D* b) {
+                return a->zOrder < b->zOrder;
+            });
+        }
+
         void OnNestedNodeCreated(Node* newNode) {
             this->flatNodes.push_back(newNode);
             if (this->state == NodeStorageState::INITIALIZED) {
                 this->newNodes.push_back(newNode);
+            }
+            if (Node2D* n2d = dynamic_cast<Node2D*>(newNode)) {
+                this->renderNodes.push_back(n2d);
+                this->SortRenderNodes();
             }
         }
 
@@ -60,6 +72,10 @@ class NodeStorage {
             this->flatNodes.push_back(nPtr);
             if (this->state == NodeStorageState::INITIALIZED) {
                 this->newNodes.push_back(nPtr);
+            }
+            if (Node2D* n2d = dynamic_cast<Node2D*>(nPtr)) {
+                this->renderNodes.push_back(n2d);
+                this->SortRenderNodes();
             }
             return nPtr;
         }

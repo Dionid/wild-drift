@@ -128,14 +128,11 @@ int main() {
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            for (const auto& node: ctx.scene->node_storage->nodes) {
-                auto node2D = dynamic_cast<cen::Node2D*>(node.get());
-
-                if (node2D == nullptr) {
+            for (const auto& node: ctx.scene->node_storage->renderNodes) {
+                if (node->AnyParentDeactivated()) {
                     continue;
                 }
-
-                node2D->TraverseRender(&ctx);
+                node->TraverseRender(&ctx);
             }
             debugger.Render(&ctx);
         EndDrawing();
