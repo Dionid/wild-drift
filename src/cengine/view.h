@@ -58,11 +58,11 @@ class CircleView: public Node2D {
 
 class RectangleView: public Node2D {
     public:
-        Size size;
+        cen::Size size;
         Color color;
         float alpha;
 
-        RectangleView(Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {
+        RectangleView(cen::Size size, Color color = WHITE, float alpha = 1.0f, Vector2 position = Vector2{}, uint16_t id = 0, Node* parent = nullptr): Node2D(position, id, parent) {
             this->size = size;
             this->color = color;
             this->alpha = alpha;

@@ -12,13 +12,13 @@ class Paddle: public CharacterBody2D {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Paddle::_tid;
         }
 
         Paddle(
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 velocity,
             float speed,
             float maxVelocity
@@ -33,13 +33,13 @@ class Player: public Paddle {
     public:
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Player::_tid;
         }
 
         Player(
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 velocity,
             float speed,
             float maxVelocity
@@ -58,7 +58,7 @@ class Ball: public CharacterBody2D {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Ball::_tid;
         }
 
@@ -66,7 +66,7 @@ class Ball: public CharacterBody2D {
             SpcAudio* gameAudio,
             float radius,
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 velocity,
             float maxVelocity
         );
@@ -85,14 +85,14 @@ class Enemy: public Paddle {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Enemy::_tid;
         }
 
         Enemy(
             node_id_t ballId,
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 velocity,
             float speed,
             float maxVelocity
@@ -108,17 +108,17 @@ class Goal: public CollisionObject2D {
     public:
         static const uint64_t _tid;
         bool isLeft;
-        Size size;
+        cen::Size size;
         Vector2 position;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Goal::_tid;
         }
 
         Goal(
             bool isLeft,
             Vector2 position,
-            Size size
+            cen::Size size
         );
 
         void Init(GameContext* ctx) override;

@@ -18,7 +18,7 @@ static CollisionHit CircleRectangleCollision(
     Vector2 circlePosition,
     float circleRadius,
     Vector2 rectPosition,
-    Size rectSize
+    cen::Size rectSize
 ) {
     Vector2 closest = {
         std::clamp(circlePosition.x, rectPosition.x - rectSize.width/2, rectPosition.x + rectSize.width/2),
@@ -43,9 +43,9 @@ static CollisionHit CircleRectangleCollision(
 
 static CollisionHit RectangleRectangleCollision(
     Vector2 positionA,
-    Size sizeA,
+    cen::Size sizeA,
     Vector2 positionB,
-    Size sizeB
+    cen::Size sizeB
 ) {
     Vector2 distance = Vector2Subtract(positionA, positionB);
 
@@ -61,7 +61,7 @@ static CollisionHit RectangleRectangleCollision(
 
     Vector2 overlap = Vector2Subtract(
         Vector2Add(halfSizeA, halfSizeB),
-        Vector2Abs(distance)
+        cen::Vector2Abs(distance)
     );
 
     if (overlap.x > 0 && overlap.y > 0) {
@@ -108,7 +108,7 @@ enum class ColliderType {
 };
 
 struct ShapeRectangle {
-    Size size;
+    cen::Size size;
 };
 
 struct ShapeCircle {
@@ -127,7 +127,7 @@ class Shape {
             ShapeCircle circle;
         };
 
-    static Shape Rectangle(Size size) {
+    static Shape Rectangle(cen::Size size) {
         return Shape {
             .type = Type::RECTANGLE,
             .rect = { size }
@@ -149,7 +149,7 @@ class Collider: public Node2D {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Collider::_tid;
         }
 
@@ -174,7 +174,7 @@ class CollisionObject2D: public Node2D {
     public:
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return CollisionObject2D::_tid;
         }
 

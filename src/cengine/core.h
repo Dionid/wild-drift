@@ -2,8 +2,10 @@
 #define CENGINE_CORE_H
 
 #include <memory>
-#include <raymath.h>
 #include <mutex>
+#include <raymath.h>
+
+namespace cen {
 
 // # Shared pointers
 
@@ -104,6 +106,8 @@ struct TypeTag;
 template<typename T>
 static int getTypeId(T* value) {
     return TypeTag<T>::id;
+}
+
 }
 
 #endif // CENGINE_CORE_H

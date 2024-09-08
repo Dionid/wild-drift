@@ -46,7 +46,7 @@ class Btn: public Node {
             const char* btnText,
             int btnTextFontSize,
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 anchor,
             Callbacks callbacks
         );

@@ -9,7 +9,7 @@ Btn::Btn(
     const char* btnText,
     int btnTextFontSize,
     Vector2 position,
-    Size size = Size{ 0, 0 },
+    cen::Size size = cen::Size{ 0, 0 },
     Vector2 anchor = Vector2{ 1, 1 },
     Callbacks callbacks = Callbacks()
 ): Node() {

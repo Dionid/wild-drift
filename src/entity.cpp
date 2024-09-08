@@ -6,7 +6,7 @@
 
 Paddle::Paddle(
     Vector2 position,
-    Size size,
+    cen::Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
@@ -49,12 +49,12 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
-const uint64_t Paddle::_tid = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 // # Player
 Player::Player(
     Vector2 position,
-    Size size,
+    cen::Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
@@ -62,7 +62,7 @@ Player::Player(
 { 
 };
 
-const uint64_t Player::_tid = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 void Player::Init(GameContext* ctx) {
     this->AddNode(
@@ -125,7 +125,7 @@ Ball::Ball(
     SpcAudio* gameAudio,
     float radius,
     Vector2 position,
-    Size size,
+    cen::Size size,
     Vector2 velocity = Vector2{},
     float maxVelocity = 10.0f
 ) : CharacterBody2D(position, size, velocity)
@@ -135,7 +135,7 @@ Ball::Ball(
     this->maxVelocity = maxVelocity;
 };
 
-const uint64_t Ball::_tid = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 void Ball::Init(GameContext* ctx) {
     this->AddNode(
@@ -224,12 +224,12 @@ void Ball::Update(GameContext* ctx) {
 
 // # Enemy
 
-const uint64_t Enemy::_tid = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Enemy::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 Enemy::Enemy(
     node_id_t ballId,
     Vector2 position,
-    Size size,
+    cen::Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
@@ -318,12 +318,12 @@ void Enemy::Update(GameContext* ctx) {
 
 // # Goal
 
-const uint64_t Goal::_tid = TypeIdGenerator::getInstance().getNextId();
+const uint64_t Goal::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 Goal::Goal(
     bool isLeft,
     Vector2 position,
-    Size size
+    cen::Size size
 ) : CollisionObject2D(position)
 {
     this->isLeft = isLeft;

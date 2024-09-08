@@ -15,11 +15,11 @@ class CharacterBody2D: public CollisionObject2D {
     public:
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return CharacterBody2D::_tid;
         }
 
-        Size size;
+        cen::Size size;
         Vector2 velocity;
         MotionMode motionMode;
         float skinWidth;
@@ -27,10 +27,10 @@ class CharacterBody2D: public CollisionObject2D {
 
         CharacterBody2D(
             Vector2 position,
-            Size size,
+            cen::Size size,
             Vector2 velocity = Vector2{},
             MotionMode motionMode = MotionMode::Floating,
-            Vector2 up = Vector2Up,
+            Vector2 up = cen::Vector2Up,
             float skinWidth = 0.1f,
             uint16_t id = 0,
             Node* parent = nullptr

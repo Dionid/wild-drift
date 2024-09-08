@@ -1,3 +1,3 @@
 #include "node-2d.h"
 
-const uint64_t Node2D::_tid = TypeIdGenerator::getInstance().getNextId();
+const cen::type_id_t Node2D::_tid = cen::TypeIdGenerator::getInstance().getNextId();

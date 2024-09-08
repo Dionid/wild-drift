@@ -58,7 +58,7 @@ private:
 
 class NodeStorage;
 
-class Node: public WithType, public Renderer, public Updater, public Initer {
+class Node: public cen::WithType, public Renderer, public Updater, public Initer {
     public:
         NodeStorage* storage;
         Node* parent;
@@ -68,7 +68,7 @@ class Node: public WithType, public Renderer, public Updater, public Initer {
 
         static const uint64_t _tid;
 
-        type_id_t TypeId() const override {
+        cen::type_id_t TypeId() const override {
             return Node::_tid;
         }
 

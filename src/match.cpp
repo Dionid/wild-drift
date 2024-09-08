@@ -23,7 +23,7 @@ void MatchManager::Init(GameContext* ctx) {
     auto player = this->AddNode(
         std::make_unique<Player>(
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
+            (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
             1.0f,
             10.0f
@@ -39,7 +39,7 @@ void MatchManager::Init(GameContext* ctx) {
             this->gameAudio,
             ballRadius,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
-            (Size){ ballRadius*2, ballRadius*2 },
+            (cen::Size){ ballRadius*2, ballRadius*2 },
             (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
             7.0f
         )
@@ -51,7 +51,7 @@ void MatchManager::Init(GameContext* ctx) {
         std::make_unique<Enemy>(
             ball->id,
             (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
-            (Size){ 40.0f, 120.0f },
+            (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
             1.0f,
             10.0f
@@ -61,7 +61,7 @@ void MatchManager::Init(GameContext* ctx) {
     this->enemyId = enemy->id;
 
     // # Goals
-    Size goalSize = { 15, (float)ctx->worldHeight - 15 };
+    cen::Size goalSize = { 15, (float)ctx->worldHeight - 15 };
 
     this->AddNode(
         std::make_unique<Goal>(

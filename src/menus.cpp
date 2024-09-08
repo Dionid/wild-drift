@@ -16,7 +16,7 @@ void MainMenu::Init(GameContext* ctx) {
                 ctx->worldWidth / 2,
                 ctx->worldHeight / 2 + 50
             },
-            Size{ 0, 0 },
+            cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
             Callbacks(
                 nullptr,
@@ -61,7 +61,7 @@ void MatchEndMenu::Init(GameContext* ctx) {
                 ctx->worldWidth / 2,
                 ctx->worldHeight / 2 + 50
             },
-            Size{ 0, 0 },
+            cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
             Callbacks(
                 nullptr,
