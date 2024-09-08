@@ -1,5 +1,28 @@
 #include "match.h"
 
+LaunchBallTimer::LaunchBallTimer(
+    cen::node_id_t ballId,
+    int duration,
+    cen::node_id_t id = 0,
+    cen::Node* parent = nullptr
+): Timer(duration, id, parent) {
+    this->ballId = ballId;
+}
+
+void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
+    std::cout << "LaunchBallTimer::OnTimerEnd" << std::endl;
+
+    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+
+    if (ball == nullptr) {
+        return;
+    }
+
+    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
+    ball->velocity.x = cos(randomAngle) * 5;
+    ball->velocity.y = sin(randomAngle) * 5;
+}
+
 // # Match Manager
 
 MatchManager::MatchManager(
@@ -98,6 +121,13 @@ void MatchManager::Init(cen::GameContext* ctx) {
             false
         )
     );
+
+    this->launchBallTimer = this->AddNode(
+        std::make_unique<LaunchBallTimer>(
+            this->ballId,
+            500
+        )
+    );
 };
 
 void MatchManager::ResetEntities(cen::GameContext* ctx) {
@@ -110,15 +140,15 @@ void MatchManager::ResetEntities(cen::GameContext* ctx) {
     }
 
     ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
-    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
-    ball->velocity.x = cos(randomAngle) * 5;
-    ball->velocity.y = sin(randomAngle) * 5;
+    ball->velocity = (Vector2){ 0.0f, 0.0f };
 
     player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
     player->velocity = (Vector2){ 0.0f, 0.0f };
 
     enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
+
+    this->launchBallTimer->Reset();
 }
 
 void MatchManager::Reset(cen::GameContext* ctx) {

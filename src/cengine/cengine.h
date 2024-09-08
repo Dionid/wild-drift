@@ -7,6 +7,7 @@
 #include "scene.h"
 #include "game_context.h"
 #include "node.h"
+#include "timer.h"
 #include "node_storage.h"
 #include "node_node_storage.h"
 #include "gui.h"

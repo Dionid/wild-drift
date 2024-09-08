@@ -2,9 +2,7 @@
 
 # Roadmap
 
-1. ? Namespace
 1. New features
-    1. Timers
     1. Z-index
     1. Animations
     1. Events

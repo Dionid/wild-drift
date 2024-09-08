@@ -6,6 +6,20 @@
 #include "entity.h"
 #include "audio.h"
 
+class LaunchBallTimer: public cen::Timer {
+    public:
+        cen::node_id_t ballId;
+
+        LaunchBallTimer(
+            cen::node_id_t ballId,
+            int duration,
+            cen::node_id_t id,
+            cen::Node* parent
+        );
+
+        void OnTimerEnd(cen::GameContext* ctx) override;
+};
+
 class MatchManager: public cen::Node {
     public:
         SpcAudio* gameAudio;
@@ -16,6 +30,7 @@ class MatchManager: public cen::Node {
         int enemyScore;
         int winScore;
         std::function<void()> onEnd;
+        LaunchBallTimer* launchBallTimer;
 
         MatchManager(
             SpcAudio* gameAudio,
