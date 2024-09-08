@@ -52,7 +52,7 @@ if (APPLE)
     endforeach()
 
     # Icon
-    set(MACOSX_BUNDLE_ICON_FILE spc.icns)
+    set(MACOSX_BUNDLE_ICON_FILE spc)
     set(APPLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/assets/spc.icns)
     set_source_files_properties(${APPLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     
