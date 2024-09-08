@@ -7,6 +7,10 @@
 #include "match.h"
 #include "menus.h"
 
+struct StartEvent: public cen::Event {
+    StartEvent(): cen::Event(0) {}
+};
+
 int main() {
     // # Init
     const int screenWidth = 800;
@@ -49,6 +53,11 @@ int main() {
     // # Scene
     cen::Scene scene;
 
+
+    auto startTopic = scene.AddTopic(
+        std::make_unique<cen::Topic<StartEvent>>()
+    );
+
     // # MatchEndMenu
     auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
 
@@ -71,11 +80,13 @@ int main() {
 
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
         [&](cen::GameContext* ctx) {
-            PlaySound(gameAudio.start);
-            mainMenu->Deactivate();
-            matchManager->Reset(ctx);
-            matchManager->Activate();
-            DisableCursor();
+            startTopic->emit(std::make_unique<StartEvent>());
+
+            // PlaySound(gameAudio.start);
+            // mainMenu->Deactivate();
+            // matchManager->Reset(ctx);
+            // matchManager->Activate();
+            // DisableCursor();
         }
     ));
 
@@ -114,6 +125,14 @@ int main() {
         //----------------------------------------------------------------------------------
         scene.node_storage->InitNewNodes(&ctx);
 
+        for (const auto& startEvent: startTopic->ready) {
+            PlaySound(gameAudio.start);
+            mainMenu->Deactivate();
+            matchManager->Reset(&ctx);
+            matchManager->Activate();
+            DisableCursor();
+        }
+
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
             node->TraverseUpdate(&ctx);
@@ -137,6 +156,10 @@ int main() {
             debugger.Render(&ctx);
         EndDrawing();
         //----------------------------------------------------------------------------------
+
+        for (const auto& topic: ctx.scene->topics) {
+            topic->flush();
+        }
     }
 
     CloseAudioDevice();
