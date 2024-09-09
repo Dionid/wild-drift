@@ -347,3 +347,6 @@ void Goal::Init(cen::GameContext* ctx) {
         )
     );
 }
+
+const std::string StartEvent::type = "StartEvent";
+const std::string RestartEvent::type = "RestartEvent";

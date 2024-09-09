@@ -7,13 +7,6 @@
 #include "match.h"
 #include "menus.h"
 
-struct StartEvent: public cen::Event {
-    static const std::string type;
-    StartEvent(): cen::Event("StartEvent") {}
-};
-
-const std::string StartEvent::type = "StartEvent";
-
 int main() {
     // # Init
     const int screenWidth = 800;
@@ -56,12 +49,12 @@ int main() {
     // # Scene
     cen::Scene scene;
 
-    auto startTopic = scene.AddTopic(
-        std::make_unique<cen::Topic<StartEvent>>()
-    );
-
     // # MatchEndMenu
-    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>());
+    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
+        [&](cen::GameContext* ctx) {
+            scene.eventBus.emit(RestartEvent());
+        }
+    ));
 
     matchEndMenu->Deactivate();
 
@@ -79,21 +72,13 @@ int main() {
     matchManager->Deactivate();
 
     // # MainMenu
-
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
         [&](cen::GameContext* ctx) {
-            // startTopic->emit(std::make_unique<StartEvent>());
-
             scene.eventBus.emit(StartEvent());
-
-            // PlaySound(gameAudio.start);
-            // mainMenu->Deactivate();
-            // matchManager->Reset(ctx);
-            // matchManager->Activate();
-            // DisableCursor();
         }
     ));
 
+    // # Events
     scene.eventBus.on(
         StartEvent{},
         [&](cen::GameContext* ctx, const cen::Event& event) {
@@ -105,13 +90,16 @@ int main() {
         }
     );
 
-    matchEndMenu->onRestart = [&](cen::GameContext* ctx) {
-        PlaySound(gameAudio.start);
-        matchEndMenu->Deactivate();
-        matchManager->Reset(ctx);
-        matchManager->Activate();
-        DisableCursor();
-    };
+    scene.eventBus.on(
+        RestartEvent{},
+        [&](cen::GameContext* ctx, const cen::Event& event) {
+            PlaySound(gameAudio.start);
+            matchEndMenu->Deactivate();
+            matchManager->Reset(ctx);
+            matchManager->Activate();
+            DisableCursor();
+        }
+    );
 
     // # Collision Engine
     cen::CollisionEngine collisionEngine;
@@ -139,14 +127,6 @@ int main() {
         // ## Update
         //----------------------------------------------------------------------------------
         scene.node_storage->InitNewNodes(&ctx);
-
-        for (const auto& startEvent: startTopic->ready) {
-            PlaySound(gameAudio.start);
-            mainMenu->Deactivate();
-            matchManager->Reset(&ctx);
-            matchManager->Activate();
-            DisableCursor();
-        }
 
         // ## Initial
         for (const auto& node: ctx.scene->node_storage->nodes) {
