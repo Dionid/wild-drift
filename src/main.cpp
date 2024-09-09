@@ -78,12 +78,11 @@ int main() {
         }
     ));
 
-    // # Events
-    scene.eventBus.on(
-        StartEvent{},
+    auto ose = cen::EventListener(
         [&](cen::GameContext* ctx, const cen::Event& event) {
             PlaySound(gameAudio.start);
             mainMenu->Deactivate();
+            matchEndMenu->Deactivate();
             matchManager->Reset(ctx);
             matchManager->Activate();
             DisableCursor();
@@ -91,14 +90,13 @@ int main() {
     );
 
     scene.eventBus.on(
+        StartEvent{},
+        &ose
+    );
+
+    scene.eventBus.on(
         RestartEvent{},
-        [&](cen::GameContext* ctx, const cen::Event& event) {
-            PlaySound(gameAudio.start);
-            matchEndMenu->Deactivate();
-            matchManager->Reset(ctx);
-            matchManager->Activate();
-            DisableCursor();
-        }
+        &ose
     );
 
     // # Collision Engine

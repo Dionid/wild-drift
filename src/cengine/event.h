@@ -54,37 +54,67 @@ namespace cen {
             }
     };
 
-    #define EventListener std::function<void(cen::GameContext*, const Event&)>
+    struct EventListener {
+        int id;
+        std::function<void(cen::GameContext*, const Event&)> OnEvent;
+
+        EventListener(
+            std::function<void(cen::GameContext*, const Event&)> OnEvent,
+            int id = 0
+        ): id(id), OnEvent(OnEvent) {}
+    };
 
     class EventBus {
         public:
-            std::unordered_map<std::string, std::vector<EventListener>> listeners;
+            std::unordered_map<std::string, std::vector<EventListener*>> listeners;
             std::vector<Event> events;
+            int nextEventListenerId = 0;
+
+            int nextId() {
+                return ++this->nextEventListenerId;
+            }
 
             void on(
                 const Event& event,
-                EventListener listener
+                EventListener* listener
             ) {
                 this->listeners[event.name].push_back(listener);
+                if (listener->id == 0) {
+                    listener->id = this->nextId();
+                }
             }
 
             void emit(const Event& event) {
                 this->events.push_back(event);
             }
 
-            // void off(const Event& event, EventListener listener) {
-            //     auto& listenersVec = this->listeners[event.name];
-            //     listenersVec.erase(
-            //         std::remove(listenersVec.begin(), listenersVec.end(), listener),
-            //         listenersVec.end()
-            //     );
-            // }
+            void off(const Event& event, EventListener* listener) {
+                auto& listenersVec = this->listeners[event.name];
+                listenersVec.erase(
+                    std::remove(listenersVec.begin(), listenersVec.end(), listener),
+                    listenersVec.end()
+                );
+            }
+
+            void offById(const Event& event, int listenerId) {
+                auto& listenersVec = this->listeners[event.name];
+                listenersVec.erase(
+                    std::remove_if(
+                        listenersVec.begin(),
+                        listenersVec.end(),
+                        [listenerId](EventListener* l) {
+                            return l->id == listenerId;
+                        }
+                    ),
+                    listenersVec.end()
+                );
+            }
 
             void flush(cen::GameContext* ctx) {
                 for (auto& event : this->events) {
                     auto listenersVec = this->listeners[event.name];
                     for (auto& listener : listenersVec) {
-                        listener(ctx, event);
+                        listener->OnEvent(ctx, event);
                     }
                 }
                 this->events.clear();
