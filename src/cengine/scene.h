@@ -3,13 +3,14 @@
 
 #include <vector>
 #include "node_storage.h"
-#include "topic.h"
+#include "event.h"
 
 namespace cen {
     class Scene {
         public:
             std::unique_ptr<cen::NodeStorage> node_storage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
+            EventBus eventBus;
 
             Scene(
                 std::unique_ptr<cen::NodeStorage> node_storage = std::make_unique<NodeStorage>(),

@@ -39,7 +39,7 @@ class CircleView: public cen::Node2D {
         Color color;
         bool fill;
 
-        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true,  Vector2 globalPosition = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, zOrder, id, parent) {
+        CircleView(float radius, Vector2 position = Vector2{}, Color color = WHITE, float alpha = 1.0f, bool fill = true, int zOrder = 0,  Vector2 globalPosition = Vector2{}, uint16_t id = 0, Node* parent = nullptr): cen::Node2D(position, zOrder, id, parent) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;

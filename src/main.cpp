@@ -8,8 +8,11 @@
 #include "menus.h"
 
 struct StartEvent: public cen::Event {
-    StartEvent(): cen::Event(0) {}
+    static const std::string type;
+    StartEvent(): cen::Event("StartEvent") {}
 };
+
+const std::string StartEvent::type = "StartEvent";
 
 int main() {
     // # Init
@@ -53,7 +56,6 @@ int main() {
     // # Scene
     cen::Scene scene;
 
-
     auto startTopic = scene.AddTopic(
         std::make_unique<cen::Topic<StartEvent>>()
     );
@@ -80,7 +82,9 @@ int main() {
 
     MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
         [&](cen::GameContext* ctx) {
-            startTopic->emit(std::make_unique<StartEvent>());
+            // startTopic->emit(std::make_unique<StartEvent>());
+
+            scene.eventBus.emit(StartEvent());
 
             // PlaySound(gameAudio.start);
             // mainMenu->Deactivate();
@@ -89,6 +93,17 @@ int main() {
             // DisableCursor();
         }
     ));
+
+    scene.eventBus.on(
+        StartEvent{},
+        [&](cen::GameContext* ctx, const cen::Event& event) {
+            PlaySound(gameAudio.start);
+            mainMenu->Deactivate();
+            matchManager->Reset(ctx);
+            matchManager->Activate();
+            DisableCursor();
+        }
+    );
 
     matchEndMenu->onRestart = [&](cen::GameContext* ctx) {
         PlaySound(gameAudio.start);
@@ -157,9 +172,11 @@ int main() {
         EndDrawing();
         //----------------------------------------------------------------------------------
 
-        for (const auto& topic: ctx.scene->topics) {
-            topic->flush();
-        }
+        // for (const auto& topic: ctx.scene->topics) {
+        //     topic->flush();
+        // }
+
+        scene.eventBus.flush(&ctx);
     }
 
     CloseAudioDevice();
