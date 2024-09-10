@@ -134,21 +134,16 @@ int main() {
         // ## Collision
         collisionEngine.NarrowCollisionCheckNaive(&ctx);
 
+        // ## Map Game state to Renderer
+        scene.renderingEngine->MapNodesToCanvasItems();
+
         //----------------------------------------------------------------------------------
 
         // ## Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            // for (const auto& node: ctx.scene->node_storage->renderNodes) {
-            //     if (node->AnyParentDeactivated()) {
-            //         continue;
-            //     }
-            //     node->TraverseRender(&ctx);
-            // }
-
             scene.renderingEngine->Render(&ctx);
-
             debugger.Render(&ctx);
         EndDrawing();
         //----------------------------------------------------------------------------------

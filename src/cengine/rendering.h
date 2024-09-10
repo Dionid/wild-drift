@@ -192,7 +192,6 @@ class TextCanvasItem2D: public CanvasItem2D {
 
 class RenderingEngine2D {
     public:
-        std::unordered_map<node_id_t, CanvasItem2D*> itemsById;
         std::vector<std::unique_ptr<CanvasItem2D>> items;
         cen::NodeStorage* nodeStorage;
 
@@ -210,7 +209,6 @@ class RenderingEngine2D {
                         lineView->id
                     )
                 );
-                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto circleView = dynamic_cast<cen::CircleView*>(node2D)) {
                 this->items.push_back(
                     std::make_unique<CircleCanvasItem2D>(
@@ -223,7 +221,6 @@ class RenderingEngine2D {
                         circleView->id
                     )
                 );
-                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto rectangleView = dynamic_cast<cen::RectangleView*>(node2D)) {
                 this->items.push_back(
                     std::make_unique<RectangleCanvasItem2D>(
@@ -235,7 +232,6 @@ class RenderingEngine2D {
                         rectangleView->id
                     )
                 );
-                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto buttonView = dynamic_cast<cen::Btn*>(node2D)) {
                 this->items.push_back(
                     std::make_unique<ButtonCanvasItem2D>(
@@ -247,7 +243,6 @@ class RenderingEngine2D {
                         buttonView->anchor
                     )
                 );
-                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto textView = dynamic_cast<cen::TextView*>(node2D)) {
                 
                 this->items.push_back(
@@ -258,39 +253,27 @@ class RenderingEngine2D {
                         textView->color
                     )
                 );
-                this->itemsById[node2D->id] = this->items.back().get();
+            }
+        }
+
+        void MapNodesToCanvasItems() {
+            // # Clear
+            this->items.clear();
+
+            // # Sync with game Nodes
+            for (auto const& node: this->nodeStorage->renderNodes) {
+                if (node->AnyParentDeactivated()) {
+                    continue;
+                }
+
+                this->MapNode2D(node);
             }
         }
 
         void Render(cen::GameContext* ctx) {
-            // # Sync with game Nodes
-            for (auto const& node: this->nodeStorage->nodes) {
-                if (!node->activated) {
-                    continue;
-                }
-
-                if (auto node2D = dynamic_cast<Node2D*>(node.get())) {
-                    this->MapNode2D(node2D);
-                }
-
-                std::vector<Node2D*> child2DNode;
-                node->GetChildByTypeDeep<Node2D>(child2DNode);
-
-                for (auto const& childNode2D: child2DNode) {
-                    if (!childNode2D->activated) {
-                        continue;
-                    }
-                    this->MapNode2D(childNode2D);
-                }
-            }
-
-            // # Render
             for (auto const& item: this->items) {
                 item->Render(ctx);
             }
-
-            // # Clear
-            this->items.clear();
         };
 };
 

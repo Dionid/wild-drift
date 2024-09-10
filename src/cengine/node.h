@@ -72,6 +72,7 @@ class Node: public cen::WithType {
             this->activated = true;
         }
 
+        // TODO: refactor this
         bool AnyParentDeactivated() {
             if (this->activated == false) {
                 return true;
