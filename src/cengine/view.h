@@ -9,6 +9,24 @@
 
 namespace cen {
 
+class TextView: public cen::Node2D {
+    public:
+        std::string  text;
+        int fontSize;
+        Color color;
+
+        TextView(
+            Vector2 position,
+            std::string text,
+            int fontSize,
+            Color color
+        ): cen::Node2D(position) {
+            this->text = text;
+            this->fontSize = fontSize;
+            this->color = color;
+        }
+};
+
 class LineView: public cen::Node2D {
     public:
         float length;

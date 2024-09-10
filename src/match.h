@@ -29,12 +29,14 @@ class MatchManager: public cen::Node2D {
         int playerScore;
         int enemyScore;
         int winScore;
-        std::function<void()> onEnd;
+        std::function<void(cen::GameContext*)> onEnd;
         LaunchBallTimer* launchBallTimer;
+        cen::TextView* playerScoreText;
+        cen::TextView* enemyScoreText;
 
         MatchManager(
             SpcAudio* gameAudio,
-            std::function<void()> onEnd,
+            std::function<void(cen::GameContext*)> onEnd,
             int winScore = 3,
             int playerScore = 0,
             int enemyScore = 0

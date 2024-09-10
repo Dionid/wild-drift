@@ -61,9 +61,9 @@ int main() {
     // # Match
     MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
         &gameAudio,
-        [&]() {
+        [&](cen::GameContext* ctx) {
             matchManager->Deactivate();
-            matchEndMenu->playerWon = matchManager->playerScore > matchManager->enemyScore;
+            matchEndMenu->SetPlayerWon(ctx, matchManager->playerScore > matchManager->enemyScore);
             matchEndMenu->Activate();
             EnableCursor();
         }

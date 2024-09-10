@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <cstring>
 #include "core.h"
 #include "node.h"
 #include "view.h"
@@ -161,6 +162,34 @@ class ButtonCanvasItem2D: public CanvasItem2D {
         }
 };
 
+class TextCanvasItem2D: public CanvasItem2D {
+    public:
+        std::string text;
+        int fontSize;
+        Color color;
+
+        TextCanvasItem2D(
+            Vector2 position,
+            std::string text,
+            int fontSize,
+            Color color
+        ): CanvasItem2D(position) {
+            this->text = text;
+            this->fontSize = fontSize;
+            this->color = color;
+        }
+
+        void Render(cen::GameContext* ctx) override {
+            DrawText(
+                this->text.c_str(),
+                this->position.x,
+                this->position.y,
+                this->fontSize,
+                this->color
+            );
+        }
+};
+
 class RenderingEngine2D {
     public:
         std::unordered_map<node_id_t, CanvasItem2D*> itemsById;
@@ -168,107 +197,68 @@ class RenderingEngine2D {
         cen::NodeStorage* nodeStorage;
 
         void MapNode2D(cen::Node2D* node2D) {
-            bool notFound = this->itemsById.find(node2D->id) == this->itemsById.end();
+            Vector2 position = node2D->GlobalPosition();
 
             if (auto lineView = dynamic_cast<cen::LineView*>(node2D)) {
-                if (notFound) {
-                    this->items.push_back(
-                        std::make_unique<LineCanvasItem2D>(
-                            lineView->position,
-                            lineView->length,
-                            lineView->color,
-                            lineView->alpha,
-                            lineView->zOrder,
-                            lineView->id
-                        )
-                    );
-                    this->itemsById[node2D->id] = this->items.back().get();
-                } else {
-                    auto item = static_cast<LineCanvasItem2D*>(this->itemsById[node2D->id]);
-                    item->position = lineView->position;
-                    item->zOrder = lineView->zOrder;
-                    item->alpha = lineView->alpha;
-                    item->color = lineView->color;
-                    item->length = lineView->length;
-                }
+                this->items.push_back(
+                    std::make_unique<LineCanvasItem2D>(
+                        position,
+                        lineView->length,
+                        lineView->color,
+                        lineView->alpha,
+                        lineView->zOrder,
+                        lineView->id
+                    )
+                );
+                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto circleView = dynamic_cast<cen::CircleView*>(node2D)) {
-                if (notFound) {
-                    this->items.push_back(
-                        std::make_unique<CircleCanvasItem2D>(
-                            circleView->position,
-                            circleView->radius,
-                            circleView->color,
-                            circleView->alpha,
-                            circleView->fill,
-                            circleView->zOrder,
-                            circleView->id
-                        )
-                    );
-                    this->itemsById[node2D->id] = this->items.back().get();
-                } else {
-                    auto item = static_cast<CircleCanvasItem2D*>(this->itemsById[node2D->id]);
-                    item->position = circleView->position;
-                    item->zOrder = circleView->zOrder;
-                    item->alpha = circleView->alpha;
-                    item->color = circleView->color;
-                    item->radius = circleView->radius;
-                    item->fill = circleView->fill;
-                }
+                this->items.push_back(
+                    std::make_unique<CircleCanvasItem2D>(
+                        position,
+                        circleView->radius,
+                        circleView->color,
+                        circleView->alpha,
+                        circleView->fill,
+                        circleView->zOrder,
+                        circleView->id
+                    )
+                );
+                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto rectangleView = dynamic_cast<cen::RectangleView*>(node2D)) {
-                if (notFound) {
-                    this->items.push_back(
-                        std::make_unique<RectangleCanvasItem2D>(
-                            rectangleView->position,
-                            rectangleView->size,
-                            rectangleView->color,
-                            rectangleView->alpha,
-                            rectangleView->zOrder,
-                            rectangleView->id
-                        )
-                    );
-                    this->itemsById[node2D->id] = this->items.back().get();
-                } else {
-                    auto item = static_cast<RectangleCanvasItem2D*>(this->itemsById[node2D->id]);
-                    item->position = rectangleView->position;
-                    item->zOrder = rectangleView->zOrder;
-                    item->alpha = rectangleView->alpha;
-                    item->color = rectangleView->color;
-                    item->size = rectangleView->size;
-                }
+                this->items.push_back(
+                    std::make_unique<RectangleCanvasItem2D>(
+                        position,
+                        rectangleView->size,
+                        rectangleView->color,
+                        rectangleView->alpha,
+                        rectangleView->zOrder,
+                        rectangleView->id
+                    )
+                );
+                this->itemsById[node2D->id] = this->items.back().get();
             } else if (auto buttonView = dynamic_cast<cen::Btn*>(node2D)) {
-                if (notFound) {
-                    this->items.push_back(
-                        std::make_unique<ButtonCanvasItem2D>(
-                            buttonView->state,
-                            buttonView->text,
-                            buttonView->fontSize,
-                            buttonView->position,
-                            buttonView->size,
-                            buttonView->anchor
-                        )
-                    );
-                    this->itemsById[node2D->id] = this->items.back().get();
-                } else {
-                    auto item = static_cast<ButtonCanvasItem2D*>(this->itemsById[node2D->id]);
-                    item->state = buttonView->state;
-                    item->position = buttonView->position;
-                    item->zOrder = buttonView->zOrder;
-                    item->text = buttonView->text;
-                    item->fontSize = buttonView->fontSize;
-                    item->anchor = buttonView->anchor;
-                }
-            } else {
-                if (notFound) {
-                    this->items.push_back(
-                        std::make_unique<RectangleCanvasItem2D>(
-                            node2D->position,
-                            (cen::Size){100, 100}
-                        )
-                    );
-                    this->itemsById[node2D->id] = this->items.back().get();
-                } else {
-                    this->itemsById[node2D->id]->position = node2D->position;
-                }
+                this->items.push_back(
+                    std::make_unique<ButtonCanvasItem2D>(
+                        buttonView->state,
+                        buttonView->text,
+                        buttonView->fontSize,
+                        position,
+                        buttonView->size,
+                        buttonView->anchor
+                    )
+                );
+                this->itemsById[node2D->id] = this->items.back().get();
+            } else if (auto textView = dynamic_cast<cen::TextView*>(node2D)) {
+                
+                this->items.push_back(
+                    std::make_unique<TextCanvasItem2D>(
+                        position,
+                        std::string(textView->text).c_str(),
+                        textView->fontSize,
+                        textView->color
+                    )
+                );
+                this->itemsById[node2D->id] = this->items.back().get();
             }
         }
 
@@ -287,6 +277,9 @@ class RenderingEngine2D {
                 node->GetChildByTypeDeep<Node2D>(child2DNode);
 
                 for (auto const& childNode2D: child2DNode) {
+                    if (!childNode2D->activated) {
+                        continue;
+                    }
                     this->MapNode2D(childNode2D);
                 }
             }
@@ -295,6 +288,9 @@ class RenderingEngine2D {
             for (auto const& item: this->items) {
                 item->Render(ctx);
             }
+
+            // # Clear
+            this->items.clear();
         };
 };
 

@@ -25,7 +25,7 @@ void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
 
 MatchManager::MatchManager(
     SpcAudio* gameAudio,
-    std::function<void()> onEnd,
+    std::function<void(cen::GameContext*)> onEnd,
     int winScore,
     int playerScore,
     int enemyScore
@@ -133,6 +133,34 @@ void MatchManager::Init(cen::GameContext* ctx) {
             500
         )
     );
+
+    // # GUI
+    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
+    auto fontSize = 50;
+
+    this->playerScoreText = this->AddNode(
+        std::make_unique<cen::TextView>(
+            (Vector2){
+                screenWidthQuoter - fontSize / 2,
+                ctx->worldHeight / 2 - fontSize / 2
+            },
+            "0",
+            fontSize,
+            ColorAlpha(WHITE, 0.5f)
+        )
+    );
+
+    this->enemyScoreText = this->AddNode(
+        std::make_unique<cen::TextView>(
+            (Vector2){
+                ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
+                ctx->worldHeight / 2 - fontSize / 2
+            },
+            "0",
+            fontSize,
+            ColorAlpha(WHITE, 0.5f)
+        )
+    );
 };
 
 void MatchManager::ResetEntities(cen::GameContext* ctx) {
@@ -166,11 +194,13 @@ void MatchManager::Reset(cen::GameContext* ctx) {
 void MatchManager::PlayerScored(cen::GameContext* ctx) {
     this->playerScore++;
     this->ResetEntities(ctx);
+    this->playerScoreText->text = std::to_string(this->playerScore);
 }
 
 void MatchManager::EnemyScored(cen::GameContext* ctx) {
     this->enemyScore++;
     this->ResetEntities(ctx);
+    this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
 void MatchManager::Update(cen::GameContext* ctx) {
@@ -207,7 +237,7 @@ void MatchManager::Update(cen::GameContext* ctx) {
         }
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
-            this->onEnd();
+            this->onEnd(ctx);
             if (this->playerScore > this->enemyScore) {
                 PlaySound(this->gameAudio->win);
             } else {
