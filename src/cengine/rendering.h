@@ -190,16 +190,28 @@ class TextCanvasItem2D: public CanvasItem2D {
         }
 };
 
+#define renderBuffer std::vector<std::unique_ptr<CanvasItem2D>>
+
 class RenderingEngine2D {
     public:
-        std::vector<std::unique_ptr<CanvasItem2D>> items;
+        int activeBufferInd = 0;
+        int nextActiveBufferInd = 0;
+        std::vector<renderBuffer> renderBuffers;
         cen::NodeStorage* nodeStorage;
 
-        void MapNode2D(cen::Node2D* node2D) {
+        RenderingEngine2D() {
+            this->renderBuffers.push_back(renderBuffer());
+            this->renderBuffers.push_back(renderBuffer());
+        }
+
+        void MapNode2D(
+            renderBuffer& activeRenderBuffer,
+            cen::Node2D* node2D
+        ) {
             Vector2 position = node2D->GlobalPosition();
 
             if (auto lineView = dynamic_cast<cen::LineView*>(node2D)) {
-                this->items.push_back(
+                activeRenderBuffer.push_back(
                     std::make_unique<LineCanvasItem2D>(
                         position,
                         lineView->length,
@@ -210,7 +222,7 @@ class RenderingEngine2D {
                     )
                 );
             } else if (auto circleView = dynamic_cast<cen::CircleView*>(node2D)) {
-                this->items.push_back(
+                activeRenderBuffer.push_back(
                     std::make_unique<CircleCanvasItem2D>(
                         position,
                         circleView->radius,
@@ -222,7 +234,7 @@ class RenderingEngine2D {
                     )
                 );
             } else if (auto rectangleView = dynamic_cast<cen::RectangleView*>(node2D)) {
-                this->items.push_back(
+                activeRenderBuffer.push_back(
                     std::make_unique<RectangleCanvasItem2D>(
                         position,
                         rectangleView->size,
@@ -233,7 +245,7 @@ class RenderingEngine2D {
                     )
                 );
             } else if (auto buttonView = dynamic_cast<cen::Btn*>(node2D)) {
-                this->items.push_back(
+                activeRenderBuffer.push_back(
                     std::make_unique<ButtonCanvasItem2D>(
                         buttonView->state,
                         buttonView->text,
@@ -245,7 +257,7 @@ class RenderingEngine2D {
                 );
             } else if (auto textView = dynamic_cast<cen::TextView*>(node2D)) {
                 
-                this->items.push_back(
+                activeRenderBuffer.push_back(
                     std::make_unique<TextCanvasItem2D>(
                         position,
                         std::string(textView->text).c_str(),
@@ -257,8 +269,11 @@ class RenderingEngine2D {
         }
 
         void MapNodesToCanvasItems() {
+            // # Change active buffer
+            int nextActiveBufferInd = (this->activeBufferInd + 1) % 2;
+
             // # Clear
-            this->items.clear();
+            this->renderBuffers[nextActiveBufferInd].clear();
 
             // # Sync with game Nodes
             for (auto const& node: this->nodeStorage->renderNodes) {
@@ -266,12 +281,22 @@ class RenderingEngine2D {
                     continue;
                 }
 
-                this->MapNode2D(node);
+                this->MapNode2D(
+                    this->renderBuffers[nextActiveBufferInd],
+                    node
+                );
             }
+
+            // # Update next active buffer
+            this->nextActiveBufferInd = nextActiveBufferInd;
         }
 
         void Render(cen::GameContext* ctx) {
-            for (auto const& item: this->items) {
+            if (this->nextActiveBufferInd != this->activeBufferInd) {
+                this->activeBufferInd = this->nextActiveBufferInd;
+            }
+
+            for (auto const& item: this->renderBuffers[this->activeBufferInd]) {
                 item->Render(ctx);
             }
         };
