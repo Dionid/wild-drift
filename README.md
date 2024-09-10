@@ -3,13 +3,13 @@
 # Roadmap
 
 1. New features
-    1. Events
     1. Multiplayer
     1. Multithreading
         1. Physics and Render pipelines
     1. SAT
     1. Animations
 1. Improvements
+    1. Debug as flag
     1. zOrder on Tree
     1. Add units (meters, seconds, etc.)
     1. CollisionEngine pair.id

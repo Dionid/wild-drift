@@ -47,7 +47,7 @@ int main() {
     };
 
     // # Scene
-    cen::Scene scene;
+    cen::Scene scene = cen::Scene();
 
     // # MatchEndMenu
     auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
@@ -140,12 +140,15 @@ int main() {
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            for (const auto& node: ctx.scene->node_storage->renderNodes) {
-                if (node->AnyParentDeactivated()) {
-                    continue;
-                }
-                node->TraverseRender(&ctx);
-            }
+            // for (const auto& node: ctx.scene->node_storage->renderNodes) {
+            //     if (node->AnyParentDeactivated()) {
+            //         continue;
+            //     }
+            //     node->TraverseRender(&ctx);
+            // }
+
+            scene.renderingEngine->Render(&ctx);
+
             debugger.Render(&ctx);
         EndDrawing();
         //----------------------------------------------------------------------------------

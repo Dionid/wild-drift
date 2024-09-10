@@ -68,7 +68,7 @@ void Player::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
-            BLUE
+            WHITE
         )
     );
 
@@ -242,7 +242,7 @@ void Enemy::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
-            RED
+            WHITE
         )
     );
     this->AddNode(

@@ -19,6 +19,7 @@ Btn::Btn(
     this->text = btnText;
     this->fontSize = btnTextFontSize;
     this->anchor = anchor;
+    this->size = size;
 
     float width = size.width;
     float height = size.height;
@@ -35,6 +36,26 @@ Btn::Btn(
         height
     };
 };
+
+void Btn::Update(cen::GameContext* ctx) {
+    state = BtnState::Normal;
+
+    Vector2 mousePoint = GetMousePosition();
+
+    // Check button state
+    if (CheckCollisionPointRec(mousePoint, btnRect))
+    {
+        state = BtnState::Hover;
+
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            state = BtnState::Pressing;
+        } else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+            if (this->callbacks.onClick != nullptr) {
+                this->callbacks.onClick(ctx, this);
+            }
+        }
+    }
+}
 
 void Btn::Render(cen::GameContext* ctx) {
     state = BtnState::Normal;

@@ -39,6 +39,7 @@ class Btn: public cen::Node2D {
         BtnState state = BtnState::Normal;
         const char* text;
         int fontSize;
+        cen::Size size;
         Vector2 anchor;
         Rectangle btnRect;
         Callbacks callbacks;
@@ -52,7 +53,8 @@ class Btn: public cen::Node2D {
             Callbacks callbacks
         );
 
-        void Render(cen::GameContext* ctx);
+        void Render(cen::GameContext* ctx) override;
+        void Update(cen::GameContext* ctx) override; 
 };
 
 }

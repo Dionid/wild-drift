@@ -1,7 +1,6 @@
 #ifndef CENGINE_NODES_H
 #define CENGINE_NODES_H
 
-#include <raymath.h>
 #include "node.h"
 
 namespace cen {

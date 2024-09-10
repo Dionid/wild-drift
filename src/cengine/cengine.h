@@ -15,6 +15,7 @@
 #include "node_2d_node_storage.h"
 #include "gui.h"
 #include "view.h"
+#include "rendering.h"
 #include "collision.h"
 #include "character_body_node_2d.h"
 #include "debug.h"

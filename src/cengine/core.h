@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <raylib.h>
 #include <raymath.h>
 
 namespace cen {
