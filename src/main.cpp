@@ -79,7 +79,7 @@ void gameLoopPipeline(
     const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
     const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
 
-    auto lastFrameTime = std::chrono::high_resolution_clock::now();
+    auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
     std::chrono::milliseconds accumulatedFixedTime(0);
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -91,14 +91,17 @@ void gameLoopPipeline(
         ctx->scene->node_storage->InitNewNodes(ctx);
 
         auto now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFrameTime;
-        lastFrameTime = now;
+        std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
+        lastFixedFrameTime = now;
         accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
 
         while (accumulatedFixedTime >= targetFixedUpdateTime) {
             for (const auto& node: ctx->scene->node_storage->nodes) {
                 node->TraverseFixedUpdate(ctx);
             }
+
+            // ## Collision
+            ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
 
             accumulatedFixedTime -= targetFixedUpdateTime;
         }
@@ -107,9 +110,6 @@ void gameLoopPipeline(
         for (const auto& node: ctx->scene->node_storage->nodes) {
             node->TraverseUpdate(ctx);
         }
-
-        // ## Collision
-        ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
 
         // ## Flush events
         for (const auto& topic: ctx->scene->topics) {
@@ -128,9 +128,9 @@ void gameLoopPipeline(
 
         std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
 
-        if (frameDuration < targetFrameTime) {
-            std::this_thread::sleep_for(targetFrameTime - frameDuration);
-        }
+        // QUESTION: maybe sleep better? But it overshoot for 3ms
+        // Busy wait
+        while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
     }
 };
 
@@ -193,6 +193,7 @@ int main() {
     int counter = 0;
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        // std::cout << GetFrameTime() << std::endl;
         BeginDrawing();
             ClearBackground(BLACK);
             scene.renderingEngine->Render();

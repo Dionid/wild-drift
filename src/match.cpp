@@ -206,7 +206,7 @@ void MatchManager::EnemyScored(cen::GameContext* ctx) {
     this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
-void MatchManager::Update(cen::GameContext* ctx) {
+void MatchManager::FixedUpdate(cen::GameContext* ctx) {
     for (const auto& collision: ctx->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_tid &&

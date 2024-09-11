@@ -49,7 +49,7 @@ class MatchManager: public cen::Node2D {
         void ResetEntities(cen::GameContext* ctx);
 
         void Init(cen::GameContext* ctx) override;
-        void Update(cen::GameContext* ctx) override;
+        void FixedUpdate(cen::GameContext* ctx) override;
 };
 
 #endif // CSP_MATCH_H_
