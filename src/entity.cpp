@@ -83,7 +83,7 @@ void Player::Init(cen::GameContext* ctx) {
 
 // # Player Update function
 void Player::Update(cen::GameContext* ctx) {
-    float deltaTime = DeltaTime();
+    // float deltaTime = DeltaTime();
 
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
@@ -97,8 +97,8 @@ void Player::Update(cen::GameContext* ctx) {
         this->speed
     );
 
-    this->velocity.y += newSpeed.y * deltaTime;
-    this->velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
 
     if (Vector2Length(this->velocity) > this->maxVelocity) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
@@ -257,7 +257,6 @@ void Enemy::Init(cen::GameContext* ctx) {
 void Enemy::Update(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
-    float deltaTime = DeltaTime();
 
     float directionX = 0;
     float directionY = 0;
@@ -293,8 +292,8 @@ void Enemy::Update(cen::GameContext* ctx) {
         this->speed
     );
 
-    this->velocity.y += newSpeed.y * deltaTime;
-    this->velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
 
     if (Vector2Length(this->velocity) > this->maxVelocity) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);

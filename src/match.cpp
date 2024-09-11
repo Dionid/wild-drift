@@ -189,6 +189,9 @@ void MatchManager::Reset(cen::GameContext* ctx) {
     this->enemyScore = 0;
 
     this->ResetEntities(ctx);
+
+    this->playerScoreText->text = std::to_string(this->playerScore);
+    this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
 void MatchManager::PlayerScored(cen::GameContext* ctx) {

@@ -22,7 +22,6 @@ namespace cen {
             ) {
                 this->node_storage = std::move(node_storage);
                 this->renderingEngine = std::move(renderingEngine);
-                this->renderingEngine->nodeStorage = this->node_storage.get();
                 this->topics = std::move(topics);
                 this->eventBus = eventBus;
             }

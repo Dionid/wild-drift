@@ -27,7 +27,7 @@ class CanvasItem2D {
             this->id = id;
         }
 
-        virtual void Render(cen::GameContext* ctx) = 0;
+        virtual void Render() = 0;
 };
 
 class LineCanvasItem2D: public CanvasItem2D {
@@ -42,7 +42,7 @@ class LineCanvasItem2D: public CanvasItem2D {
             this->color = color;
         }
 
-        void Render(cen::GameContext* ctx) override {
+        void Render() override {
             Vector2 end = {
                 this->position.x,
                 this->position.y + this->length
@@ -65,7 +65,7 @@ class CircleCanvasItem2D: public CanvasItem2D {
             this->fill = fill;
         }
 
-        void Render(cen::GameContext* ctx) override {
+        void Render() override {
 
             if (this->fill) {
                 DrawCircleV(position, this->radius, ColorAlpha(this->color, this->alpha));
@@ -88,7 +88,7 @@ class RectangleCanvasItem2D: public CanvasItem2D {
             this->alpha = alpha;
         }
 
-        void Render(cen::GameContext* ctx) override {
+        void Render() override {
             DrawRectangle(position.x - this->size.width * 0.5, position.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
@@ -130,7 +130,7 @@ class ButtonCanvasItem2D: public CanvasItem2D {
             };
         }
 
-        void Render(cen::GameContext* ctx) override {
+        void Render() override {
             switch (state) {
                 case BtnState::Normal:
                     DrawRectangleRec(
@@ -179,7 +179,7 @@ class TextCanvasItem2D: public CanvasItem2D {
             this->color = color;
         }
 
-        void Render(cen::GameContext* ctx) override {
+        void Render() override {
             DrawText(
                 this->text.c_str(),
                 this->position.x,
@@ -190,22 +190,17 @@ class TextCanvasItem2D: public CanvasItem2D {
         }
 };
 
-#define renderBuffer std::vector<std::unique_ptr<CanvasItem2D>>
+#define render_buffer std::vector<std::unique_ptr<CanvasItem2D>>
 
 class RenderingEngine2D {
     public:
         int activeBufferInd = 0;
         int nextActiveBufferInd = 0;
-        std::vector<renderBuffer> renderBuffers;
-        cen::NodeStorage* nodeStorage;
-
-        RenderingEngine2D() {
-            this->renderBuffers.push_back(renderBuffer());
-            this->renderBuffers.push_back(renderBuffer());
-        }
+        render_buffer firstRenderBuffer;
+        render_buffer secondRenderBuffer;
 
         void MapNode2D(
-            renderBuffer& activeRenderBuffer,
+            render_buffer& activeRenderBuffer,
             cen::Node2D* node2D
         ) {
             Vector2 position = node2D->GlobalPosition();
@@ -268,21 +263,25 @@ class RenderingEngine2D {
             }
         }
 
-        void MapNodesToCanvasItems() {
+        void MapNodesToCanvasItems(
+            cen::NodeStorage* const nodeStorage
+        ) {
             // # Change active buffer
             int nextActiveBufferInd = (this->activeBufferInd + 1) % 2;
 
             // # Clear
-            this->renderBuffers[nextActiveBufferInd].clear();
+            render_buffer& activeRenderBuffer = nextActiveBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
+
+            activeRenderBuffer.clear();
 
             // # Sync with game Nodes
-            for (auto const& node: this->nodeStorage->renderNodes) {
+            for (auto const& node: nodeStorage->renderNodes) {
                 if (node->AnyParentDeactivated()) {
                     continue;
                 }
 
                 this->MapNode2D(
-                    this->renderBuffers[nextActiveBufferInd],
+                    activeRenderBuffer,
                     node
                 );
             }
@@ -291,13 +290,15 @@ class RenderingEngine2D {
             this->nextActiveBufferInd = nextActiveBufferInd;
         }
 
-        void Render(cen::GameContext* ctx) {
+        void Render() {
             if (this->nextActiveBufferInd != this->activeBufferInd) {
                 this->activeBufferInd = this->nextActiveBufferInd;
             }
 
-            for (auto const& item: this->renderBuffers[this->activeBufferInd]) {
-                item->Render(ctx);
+            render_buffer& activeRenderBuffer = nextActiveBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
+
+            for (auto const& item: activeRenderBuffer) {
+                item->Render();
             }
         };
 };
