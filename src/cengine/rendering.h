@@ -271,7 +271,7 @@ class RenderingEngine2D {
         void SyncRenderBuffer(
             cen::NodeStorage* const nodeStorage
         ) {
-            render_buffer writeBuffer;
+            auto writeBuffer = render_buffer();
 
             // # Sync with game Nodes
             for (auto const& node: nodeStorage->renderNodes) {
@@ -287,11 +287,11 @@ class RenderingEngine2D {
 
             {
                 if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
-                    std::lock_guard<std::mutex> lock(secondBufferMutex);
+                    // std::lock_guard<std::mutex> lock(secondBufferMutex);
                     secondBuffer = std::move(writeBuffer);
                     activeRenderBufferInd.store(1, std::memory_order_release);
                 } else {
-                    std::lock_guard<std::mutex> lock(firstBufferMutex);
+                    // std::lock_guard<std::mutex> lock(firstBufferMutex);
                     firstBuffer = std::move(writeBuffer);
                     activeRenderBufferInd.store(0, std::memory_order_release);
                 }
@@ -300,12 +300,12 @@ class RenderingEngine2D {
 
         void Render() {
             if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
-                std::lock_guard<std::mutex> lock(firstBufferMutex);
+                // std::lock_guard<std::mutex> lock(firstBufferMutex);
                 for (const auto& item: firstBuffer) {
                     item->Render();
                 }
             } else {
-                std::lock_guard<std::mutex> lock(secondBufferMutex);
+                // std::lock_guard<std::mutex> lock(secondBufferMutex);
                 for (const auto& item: secondBuffer) {
                     item->Render();
                 }
