@@ -111,17 +111,17 @@ void gameLoopPipeline(
         // ## Collision
         ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
 
-        // // ## Map Game state to Renderer
-        ctx->scene->renderingEngine->MapNodesToCanvasItems(
-            ctx->scene->node_storage.get()
-        );
-
         // ## Flush events
         for (const auto& topic: ctx->scene->topics) {
             topic->flush();
         }
 
         ctx->scene->eventBus.flush(ctx);
+
+        // ## Map Game state to Renderer
+        ctx->scene->renderingEngine->SyncRenderBuffer(
+            ctx->scene->node_storage.get()
+        );
 
         // ## End
         auto frameEnd = std::chrono::high_resolution_clock::now();
@@ -196,8 +196,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             scene.renderingEngine->Render();
-            // TODO: Refactor debug
-            // debugger.Render(&ctx);
+            debugger.Render(&ctx);
         EndDrawing();
     }
 
