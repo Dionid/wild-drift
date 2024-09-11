@@ -191,7 +191,7 @@ void Ball::OnCollision(cen::Collision collision) {
     );
 };
 
-void Ball::Update(cen::GameContext* ctx) {
+void Ball::FixedUpdate(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
 
@@ -252,7 +252,7 @@ void Enemy::Init(cen::GameContext* ctx) {
     );
 }
 
-void Enemy::Update(cen::GameContext* ctx) {
+void Enemy::FixedUpdate(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
 

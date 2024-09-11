@@ -295,7 +295,7 @@ class RenderingEngine2D {
                 this->activeBufferInd = this->nextActiveBufferInd;
             }
 
-            render_buffer& activeRenderBuffer = nextActiveBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
+            render_buffer& activeRenderBuffer = this->activeBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
 
             for (auto const& item: activeRenderBuffer) {
                 item->Render();
