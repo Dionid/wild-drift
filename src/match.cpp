@@ -46,7 +46,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            2.0f,
+            1.5f,
             10.0f
         )
     );
@@ -62,7 +62,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
             ballRadius,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
             (cen::Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ cos(randomAngle) * 7, sin(randomAngle) * 7 },
+            (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
             10.0f
         )
     );
@@ -76,7 +76,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
             (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            2.0f,
+            1.5f,
             10.0f
         )
     );

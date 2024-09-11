@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <cstring>
+#include <mutex>
 #include "core.h"
 #include "node.h"
 #include "view.h"
@@ -193,6 +194,10 @@ class TextCanvasItem2D: public CanvasItem2D {
 #define render_buffer std::vector<std::unique_ptr<CanvasItem2D>>
 
 class RenderingEngine2D {
+    private:
+        std::mutex firstRenderBufferMutex;
+        std::mutex secondRenderBufferMutex;
+
     public:
         int activeBufferInd = 0;
         int nextActiveBufferInd = 0;
@@ -269,6 +274,8 @@ class RenderingEngine2D {
             // # Change active buffer
             int nextActiveBufferInd = (this->activeBufferInd + 1) % 2;
 
+            std::lock_guard<std::mutex> lock(nextActiveBufferInd == 0 ? this->firstRenderBufferMutex : this->secondRenderBufferMutex);
+
             // # Clear
             render_buffer& activeRenderBuffer = nextActiveBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
 
@@ -294,6 +301,8 @@ class RenderingEngine2D {
             if (this->nextActiveBufferInd != this->activeBufferInd) {
                 this->activeBufferInd = this->nextActiveBufferInd;
             }
+
+            std::lock_guard<std::mutex> lock(this->activeBufferInd == 0 ? this->firstRenderBufferMutex : this->secondRenderBufferMutex);
 
             render_buffer& activeRenderBuffer = this->activeBufferInd == 0 ? this->firstRenderBuffer : this->secondRenderBuffer;
 
