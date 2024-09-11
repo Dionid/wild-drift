@@ -19,7 +19,6 @@ class MainMenu: public cen::Node2D {
             std::function<void(cen::GameContext*)> onStart = std::function<void(cen::GameContext*)>()
         );
 
-        void Render(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
 };
 
@@ -39,7 +38,6 @@ class MatchEndMenu: public cen::Node2D {
 
         void SetPlayerWon(cen::GameContext* ctx, bool playerWon);
 
-        void Render(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
 };
 

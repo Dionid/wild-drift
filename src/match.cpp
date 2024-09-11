@@ -254,24 +254,3 @@ void MatchManager::Update(cen::GameContext* ctx) {
         PlaySound(this->gameAudio->score);
     }
 }
-
-void MatchManager::Render(cen::GameContext* ctx) {
-    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
-    auto fontSize = 50;
-
-    DrawText(
-        std::to_string(this->playerScore).c_str(),
-        screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-
-    DrawText(
-        std::to_string(this->enemyScore).c_str(),
-        ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-};

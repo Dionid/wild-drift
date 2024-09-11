@@ -44,16 +44,6 @@ void MainMenu::Init(cen::GameContext* ctx) {
     );
 }
 
-void MainMenu::Render(cen::GameContext* ctx) {
-    DrawText(
-        title,
-        ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30,
-        titleFontSize,
-        WHITE
-    );
-};
-
 // # MatchEndMenu
 
 MatchEndMenu::MatchEndMenu(
@@ -109,14 +99,3 @@ void MatchEndMenu::SetPlayerWon(cen::GameContext* ctx, bool playerWon) {
         ctx->worldHeight / 2 - titleFontSize / 2 - 30
     };
 }
-
-void MatchEndMenu::Render(cen::GameContext* ctx) {
-    const char* text = this->playerWon ? "YOU WON" : "YOU LOST";
-    DrawText(
-        text,
-        ctx->worldWidth / 2 - MeasureText(text, titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30,
-        titleFontSize,
-        WHITE
-    );
-};

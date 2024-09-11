@@ -50,7 +50,6 @@ class MatchManager: public cen::Node2D {
 
         void Init(cen::GameContext* ctx) override;
         void Update(cen::GameContext* ctx) override;
-        void Render(cen::GameContext* ctx) override;
 };
 
 #endif // CSP_MATCH_H_

@@ -60,25 +60,6 @@ class Node2D: public Node {
 
             return p->RootNode2D();
         }
-
-        virtual void Render(cen::GameContext* ctx) {};
-
-        void TraverseRender(cen::GameContext* ctx) {
-            if (this->activated == false) {
-                return;
-            }
-
-            this->Render(ctx);
-            for (const auto& node: this->children) {
-                auto node2d = dynamic_cast<Node2D*>(node.get());
-
-                if (node2d == nullptr) {
-                    continue;
-                }
-
-                node2d->TraverseRender(ctx);
-            }
-        }
 };
 
 } // namespace cen
