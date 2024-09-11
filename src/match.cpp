@@ -51,7 +51,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    player->setZOrder(1);
+    player->zOrder = 1;
     this->playerId = player->id;
 
     float ballRadius = 15.0f;
@@ -67,7 +67,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    ball->setZOrder(1);
+    ball->zOrder = 1;
     this->ballId = ball->id;
 
     Enemy* enemy = this->AddNode(
@@ -81,7 +81,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    enemy->setZOrder(1);
+    enemy->zOrder = 1;
     this->enemyId = enemy->id;
 
     // # Goals
@@ -95,7 +95,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    lGoal->setZOrder(2);
+    lGoal->zOrder = 2;
 
     Goal* rGoal = this->AddNode(
         std::make_unique<Goal>(
@@ -105,7 +105,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    rGoal->setZOrder(2);
+    rGoal->zOrder = 2;
 
     // # Field
     this->AddNode(

@@ -4,9 +4,7 @@
 
 1. New features
     1. Multithreading
-        1. Physics and Render pipelines
         1. Move zOrder sort to render
-        1. Fixed Update
     1. Multiplayer
     1. Debug as flag
     1. Settings

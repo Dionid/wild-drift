@@ -285,6 +285,10 @@ class RenderingEngine2D {
                 );
             }
 
+            std::sort(writeBuffer.begin(),writeBuffer.end(), [](const std::unique_ptr<cen::CanvasItem2D>& a, const std::unique_ptr<cen::CanvasItem2D>& b) {
+                return a->zOrder < b->zOrder;
+            });
+
             {
                 if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
                     // std::lock_guard<std::mutex> lock(secondBufferMutex);

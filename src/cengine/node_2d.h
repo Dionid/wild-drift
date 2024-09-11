@@ -21,8 +21,6 @@ class Node2D: public Node {
             this->zOrder = zOrder;
         }
 
-        void setZOrder(int zOrder);
-
         Node2D* ClosestNode2DParent(Node* targetParent = nullptr) {
             auto currentParent = targetParent == nullptr ? this->parent : targetParent;
             if (currentParent == nullptr) {
