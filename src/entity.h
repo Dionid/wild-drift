@@ -45,7 +45,7 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        void Update(cen::GameContext* ctx) override;
+        void FixedUpdate(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
 };
 

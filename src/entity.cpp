@@ -82,9 +82,7 @@ void Player::Init(cen::GameContext* ctx) {
 };
 
 // # Player Update function
-void Player::Update(cen::GameContext* ctx) {
-    // float deltaTime = DeltaTime();
-
+void Player::FixedUpdate(cen::GameContext* ctx) {
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
     auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);

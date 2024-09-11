@@ -46,7 +46,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            1.0f,
+            2.0f,
             10.0f
         )
     );

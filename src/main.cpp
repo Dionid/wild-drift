@@ -72,16 +72,36 @@ void gameLoopPipeline(
     // # Node Storage
     ctx->scene->node_storage->Init();
 
+    // # Main Loop
     const int targetFPS = 60;
+    const int fixedUpdateRate = 40;
+
     const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
+    const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
+
+    auto lastFrameTime = std::chrono::high_resolution_clock::now();
+    std::chrono::milliseconds accumulatedFixedTime(0);
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        // ## Start
         auto frameStart = std::chrono::high_resolution_clock::now();
 
         // ## Update
-        //----------------------------------------------------------------------------------
         ctx->scene->node_storage->InitNewNodes(ctx);
+
+        auto now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFrameTime;
+        lastFrameTime = now;
+        accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
+
+        while (accumulatedFixedTime >= targetFixedUpdateTime) {
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                node->TraverseFixedUpdate(ctx);
+            }
+
+            accumulatedFixedTime -= targetFixedUpdateTime;
+        }
 
         // ## Initial
         for (const auto& node: ctx->scene->node_storage->nodes) {
@@ -103,6 +123,7 @@ void gameLoopPipeline(
 
         ctx->scene->eventBus.flush(ctx);
 
+        // ## End
         auto frameEnd = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
@@ -175,7 +196,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             scene.renderingEngine->Render();
-            // TODO: Refactore debug
+            // TODO: Refactor debug
             // debugger.Render(&ctx);
         EndDrawing();
     }

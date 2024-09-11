@@ -86,6 +86,7 @@ class Node: public cen::WithType {
         }
 
         virtual void Init(cen::GameContext* ctx) {};
+        virtual void FixedUpdate(cen::GameContext* ctx) {};
         virtual void Update(cen::GameContext* ctx) {};
 
         // # implementations in node_node_storage.h
@@ -195,6 +196,17 @@ class Node: public cen::WithType {
             this->Update(ctx);
             for (const auto& node: this->children) {
                 node->TraverseUpdate(ctx);
+            }
+        };
+
+        void TraverseFixedUpdate(cen::GameContext* ctx) {
+            if (this->activated == false) {
+                return;
+            }
+
+            this->FixedUpdate(ctx);
+            for (const auto& node: this->children) {
+                node->TraverseFixedUpdate(ctx);
             }
         };
 };
