@@ -1,4 +1,3 @@
-#include "scene.h"
 #include "character_body_node_2d.h"
 
 namespace cen {

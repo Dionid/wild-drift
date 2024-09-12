@@ -30,17 +30,19 @@ void MainMenu::Init(cen::GameContext* ctx) {
             )
         )
     );
-}
 
-void MainMenu::Render(cen::GameContext* ctx) {
-    DrawText(
-        title,
-        ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30,
-        titleFontSize,
-        WHITE
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
+                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
     );
-};
+}
 
 // # MatchEndMenu
 
@@ -75,15 +77,25 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
             )
         )
     );
+
+    titleView = this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                ctx->worldWidth / 2 - MeasureText("YOU WON", titleFontSize) / 2,
+                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+            },
+            "YOU WON",
+            titleFontSize,
+            WHITE
+        )
+    );
 }
 
-void MatchEndMenu::Render(cen::GameContext* ctx) {
-    const char* text = this->playerWon ? "YOU WON" : "YOU LOST";
-    DrawText(
-        text,
-        ctx->worldWidth / 2 - MeasureText(text, titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30,
-        titleFontSize,
-        WHITE
-    );
-};
+void MatchEndMenu::SetPlayerWon(cen::GameContext* ctx, bool playerWon) {
+    this->playerWon = playerWon;
+    titleView->text = playerWon ? "YOU WON" : "YOU LOST";
+    titleView->position = Vector2{
+        ctx->worldWidth / 2 - MeasureText(titleView->text.c_str(), titleFontSize) / 2,
+        ctx->worldHeight / 2 - titleFontSize / 2 - 30
+    };
+}

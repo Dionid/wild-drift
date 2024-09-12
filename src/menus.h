@@ -19,7 +19,6 @@ class MainMenu: public cen::Node2D {
             std::function<void(cen::GameContext*)> onStart = std::function<void(cen::GameContext*)>()
         );
 
-        void Render(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
 };
 
@@ -28,6 +27,7 @@ class MatchEndMenu: public cen::Node2D {
         const int titleFontSize = defaultTitleFontSize;
         const int btnFontSize = defaultBtnFontSize;
         bool playerWon = false;
+        cen::TextView* titleView;
 
         std::function<void(cen::GameContext*)> onRestart;
 
@@ -36,7 +36,8 @@ class MatchEndMenu: public cen::Node2D {
             bool playerWon = false
         );
 
-        void Render(cen::GameContext* ctx) override;
+        void SetPlayerWon(cen::GameContext* ctx, bool playerWon);
+
         void Init(cen::GameContext* ctx) override;
 };
 

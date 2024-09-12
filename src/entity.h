@@ -45,7 +45,7 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        void Update(cen::GameContext* ctx) override;
+        void FixedUpdate(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
 };
 
@@ -72,7 +72,7 @@ class Ball: public cen::CharacterBody2D {
         );
 
         void Init(cen::GameContext* ctx) override;
-        void Update(cen::GameContext* ctx) override;
+        void FixedUpdate(cen::GameContext* ctx) override;
         void OnCollision(cen::Collision c) override;
         void OnCollisionStarted(cen::Collision c) override;
 };
@@ -99,7 +99,7 @@ class Enemy: public Paddle {
         );
 
         void Init(cen::GameContext* ctx) override;
-        void Update(cen::GameContext* ctx) override;
+        void FixedUpdate(cen::GameContext* ctx) override;
 };
 
 // # Goal

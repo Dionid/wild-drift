@@ -25,7 +25,7 @@ void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
 
 MatchManager::MatchManager(
     SpcAudio* gameAudio,
-    std::function<void()> onEnd,
+    std::function<void(cen::GameContext*)> onEnd,
     int winScore,
     int playerScore,
     int enemyScore
@@ -46,12 +46,12 @@ void MatchManager::Init(cen::GameContext* ctx) {
             (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            1.0f,
+            1.5f,
             10.0f
         )
     );
 
-    player->setZOrder(1);
+    player->zOrder = 1;
     this->playerId = player->id;
 
     float ballRadius = 15.0f;
@@ -62,12 +62,12 @@ void MatchManager::Init(cen::GameContext* ctx) {
             ballRadius,
             (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
             (cen::Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ cos(randomAngle) * 5, sin(randomAngle) * 5 },
-            7.0f
+            (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+            10.0f
         )
     );
 
-    ball->setZOrder(1);
+    ball->zOrder = 1;
     this->ballId = ball->id;
 
     Enemy* enemy = this->AddNode(
@@ -76,12 +76,12 @@ void MatchManager::Init(cen::GameContext* ctx) {
             (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
             (cen::Size){ 40.0f, 120.0f },
             (Vector2){ 0.0f, 0.0f },
-            1.0f,
+            1.5f,
             10.0f
         )
     );
 
-    enemy->setZOrder(1);
+    enemy->zOrder = 1;
     this->enemyId = enemy->id;
 
     // # Goals
@@ -95,7 +95,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    lGoal->setZOrder(2);
+    lGoal->zOrder = 2;
 
     Goal* rGoal = this->AddNode(
         std::make_unique<Goal>(
@@ -105,7 +105,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
         )
     );
 
-    rGoal->setZOrder(2);
+    rGoal->zOrder = 2;
 
     // # Field
     this->AddNode(
@@ -133,6 +133,34 @@ void MatchManager::Init(cen::GameContext* ctx) {
             500
         )
     );
+
+    // # GUI
+    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
+    auto fontSize = 50;
+
+    this->playerScoreText = this->AddNode(
+        std::make_unique<cen::TextView>(
+            (Vector2){
+                screenWidthQuoter - fontSize / 2,
+                ctx->worldHeight / 2 - fontSize / 2
+            },
+            "0",
+            fontSize,
+            ColorAlpha(WHITE, 0.5f)
+        )
+    );
+
+    this->enemyScoreText = this->AddNode(
+        std::make_unique<cen::TextView>(
+            (Vector2){
+                ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
+                ctx->worldHeight / 2 - fontSize / 2
+            },
+            "0",
+            fontSize,
+            ColorAlpha(WHITE, 0.5f)
+        )
+    );
 };
 
 void MatchManager::ResetEntities(cen::GameContext* ctx) {
@@ -145,12 +173,15 @@ void MatchManager::ResetEntities(cen::GameContext* ctx) {
     }
 
     ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+    ball->previousPosition = ball->position;
     ball->velocity = (Vector2){ 0.0f, 0.0f };
 
     player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
+    player->previousPosition = player->position;
     player->velocity = (Vector2){ 0.0f, 0.0f };
 
     enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
+    enemy->previousPosition = enemy->position;
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
 
     this->launchBallTimer->Reset();
@@ -161,19 +192,24 @@ void MatchManager::Reset(cen::GameContext* ctx) {
     this->enemyScore = 0;
 
     this->ResetEntities(ctx);
+
+    this->playerScoreText->text = std::to_string(this->playerScore);
+    this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
 void MatchManager::PlayerScored(cen::GameContext* ctx) {
     this->playerScore++;
     this->ResetEntities(ctx);
+    this->playerScoreText->text = std::to_string(this->playerScore);
 }
 
 void MatchManager::EnemyScored(cen::GameContext* ctx) {
     this->enemyScore++;
     this->ResetEntities(ctx);
+    this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
-void MatchManager::Update(cen::GameContext* ctx) {
+void MatchManager::FixedUpdate(cen::GameContext* ctx) {
     for (const auto& collision: ctx->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_tid &&
@@ -207,7 +243,7 @@ void MatchManager::Update(cen::GameContext* ctx) {
         }
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
-            this->onEnd();
+            this->onEnd(ctx);
             if (this->playerScore > this->enemyScore) {
                 PlaySound(this->gameAudio->win);
             } else {
@@ -221,24 +257,3 @@ void MatchManager::Update(cen::GameContext* ctx) {
         PlaySound(this->gameAudio->score);
     }
 }
-
-void MatchManager::Render(cen::GameContext* ctx) {
-    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
-    auto fontSize = 50;
-
-    DrawText(
-        std::to_string(this->playerScore).c_str(),
-        screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-
-    DrawText(
-        std::to_string(this->enemyScore).c_str(),
-        ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
-        ctx->worldHeight / 2 - fontSize / 2,
-        fontSize,
-        ColorAlpha(WHITE, 0.5f)
-    );
-};

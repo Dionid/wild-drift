@@ -9,6 +9,10 @@
 
 namespace cen {
 
+#ifndef CEN_DEBUG
+#define CEN_DEBUG = 0
+#endif // CEN_DEBUG
+
 static long get_mem_usage() {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
@@ -64,13 +68,14 @@ class Debugger {
         void Render(cen::GameContext* ctx) {
             DrawDebugInfo();
 
-            for (const auto& node: ctx->scene->node_storage->nodes) {
-                if (!node->activated) {
-                    continue;
-                }
+            // TODO: refactor this
+            // for (const auto& node: ctx->scene->node_storage->nodes) {
+            //     if (!node->activated) {
+            //         continue;
+            //     }
 
-                DrawCharacter2dDebug(node.get());
-            }
+            //     DrawCharacter2dDebug(node.get());
+            // }
         }
 };
 

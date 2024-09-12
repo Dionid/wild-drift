@@ -9,6 +9,24 @@
 
 namespace cen {
 
+class TextView: public cen::Node2D {
+    public:
+        std::string  text;
+        int fontSize;
+        Color color;
+
+        TextView(
+            Vector2 position,
+            std::string text,
+            int fontSize,
+            Color color
+        ): cen::Node2D(position) {
+            this->text = text;
+            this->fontSize = fontSize;
+            this->color = color;
+        }
+};
+
 class LineView: public cen::Node2D {
     public:
         float length;
@@ -19,16 +37,6 @@ class LineView: public cen::Node2D {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
-        }
-
-        void Render(cen::GameContext* ctx) override {
-            auto globalPosition = this->GlobalPosition();
-
-            Vector2 end = {
-                globalPosition.x,
-                globalPosition.y + this->length
-            };
-            DrawLineV(globalPosition, end, ColorAlpha(this->color, this->alpha));
         }
 };
 
@@ -45,17 +53,6 @@ class CircleView: public cen::Node2D {
             this->color = color;
             this->fill = fill;
         }
-
-        void Render(cen::GameContext* ctx) override {
-            auto globalPosition = this->GlobalPosition();
-
-            if (this->fill) {
-                DrawCircleV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
-                return;
-            }
-
-            DrawCircleLinesV(globalPosition, this->radius, ColorAlpha(this->color, this->alpha));
-        }
 };
 
 class RectangleView: public cen::Node2D {
@@ -68,12 +65,6 @@ class RectangleView: public cen::Node2D {
             this->size = size;
             this->color = color;
             this->alpha = alpha;
-        }
-
-        void Render(cen::GameContext* ctx) override {
-            auto globalPosition = this->GlobalPosition();
-
-            DrawRectangle(globalPosition.x - this->size.width * 0.5, globalPosition.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
 

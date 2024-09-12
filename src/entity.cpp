@@ -68,7 +68,7 @@ void Player::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
-            BLUE
+            WHITE
         )
     );
 
@@ -82,9 +82,7 @@ void Player::Init(cen::GameContext* ctx) {
 };
 
 // # Player Update function
-void Player::Update(cen::GameContext* ctx) {
-    float deltaTime = DeltaTime();
-
+void Player::FixedUpdate(cen::GameContext* ctx) {
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
     auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
@@ -97,8 +95,8 @@ void Player::Update(cen::GameContext* ctx) {
         this->speed
     );
 
-    this->velocity.y += newSpeed.y * deltaTime;
-    this->velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
 
     if (Vector2Length(this->velocity) > this->maxVelocity) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
@@ -193,7 +191,7 @@ void Ball::OnCollision(cen::Collision collision) {
     );
 };
 
-void Ball::Update(cen::GameContext* ctx) {
+void Ball::FixedUpdate(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
 
@@ -242,7 +240,7 @@ void Enemy::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
-            RED
+            WHITE
         )
     );
     this->AddNode(
@@ -254,10 +252,9 @@ void Enemy::Init(cen::GameContext* ctx) {
     );
 }
 
-void Enemy::Update(cen::GameContext* ctx) {
+void Enemy::FixedUpdate(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
-    float deltaTime = DeltaTime();
 
     float directionX = 0;
     float directionY = 0;
@@ -293,8 +290,8 @@ void Enemy::Update(cen::GameContext* ctx) {
         this->speed
     );
 
-    this->velocity.y += newSpeed.y * deltaTime;
-    this->velocity.x += newSpeed.x * deltaTime;
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
 
     if (Vector2Length(this->velocity) > this->maxVelocity) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);

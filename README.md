@@ -3,14 +3,19 @@
 # Roadmap
 
 1. New features
-    1. Events
     1. Multiplayer
-    1. Multithreading
-        1. Physics and Render pipelines
-    1. SAT
+    1. Debug as flag
+    1. Settings
     1. Animations
+    1. Sources threads
+    1. Game Time
+    1. Dialogs
 1. Improvements
+    1. Input Buffer
+    1. Move render and query pipelines to Scene / World
     1. zOrder on Tree
+    1. Node2D position -> transform
+    1. SAT
     1. Add units (meters, seconds, etc.)
     1. CollisionEngine pair.id
     1. NodeGenerator id graveyard
@@ -21,6 +26,7 @@
         1. NodeStorage index by class
     1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
     1. Release (Windows, Linux, web)
+    1. Change Vector2Add to mutable where possible (like GlobalPosition)
 1. Maybe
     1. ? Arena allocator
 
@@ -33,6 +39,7 @@
 # Useful Links
 
 1. [VSCode CLang](https://code.visualstudio.com/docs/cpp/config-clang-mac)
+1. [Unity Execution Order](https://docs.unity3d.com/Manual/ExecutionOrder.html)
 
 # Caution
 

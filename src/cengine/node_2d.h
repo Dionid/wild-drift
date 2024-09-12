@@ -1,13 +1,13 @@
 #ifndef CENGINE_NODES_H
 #define CENGINE_NODES_H
 
-#include <raymath.h>
 #include "node.h"
 
 namespace cen {
 
 class Node2D: public Node {
     public:
+        Vector2 previousPosition;
         Vector2 position;
         int zOrder = 0;
 
@@ -19,10 +19,9 @@ class Node2D: public Node {
 
         Node2D(Vector2 position, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node(id, parent) {
             this->position = position;
+            this->previousPosition = position;
             this->zOrder = zOrder;
         }
-
-        void setZOrder(int zOrder);
 
         Node2D* ClosestNode2DParent(Node* targetParent = nullptr) {
             auto currentParent = targetParent == nullptr ? this->parent : targetParent;
@@ -52,6 +51,16 @@ class Node2D: public Node {
             return Vector2Add(parent->GlobalPosition(), this->position);
         }
 
+        Vector2 PreviousGlobalPosition() {
+            auto parent = this->ClosestNode2DParent();
+
+            if (parent == nullptr) {
+                return this->previousPosition;
+            }
+
+            return Vector2Add(parent->PreviousGlobalPosition(), this->previousPosition);
+        }
+
         Node2D* RootNode2D() {
             auto p = this->ClosestNode2DParent();
 
@@ -62,23 +71,8 @@ class Node2D: public Node {
             return p->RootNode2D();
         }
 
-        virtual void Render(cen::GameContext* ctx) {};
-
-        void TraverseRender(cen::GameContext* ctx) {
-            if (this->activated == false) {
-                return;
-            }
-
-            this->Render(ctx);
-            for (const auto& node: this->children) {
-                auto node2d = dynamic_cast<Node2D*>(node.get());
-
-                if (node2d == nullptr) {
-                    continue;
-                }
-
-                node2d->TraverseRender(ctx);
-            }
+        void InvalidatePrevious() override {
+            this->previousPosition = this->position;
         }
 };
 

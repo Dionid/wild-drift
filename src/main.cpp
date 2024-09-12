@@ -1,4 +1,6 @@
 #include <ctime>
+#include <thread>
+#include <chrono>
 #include "cengine/cengine.h"
 #include "cengine/loader.h"
 #include "utils.h"
@@ -6,6 +8,144 @@
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
+
+void gameLoopPipeline(
+    cen::GameContext* ctx,
+    SpcAudio* gameAudio
+) {
+    // # MatchEndMenu
+    auto matchEndMenu = ctx->scene->node_storage->AddNode(std::make_unique<MatchEndMenu>(
+        [&](cen::GameContext* ctx) {
+            ctx->scene->eventBus.emit(RestartEvent());
+        }
+    ));
+
+    matchEndMenu->Deactivate();
+
+    // # Match
+    MatchManager* matchManager = ctx->scene->node_storage->AddNode(std::make_unique<MatchManager>(
+        gameAudio,
+        [&](cen::GameContext* ctx) {
+            matchManager->Deactivate();
+            matchEndMenu->SetPlayerWon(ctx, matchManager->playerScore > matchManager->enemyScore);
+            matchEndMenu->Activate();
+            EnableCursor();
+        }
+    ));
+
+    matchManager->Deactivate();
+
+    // # MainMenu
+    MainMenu* mainMenu = ctx->scene->node_storage->AddNode(std::make_unique<MainMenu>(
+        [&](cen::GameContext* ctx) {
+            ctx->scene->eventBus.emit(StartEvent());
+        }
+    ));
+
+    auto ose = cen::EventListener(
+        [&](cen::GameContext* ctx, const cen::Event& event) {
+            PlaySound(gameAudio->start);
+            mainMenu->Deactivate();
+            matchEndMenu->Deactivate();
+            matchManager->Reset(ctx);
+            matchManager->Activate();
+            DisableCursor();
+        }
+    );
+
+    ctx->scene->eventBus.on(
+        StartEvent{},
+        &ose
+    );
+
+    ctx->scene->eventBus.on(
+        RestartEvent{},
+        &ose
+    );
+
+    // # Init
+    // # While nodes are initing more of them can be added
+    for (const auto& node: ctx->scene->node_storage->nodes) {
+        node->TraverseInit(ctx);
+    }
+
+    // # Node Storage
+    ctx->scene->node_storage->Init();
+
+    // # Main Loop
+    const int targetFPS = 60;
+    const int fixedUpdateRate = 40;
+
+    const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
+    const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
+
+    auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
+    std::chrono::milliseconds accumulatedFixedTime(0);
+
+    int fixedUpdateCyclesLimit = 10;
+
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        // # Start
+        auto frameStart = std::chrono::high_resolution_clock::now();
+
+        // # Update
+        ctx->scene->node_storage->InitNewNodes(ctx);
+
+        // # Fixed update
+        auto now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
+        lastFixedFrameTime = now;
+        accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
+
+        int fixedUpdateCycles = 0;
+        while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+            // # Invalidate previous
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                node->TraverseInvalidatePrevious();
+            }
+
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                node->TraverseFixedUpdate(ctx);
+            }
+
+            // ## Collision
+            ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
+
+            accumulatedFixedTime -= targetFixedUpdateTime;
+            fixedUpdateCycles++;
+        }
+
+        // # Initial
+        for (const auto& node: ctx->scene->node_storage->nodes) {
+            node->TraverseUpdate(ctx);
+        }
+
+        // # Flush events
+        for (const auto& topic: ctx->scene->topics) {
+            topic->flush();
+        }
+
+        ctx->scene->eventBus.flush(ctx);
+
+        // # Map GameState to RendererState
+        auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
+
+        ctx->scene->renderingEngine->SyncRenderBuffer(
+            ctx->scene->node_storage.get(),
+            alpha
+        );
+
+        // # End
+        auto frameEnd = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
+
+        // QUESTION: maybe sleep better? But it overshoot for 3ms
+        // Busy wait
+        while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
+    }
+};
 
 int main() {
     // # Init
@@ -47,59 +187,8 @@ int main() {
     };
 
     // # Scene
-    cen::Scene scene;
+    cen::Scene scene = cen::Scene();
 
-    // # MatchEndMenu
-    auto matchEndMenu = scene.node_storage->AddNode(std::make_unique<MatchEndMenu>(
-        [&](cen::GameContext* ctx) {
-            scene.eventBus.emit(RestartEvent());
-        }
-    ));
-
-    matchEndMenu->Deactivate();
-
-    // # Match
-    MatchManager* matchManager = scene.node_storage->AddNode(std::make_unique<MatchManager>(
-        &gameAudio,
-        [&]() {
-            matchManager->Deactivate();
-            matchEndMenu->playerWon = matchManager->playerScore > matchManager->enemyScore;
-            matchEndMenu->Activate();
-            EnableCursor();
-        }
-    ));
-
-    matchManager->Deactivate();
-
-    // # MainMenu
-    MainMenu* mainMenu = scene.node_storage->AddNode(std::make_unique<MainMenu>(
-        [&](cen::GameContext* ctx) {
-            scene.eventBus.emit(StartEvent());
-        }
-    ));
-
-    auto ose = cen::EventListener(
-        [&](cen::GameContext* ctx, const cen::Event& event) {
-            PlaySound(gameAudio.start);
-            mainMenu->Deactivate();
-            matchEndMenu->Deactivate();
-            matchManager->Reset(ctx);
-            matchManager->Activate();
-            DisableCursor();
-        }
-    );
-
-    scene.eventBus.on(
-        StartEvent{},
-        &ose
-    );
-
-    scene.eventBus.on(
-        RestartEvent{},
-        &ose
-    );
-
-    // # Collision Engine
     cen::CollisionEngine collisionEngine;
 
     // # Game Context
@@ -110,52 +199,22 @@ int main() {
         screenHeight
     };
 
-    // # Init
-    // # While nodes are initing more of them can be added
-    for (const auto& node: ctx.scene->node_storage->nodes) {
-        node->TraverseInit(&ctx);
-    }
+    // # Game Loop Thread
+    std::thread gameLoopThread(gameLoopPipeline, &ctx, &gameAudio);
 
-    // # Node Storage
-    ctx.scene->node_storage->Init();
-
-    // # Main game loop
+    // # Render Loop Thread
+    int counter = 0;
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // ## Update
-        //----------------------------------------------------------------------------------
-        scene.node_storage->InitNewNodes(&ctx);
-
-        // ## Initial
-        for (const auto& node: ctx.scene->node_storage->nodes) {
-            node->TraverseUpdate(&ctx);
-        }
-
-        // ## Collision
-        collisionEngine.NarrowCollisionCheckNaive(&ctx);
-
-        //----------------------------------------------------------------------------------
-
-        // ## Draw
-        //----------------------------------------------------------------------------------
+        // std::cout << GetFrameTime() << std::endl;
         BeginDrawing();
             ClearBackground(BLACK);
-            for (const auto& node: ctx.scene->node_storage->renderNodes) {
-                if (node->AnyParentDeactivated()) {
-                    continue;
-                }
-                node->TraverseRender(&ctx);
-            }
+            scene.renderingEngine->Render();
             debugger.Render(&ctx);
         EndDrawing();
-        //----------------------------------------------------------------------------------
-
-        // for (const auto& topic: ctx.scene->topics) {
-        //     topic->flush();
-        // }
-
-        scene.eventBus.flush(&ctx);
     }
+
+    gameLoopThread.join();
 
     CloseAudioDevice();
 

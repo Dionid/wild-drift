@@ -1,7 +1,3 @@
-#include <functional>
-
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
 
 #include "gui.h"
 
@@ -19,6 +15,7 @@ Btn::Btn(
     this->text = btnText;
     this->fontSize = btnTextFontSize;
     this->anchor = anchor;
+    this->size = size;
 
     float width = size.width;
     float height = size.height;
@@ -36,7 +33,7 @@ Btn::Btn(
     };
 };
 
-void Btn::Render(cen::GameContext* ctx) {
+void Btn::Update(cen::GameContext* ctx) {
     state = BtnState::Normal;
 
     Vector2 mousePoint = GetMousePosition();
@@ -54,35 +51,6 @@ void Btn::Render(cen::GameContext* ctx) {
             }
         }
     }
-
-    switch (state) {
-        case BtnState::Normal:
-            DrawRectangleRec(
-                btnRect,
-                ColorAlpha(WHITE, 0.5f)
-            );
-            break;
-        case BtnState::Hover:
-            DrawRectangleRec(
-                btnRect,
-                ColorAlpha(WHITE, 0.75f)
-            );
-            break;
-        case BtnState::Pressing:
-            DrawRectangleRec(
-                btnRect,
-                ColorAlpha(WHITE, 1.0f)
-            );
-            break;
-    }
-
-    DrawText(
-        this->text,
-        this->position.x - MeasureText(this->text, this->fontSize) * this->anchor.x,
-        this->position.y - this->fontSize * this->anchor.y,
-        this->fontSize,
-        BLACK
-    );
-};
+}
 
 }

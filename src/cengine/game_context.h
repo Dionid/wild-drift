@@ -3,10 +3,9 @@
 
 #include <vector>
 
-class Node;
-
 namespace cen {
 
+class Node;
 class Scene;
 class CollisionEngine;
 

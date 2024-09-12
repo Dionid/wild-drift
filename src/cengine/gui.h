@@ -1,9 +1,9 @@
 #ifndef CENGINE_GUI_H_
 #define CENGINE_GUI_H_
 
+#include <functional>
 #include "raylib.h"
 #include "node_2d.h"
-#include <functional>
 
 namespace cen {
 
@@ -39,6 +39,7 @@ class Btn: public cen::Node2D {
         BtnState state = BtnState::Normal;
         const char* text;
         int fontSize;
+        cen::Size size;
         Vector2 anchor;
         Rectangle btnRect;
         Callbacks callbacks;
@@ -52,7 +53,7 @@ class Btn: public cen::Node2D {
             Callbacks callbacks
         );
 
-        void Render(cen::GameContext* ctx);
+        void Update(cen::GameContext* ctx) override; 
 };
 
 }

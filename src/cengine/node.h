@@ -72,6 +72,7 @@ class Node: public cen::WithType {
             this->activated = true;
         }
 
+        // TODO: refactor this
         bool AnyParentDeactivated() {
             if (this->activated == false) {
                 return true;
@@ -85,7 +86,10 @@ class Node: public cen::WithType {
         }
 
         virtual void Init(cen::GameContext* ctx) {};
+        virtual void FixedUpdate(cen::GameContext* ctx) {};
         virtual void Update(cen::GameContext* ctx) {};
+
+        virtual void InvalidatePrevious() {};
 
         // # implementations in node_node_storage.h
         template <typename T>
@@ -196,6 +200,28 @@ class Node: public cen::WithType {
                 node->TraverseUpdate(ctx);
             }
         };
+
+        void TraverseFixedUpdate(cen::GameContext* ctx) {
+            if (this->activated == false) {
+                return;
+            }
+
+            this->FixedUpdate(ctx);
+            for (const auto& node: this->children) {
+                node->TraverseFixedUpdate(ctx);
+            }
+        };
+
+        void TraverseInvalidatePrevious() {
+            if (this->activated == false) {
+                return;
+            }
+
+            this->InvalidatePrevious();
+            for (const auto& node: this->children) {
+                node->TraverseInvalidatePrevious();
+            }
+        }
 };
 
 } // namespace cen

@@ -35,12 +35,6 @@ class NodeStorage {
             return ++this->nextId;
         }
 
-        void SortRenderNodes() {
-            std::sort(this->renderNodes.begin(),this->renderNodes.end(), [](Node2D* a, Node2D* b) {
-                return a->zOrder < b->zOrder;
-            });
-        }
-
         void OnNestedNodeCreated(Node* newNode) {
             this->flatNodes.push_back(newNode);
             if (this->state == NodeStorageState::INITIALIZED) {
@@ -48,7 +42,6 @@ class NodeStorage {
             }
             if (Node2D* n2d = dynamic_cast<Node2D*>(newNode)) {
                 this->renderNodes.push_back(n2d);
-                this->SortRenderNodes();
             }
         }
 
@@ -75,7 +68,6 @@ class NodeStorage {
             }
             if (Node2D* n2d = dynamic_cast<Node2D*>(nPtr)) {
                 this->renderNodes.push_back(n2d);
-                this->SortRenderNodes();
             }
             return nPtr;
         }
