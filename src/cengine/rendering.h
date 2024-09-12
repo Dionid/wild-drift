@@ -13,6 +13,7 @@
 #include "gui.h"
 #include "game_context.h"
 #include "node_storage.h"
+#include "debug.h"
 
 namespace cen {
 
@@ -353,6 +354,19 @@ class RenderingEngine2D {
                 }
             }
         };
+
+        int runPipeline(cen::Debugger* debugger) {
+            while (!WindowShouldClose())    // Detect window close button or ESC key
+            {
+                BeginDrawing();
+                    ClearBackground(BLACK);
+                    this->Render();
+                    debugger->Render();
+                EndDrawing();
+            }
+
+            return EXIT_SUCCESS;
+        }
 };
 
 }

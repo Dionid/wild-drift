@@ -136,34 +136,14 @@ void gameLoopPipeline(
             alpha
         );
 
-        // # End
-        auto frameEnd = std::chrono::high_resolution_clock::now();
-
-        std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
-
-        // QUESTION: maybe sleep better? But it overshoot for 3ms
-        // Busy wait
+        // QUESTION: maybe sleep better? But it overshoots (nearly 3ms)
+        // # End (busy wait)
         while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
     }
 };
 
 void renderingPipeline(cen::RenderingEngine2D* renderingEngine, cen::Debugger* debugger) {
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // std::cout << GetFrameTime() << std::endl;
-        BeginDrawing();
-            ClearBackground(BLACK);
-            renderingEngine->Render();
-            debugger->Render();
-        EndDrawing();
-    }
-}
-
-void networkingPipeline(cen::GameContext* ctx) {
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // ...
-    }
+    renderingEngine->runPipeline(debugger);
 }
 
 int main() {
