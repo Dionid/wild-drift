@@ -18,18 +18,27 @@ namespace cen {
 
 class CanvasItem2D {
     public:
+        Vector2 previousPosition;
         node_id_t id;
         int zOrder;
         Vector2 position;
         float alpha;
 
-        CanvasItem2D(Vector2 position, int zOrder = 0, uint16_t id = 0) {
+        CanvasItem2D(
+            Vector2 position,
+            Vector2 previousPosition,
+            float alpha,
+            int zOrder,
+            uint16_t id = 0
+        ) {
             this->position = position;
+            this->previousPosition = previousPosition;
             this->zOrder = zOrder;
+            this->alpha = alpha;
             this->id = id;
         }
 
-        virtual void Render() = 0;
+        virtual void Render(float alpha) = 0;
 };
 
 class LineCanvasItem2D: public CanvasItem2D {
@@ -38,43 +47,70 @@ class LineCanvasItem2D: public CanvasItem2D {
         float alpha;
         Color color;
 
-        LineCanvasItem2D(Vector2 position, float length, Color color = WHITE, float alpha = 1.0f, int zOrder = 0, uint16_t id = 0): CanvasItem2D(position, zOrder, id) {
+        LineCanvasItem2D(
+            Vector2 position,
+            Vector2 previousPosition,
+            float length,
+            Color color = WHITE,
+            float alpha = 1.0f,
+            int zOrder = 0,
+            uint16_t id = 0
+        ): CanvasItem2D(position, previousPosition, alpha, zOrder, id) {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
         }
 
-        void Render() override {
+        void Render(float alpha) override {
+            Vector2 newPosition = Vector2Lerp(
+                this->previousPosition,
+                this->position,
+                alpha
+            );
+
             Vector2 end = {
-                this->position.x,
-                this->position.y + this->length
+                newPosition.x,
+                newPosition.y + this->length
             };
-            DrawLineV(this->position, end, ColorAlpha(this->color, this->alpha));
+            DrawLineV(newPosition, end, ColorAlpha(this->color, this->alpha));
         }
 };
 
 class CircleCanvasItem2D: public CanvasItem2D {
     public:
         float radius;
-        float alpha;
         Color color;
         bool fill;
 
-        CircleCanvasItem2D(Vector2 position, float radius, Color color = WHITE, float alpha = 1.0f, bool fill = true, int zOrder = 0, uint16_t id = 0): CanvasItem2D(position, zOrder, id) {
+        CircleCanvasItem2D(
+            Vector2 position,
+            Vector2 previousPosition,
+            float radius,
+            Color color = WHITE,
+            float alpha = 1.0f,
+            bool fill = true,
+            int zOrder = 0,
+            uint16_t id = 0
+        ): CanvasItem2D(position, previousPosition, alpha, zOrder, id) {
             this->radius = radius;
             this->alpha = alpha;
             this->color = color;
             this->fill = fill;
         }
 
-        void Render() override {
+        void Render(float alpha) override {
+            Vector2 newPosition = Vector2Lerp(
+                this->previousPosition,
+                this->position,
+                alpha
+            );
 
             if (this->fill) {
-                DrawCircleV(position, this->radius, ColorAlpha(this->color, this->alpha));
+                DrawCircleV(newPosition, this->radius, ColorAlpha(this->color, this->alpha));
                 return;
             }
 
-            DrawCircleLinesV(position, this->radius, ColorAlpha(this->color, this->alpha));
+            DrawCircleLinesV(newPosition, this->radius, ColorAlpha(this->color, this->alpha));
         }
 };
 
@@ -82,16 +118,28 @@ class RectangleCanvasItem2D: public CanvasItem2D {
     public:
         cen::Size size;
         Color color;
-        float alpha;
 
-        RectangleCanvasItem2D(Vector2 position, cen::Size size, Color color = WHITE, float alpha = 1.0f, int zOrder = 0, uint16_t id = 0): CanvasItem2D(position, zOrder, id) {
+        RectangleCanvasItem2D(
+            Vector2 position,
+            Vector2 previousPosition,
+            cen::Size size,
+            Color color = WHITE,
+            float alpha = 1.0f,
+            int zOrder = 0,
+            uint16_t id = 0
+        ): CanvasItem2D(position, previousPosition, alpha, zOrder, id) {
             this->size = size;
             this->color = color;
-            this->alpha = alpha;
         }
 
-        void Render() override {
-            DrawRectangle(position.x - this->size.width * 0.5, position.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
+        void Render(float alpha) override {
+            Vector2 newPosition = Vector2Lerp(
+                this->previousPosition,
+                this->position,
+                alpha
+            );
+
+            DrawRectangle(newPosition.x - this->size.width * 0.5, newPosition.y - this->size.height * 0.5, this->size.width, this->size.height, ColorAlpha(this->color, this->alpha));
         }
 };
 
@@ -104,13 +152,17 @@ class ButtonCanvasItem2D: public CanvasItem2D {
         Rectangle btnRect;
 
         ButtonCanvasItem2D(
+            Vector2 position,
+            Vector2 previousPosition,
             cen::BtnState state,
             const char* btnText,
             int btnTextFontSize,
-            Vector2 position,
             cen::Size size,
-            Vector2 anchor
-        ): CanvasItem2D(position) {
+            Vector2 anchor,
+            float alpha = 1.0f,
+            int zOrder = 0,
+            node_id_t id = 0
+        ): CanvasItem2D(position, previousPosition, alpha, zOrder, id) {
             this->state = state;
             this->text = btnText;
             this->fontSize = btnTextFontSize;
@@ -132,7 +184,7 @@ class ButtonCanvasItem2D: public CanvasItem2D {
             };
         }
 
-        void Render() override {
+        void Render(float alpha) override {
             switch (state) {
                 case BtnState::Normal:
                     DrawRectangleRec(
@@ -154,10 +206,16 @@ class ButtonCanvasItem2D: public CanvasItem2D {
                     break;
             }
 
+            Vector2 newPosition = Vector2Lerp(
+                this->previousPosition,
+                this->position,
+                alpha
+            );
+
             DrawText(
                 this->text,
-                this->position.x - MeasureText(this->text, this->fontSize) * this->anchor.x,
-                this->position.y - this->fontSize * this->anchor.y,
+                newPosition.x - MeasureText(this->text, this->fontSize) * this->anchor.x,
+                newPosition.y - this->fontSize * this->anchor.y,
                 this->fontSize,
                 BLACK
             );
@@ -172,20 +230,29 @@ class TextCanvasItem2D: public CanvasItem2D {
 
         TextCanvasItem2D(
             Vector2 position,
+            Vector2 previousPosition,
             std::string text,
             int fontSize,
-            Color color
-        ): CanvasItem2D(position) {
+            Color color,
+            float alpha = 1.0f,
+            int zOrder = 0
+        ): CanvasItem2D(position, previousPosition, alpha, zOrder) {
             this->text = text;
             this->fontSize = fontSize;
             this->color = color;
         }
 
-        void Render() override {
+        void Render(float alpha) override {
+            Vector2 newPosition = Vector2Lerp(
+                this->previousPosition,
+                this->position,
+                alpha
+            );
+
             DrawText(
                 this->text.c_str(),
-                this->position.x,
-                this->position.y,
+                newPosition.x,
+                newPosition.y,
                 this->fontSize,
                 this->color
             );
@@ -201,7 +268,9 @@ class RenderingEngine2D {
         std::mutex secondBufferMutex;
 
     public:
+        std::atomic<float> firstBufferAlpha;
         render_buffer firstBuffer;
+        std::atomic<float> secondBufferAlpha;
         render_buffer secondBuffer;
 
         void MapNode2D(
@@ -209,11 +278,13 @@ class RenderingEngine2D {
             cen::Node2D* node2D
         ) {
             Vector2 position = node2D->GlobalPosition();
+            Vector2 previousPosition = node2D->PreviousGlobalPosition();
 
             if (auto lineView = dynamic_cast<cen::LineView*>(node2D)) {
                 activeRenderBuffer.push_back(
                     std::make_unique<LineCanvasItem2D>(
                         position,
+                        previousPosition,
                         lineView->length,
                         lineView->color,
                         lineView->alpha,
@@ -225,6 +296,7 @@ class RenderingEngine2D {
                 activeRenderBuffer.push_back(
                     std::make_unique<CircleCanvasItem2D>(
                         position,
+                        previousPosition,
                         circleView->radius,
                         circleView->color,
                         circleView->alpha,
@@ -237,6 +309,7 @@ class RenderingEngine2D {
                 activeRenderBuffer.push_back(
                     std::make_unique<RectangleCanvasItem2D>(
                         position,
+                        previousPosition,
                         rectangleView->size,
                         rectangleView->color,
                         rectangleView->alpha,
@@ -247,10 +320,11 @@ class RenderingEngine2D {
             } else if (auto buttonView = dynamic_cast<cen::Btn*>(node2D)) {
                 activeRenderBuffer.push_back(
                     std::make_unique<ButtonCanvasItem2D>(
+                        position,
+                        previousPosition,
                         buttonView->state,
                         buttonView->text,
                         buttonView->fontSize,
-                        position,
                         buttonView->size,
                         buttonView->anchor
                     )
@@ -260,6 +334,7 @@ class RenderingEngine2D {
                 activeRenderBuffer.push_back(
                     std::make_unique<TextCanvasItem2D>(
                         position,
+                        previousPosition,
                         std::string(textView->text).c_str(),
                         textView->fontSize,
                         textView->color
@@ -269,7 +344,8 @@ class RenderingEngine2D {
         }
 
         void SyncRenderBuffer(
-            cen::NodeStorage* const nodeStorage
+            cen::NodeStorage* const nodeStorage,
+            float alpha
         ) {
             auto writeBuffer = render_buffer();
 
@@ -293,10 +369,12 @@ class RenderingEngine2D {
                 if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
                     // std::lock_guard<std::mutex> lock(secondBufferMutex);
                     secondBuffer = std::move(writeBuffer);
+                    secondBufferAlpha.store(alpha, std::memory_order_release);
                     activeRenderBufferInd.store(1, std::memory_order_release);
                 } else {
                     // std::lock_guard<std::mutex> lock(firstBufferMutex);
                     firstBuffer = std::move(writeBuffer);
+                    firstBufferAlpha.store(alpha, std::memory_order_release);
                     activeRenderBufferInd.store(0, std::memory_order_release);
                 }
             }
@@ -306,12 +384,16 @@ class RenderingEngine2D {
             if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
                 // std::lock_guard<std::mutex> lock(firstBufferMutex);
                 for (const auto& item: firstBuffer) {
-                    item->Render();
+                    item->Render(
+                        firstBufferAlpha.load(std::memory_order_acquire)
+                    );
                 }
             } else {
                 // std::lock_guard<std::mutex> lock(secondBufferMutex);
                 for (const auto& item: secondBuffer) {
-                    item->Render();
+                    item->Render(
+                        secondBufferAlpha.load(std::memory_order_acquire)
+                    );
                 }
             }
         };

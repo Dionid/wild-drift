@@ -82,20 +82,29 @@ void gameLoopPipeline(
     auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
     std::chrono::milliseconds accumulatedFixedTime(0);
 
+    int fixedUpdateCyclesLimit = 10;
+
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // ## Start
+        // # Start
         auto frameStart = std::chrono::high_resolution_clock::now();
 
-        // ## Update
+        // # Update
         ctx->scene->node_storage->InitNewNodes(ctx);
 
+        // # Fixed update
         auto now = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
         lastFixedFrameTime = now;
         accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
 
-        while (accumulatedFixedTime >= targetFixedUpdateTime) {
+        int fixedUpdateCycles = 0;
+        while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+            // # Invalidate previous
+            for (const auto& node: ctx->scene->node_storage->nodes) {
+                node->TraverseInvalidatePrevious();
+            }
+
             for (const auto& node: ctx->scene->node_storage->nodes) {
                 node->TraverseFixedUpdate(ctx);
             }
@@ -104,26 +113,30 @@ void gameLoopPipeline(
             ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
 
             accumulatedFixedTime -= targetFixedUpdateTime;
+            fixedUpdateCycles++;
         }
 
-        // ## Initial
+        // # Initial
         for (const auto& node: ctx->scene->node_storage->nodes) {
             node->TraverseUpdate(ctx);
         }
 
-        // ## Flush events
+        // # Flush events
         for (const auto& topic: ctx->scene->topics) {
             topic->flush();
         }
 
         ctx->scene->eventBus.flush(ctx);
 
-        // ## Map Game state to Renderer
+        // # Map GameState to RendererState
+        auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
+
         ctx->scene->renderingEngine->SyncRenderBuffer(
-            ctx->scene->node_storage.get()
+            ctx->scene->node_storage.get(),
+            alpha
         );
 
-        // ## End
+        // # End
         auto frameEnd = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
