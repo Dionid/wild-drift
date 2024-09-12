@@ -110,7 +110,7 @@ void gameLoopPipeline(
             }
 
             // ## Collision
-            ctx->collisionEngine->NarrowCollisionCheckNaive(ctx);
+            ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
 
             accumulatedFixedTime -= targetFixedUpdateTime;
             fixedUpdateCycles++;
@@ -187,16 +187,16 @@ int main() {
     };
 
     // # Scene
-    cen::Scene scene = cen::Scene(
-        &camera
-    );
-
     cen::CollisionEngine collisionEngine;
+
+    cen::Scene scene = cen::Scene(
+        &camera,
+        &collisionEngine
+    );
 
     // # Game Context
     cen::GameContext ctx = {
         &scene,
-        &collisionEngine,
         screenWidth,
         screenHeight
     };

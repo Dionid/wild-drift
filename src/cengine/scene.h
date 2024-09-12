@@ -7,9 +7,12 @@
 #include "event.h"
 
 namespace cen {
+    class CollisionEngine;
+
     class Scene {
         public:
             Camera2D* camera;
+            cen::CollisionEngine* collisionEngine;
             std::unique_ptr<cen::RenderingEngine2D> renderingEngine;
             std::unique_ptr<cen::NodeStorage> node_storage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
@@ -17,24 +20,19 @@ namespace cen {
 
             Scene(
                 Camera2D* camera,
+                cen::CollisionEngine* collisionEngine,
                 std::unique_ptr<NodeStorage> node_storage = std::make_unique<NodeStorage>(),
                 std::unique_ptr<RenderingEngine2D> renderingEngine = std::make_unique<RenderingEngine2D>(),
                 std::vector<std::unique_ptr<cen::TopicBase>> topics = {},
                 EventBus eventBus = EventBus()
             ) {
+                this->camera = camera;
+                this->collisionEngine = collisionEngine;
                 this->node_storage = std::move(node_storage);
                 this->renderingEngine = std::move(renderingEngine);
                 this->topics = std::move(topics);
                 this->eventBus = eventBus;
             }
-
-            // Scene(
-            //     std::unique_ptr<cen::NodeStorage> node_storage = std::make_unique<NodeStorage>(),
-            //     std::vector<std::unique_ptr<cen::TopicBase>> topics = {}
-            // ) {
-            //     this->node_storage = std::move(node_storage);
-            //     this->topics = std::move(topics);
-            // }
 
             template <typename T>
             cen::Topic<T>* AddTopic(std::unique_ptr<cen::Topic<T>> topic) {

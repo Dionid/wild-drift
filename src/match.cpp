@@ -210,7 +210,7 @@ void MatchManager::EnemyScored(cen::GameContext* ctx) {
 }
 
 void MatchManager::FixedUpdate(cen::GameContext* ctx) {
-    for (const auto& collision: ctx->collisionEngine->startedCollisions) {
+    for (const auto& collision: ctx->scene->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_tid &&
             collision.collisionObjectB->TypeId() == Goal::_tid

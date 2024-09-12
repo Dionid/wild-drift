@@ -7,11 +7,9 @@ namespace cen {
 
 class Node;
 class Scene;
-class CollisionEngine;
 
 struct GameContext {
     Scene* scene;
-    CollisionEngine* collisionEngine;
     float worldWidth;
     float worldHeight;
 };
