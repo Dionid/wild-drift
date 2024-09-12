@@ -173,12 +173,15 @@ void MatchManager::ResetEntities(cen::GameContext* ctx) {
     }
 
     ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+    ball->previousPosition = ball->position;
     ball->velocity = (Vector2){ 0.0f, 0.0f };
 
     player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
+    player->previousPosition = player->position;
     player->velocity = (Vector2){ 0.0f, 0.0f };
 
     enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
+    enemy->previousPosition = enemy->position;
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
 
     this->launchBallTimer->Reset();

@@ -3,8 +3,6 @@
 # Roadmap
 
 1. New features
-    1. Render / Physics Multithreading
-        1. Jittering
     1. Multiplayer
     1. Debug as flag
     1. Settings
