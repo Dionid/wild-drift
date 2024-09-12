@@ -147,15 +147,22 @@ void gameLoopPipeline(
     }
 };
 
-void renderingPipeline(cen::GameContext* ctx, cen::Debugger* debugger) {
+void renderingPipeline(cen::RenderingEngine2D* renderingEngine, cen::Debugger* debugger) {
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // std::cout << GetFrameTime() << std::endl;
         BeginDrawing();
             ClearBackground(BLACK);
-            ctx->scene->renderingEngine->Render();
-            debugger->Render(ctx);
+            renderingEngine->Render();
+            debugger->Render();
         EndDrawing();
+    }
+}
+
+void networkingPipeline(cen::GameContext* ctx) {
+    while (!WindowShouldClose())    // Detect window close button or ESC key
+    {
+        // ...
     }
 }
 
@@ -217,16 +224,17 @@ int main() {
     std::thread gameLoopThread(gameLoopPipeline, &ctx, &gameAudio);
 
     // # Render Loop Thread
-    renderingPipeline(&ctx, &debugger);
+    renderingPipeline(scene.renderingEngine.get(), &debugger);
 
+    // # Exit
+    // ## Join Game Loop Thread after stop signal
     gameLoopThread.join();
 
+    // ## Audio
     CloseAudioDevice();
 
-    // ## De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    // ## Close window
+    CloseWindow();
 
     return 0;
 }

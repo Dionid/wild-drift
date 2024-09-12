@@ -65,7 +65,7 @@ static void DrawCharacter2dDebug(Node* node) {
 
 class Debugger {
     public:
-        void Render(cen::GameContext* ctx) {
+        void Render() {
             DrawDebugInfo();
 
             // TODO: refactor this
