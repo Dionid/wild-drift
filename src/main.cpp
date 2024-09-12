@@ -187,7 +187,9 @@ int main() {
     };
 
     // # Scene
-    cen::Scene scene = cen::Scene();
+    cen::Scene scene = cen::Scene(
+        &camera
+    );
 
     cen::CollisionEngine collisionEngine;
 

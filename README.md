@@ -7,7 +7,7 @@
     1. Debug as flag
     1. Settings
     1. Animations
-    1. Sources threads
+    1. AssetsLoader threads
     1. Game Time
     1. Dialogs
 1. Improvements

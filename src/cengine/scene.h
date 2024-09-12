@@ -9,12 +9,14 @@
 namespace cen {
     class Scene {
         public:
+            Camera2D* camera;
             std::unique_ptr<cen::RenderingEngine2D> renderingEngine;
             std::unique_ptr<cen::NodeStorage> node_storage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
             EventBus eventBus;
 
             Scene(
+                Camera2D* camera,
                 std::unique_ptr<NodeStorage> node_storage = std::make_unique<NodeStorage>(),
                 std::unique_ptr<RenderingEngine2D> renderingEngine = std::make_unique<RenderingEngine2D>(),
                 std::vector<std::unique_ptr<cen::TopicBase>> topics = {},
