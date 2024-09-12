@@ -16,6 +16,8 @@ Paddle::Paddle(
     this->maxVelocity = maxVelocity;
 }
 
+const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+
 // TODO: Move constants to props
 void Paddle::ApplyFriction() {
     this->velocity.y *= .80f;
@@ -49,7 +51,38 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
-const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+void Paddle::Move(
+    cen::GameContext* ctx,
+    int directionX,
+    int directionY
+) {
+    Vector2 newSpeed = Vector2Scale(
+        Vector2Normalize({
+            this->speed * directionX,
+            this->speed * directionY,
+        }),
+        this->speed
+    );
+
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
+
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    }
+
+    // # Friction
+    this->ApplyFriction();
+
+    // # Field boundaries
+    this->ApplyFieldBoundaries(ctx);
+
+    // # World Boundaries
+    this->ApplyWorldBoundaries(ctx->worldWidth, ctx->worldHeight);
+
+    // # Velocity -> Position
+    this->ApplyVelocityToPosition();
+}
 
 // # Player
 Player::Player(
@@ -81,41 +114,24 @@ void Player::Init(cen::GameContext* ctx) {
     );
 };
 
+void Player::ApplyFieldBoundaries(cen::GameContext* ctx) {
+    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
+        this->position.x = ctx->worldWidth/2 - this->size.width/2;
+        this->velocity.x = 0;
+    }
+}
+
 // # Player Update function
 void Player::FixedUpdate(cen::GameContext* ctx) {
     // # Calc velocity
     auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
     auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
 
-    Vector2 newSpeed = Vector2Scale(
-        Vector2Normalize({
-            this->speed * directionX,
-            this->speed * directionY,
-        }),
-        this->speed
+    this->Move(
+        ctx,
+        directionX,
+        directionY
     );
-
-    this->velocity.y += newSpeed.y;
-    this->velocity.x += newSpeed.x;
-
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
-
-    // # Friction
-    this->ApplyFriction();
-
-    // # Field boundaries
-    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
-        this->position.x = ctx->worldWidth/2 - this->size.width/2;
-        this->velocity.x = 0;
-    }
-
-    // # World Boundaries
-    this->ApplyWorldBoundaries(ctx->worldWidth, ctx->worldHeight);
-
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
 };
 
 // # Ball
@@ -252,6 +268,13 @@ void Enemy::Init(cen::GameContext* ctx) {
     );
 }
 
+void Enemy::ApplyFieldBoundaries(cen::GameContext* ctx) {
+    if (this->position.x - this->size.width/2 < ctx->worldWidth/2) {
+        this->position.x = ctx->worldWidth/2 + this->size.width/2;
+        this->velocity.x = 0;
+    }
+}
+
 void Enemy::FixedUpdate(cen::GameContext* ctx) {
     auto worldWidth = ctx->worldWidth;
     auto worldHeight = ctx->worldHeight;
@@ -281,36 +304,11 @@ void Enemy::FixedUpdate(cen::GameContext* ctx) {
         }
     }
 
-    // # Calc velocity
-    Vector2 newSpeed = Vector2Scale(
-        Vector2Normalize({
-            this->speed * directionX,
-            this->speed * directionY,
-        }),
-        this->speed
+    this->Move(
+        ctx,
+        directionX,
+        directionY
     );
-
-    this->velocity.y += newSpeed.y;
-    this->velocity.x += newSpeed.x;
-
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
-
-    // # Friction
-    this->ApplyFriction();
-
-    // # Field boundaries
-    if (this->position.x - this->size.width/2 < worldWidth/2) {
-        this->position.x = worldWidth/2 + this->size.width/2;
-        this->velocity.x = 0;
-    }
-
-    // # World Boundaries
-    this->ApplyWorldBoundaries(worldWidth, worldHeight);
-
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
 }
 
 // # Goal
@@ -344,6 +342,8 @@ void Goal::Init(cen::GameContext* ctx) {
         )
     );
 }
+
+// # Events
 
 const std::string StartEvent::type = "StartEvent";
 const std::string RestartEvent::type = "RestartEvent";

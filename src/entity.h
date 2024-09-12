@@ -26,6 +26,9 @@ class Paddle: public cen::CharacterBody2D {
 
         void ApplyFriction();
         void ApplyWorldBoundaries(float worldWidth, float worldHeight);
+
+        void Move(cen::GameContext* ctx, int directionX, int directionY);
+        virtual void ApplyFieldBoundaries(cen::GameContext* ctx) = 0;
 };
 
 // # Player
@@ -47,6 +50,7 @@ class Player: public Paddle {
 
         void FixedUpdate(cen::GameContext* ctx) override;
         void Init(cen::GameContext* ctx) override;
+        void ApplyFieldBoundaries(cen::GameContext* ctx) override;
 };
 
 // # Ball
@@ -100,6 +104,7 @@ class Enemy: public Paddle {
 
         void Init(cen::GameContext* ctx) override;
         void FixedUpdate(cen::GameContext* ctx) override;
+        void ApplyFieldBoundaries(cen::GameContext* ctx) override;
 };
 
 // # Goal
