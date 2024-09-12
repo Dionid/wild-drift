@@ -13,10 +13,10 @@ namespace cen {
         public:
             Camera2D* camera;
             cen::CollisionEngine* collisionEngine;
+            EventBus eventBus;
             std::unique_ptr<cen::RenderingEngine2D> renderingEngine;
             std::unique_ptr<cen::NodeStorage> node_storage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
-            EventBus eventBus;
 
             Scene(
                 Camera2D* camera,

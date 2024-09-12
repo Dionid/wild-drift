@@ -146,6 +146,14 @@ void renderingPipeline(cen::RenderingEngine2D* renderingEngine, cen::Debugger* d
     renderingEngine->runPipeline(debugger);
 }
 
+int multiplayerServerPipeline(cen::MultiplayerManager* multiplayerManager) {
+    return multiplayerManager->runServerPipeline();
+}
+
+int multiplayerClientPipeline(cen::MultiplayerManager* multiplayerManager) {
+    return multiplayerManager->runClientPipeline();
+}
+
 int main() {
     // # Init
     const int screenWidth = 800;
@@ -200,15 +208,32 @@ int main() {
         screenHeight
     };
 
+    cen::MultiplayerManager multiplayerManager;
+
+    bool isServer;
+    std::cout << "Are you the server? (1/0): ";
+    std::cin >> isServer;
+
     // # Game Loop Thread
-    std::thread gameLoopThread(gameLoopPipeline, &ctx, &gameAudio);
+    std::vector<std::thread> threads;
+
+    threads.push_back(std::thread(gameLoopPipeline, &ctx, &gameAudio));
+    if (isServer) {
+        threads.push_back(std::thread(multiplayerServerPipeline, &multiplayerManager));
+    } else {
+        threads.push_back(std::thread(multiplayerClientPipeline, &multiplayerManager));
+    }
 
     // # Render Loop Thread
     renderingPipeline(scene.renderingEngine.get(), &debugger);
 
     // # Exit
-    // ## Join Game Loop Thread after stop signal
-    gameLoopThread.join();
+    // ## Join threads after stop signal
+    for (auto& thread: threads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
 
     // ## Audio
     CloseAudioDevice();
