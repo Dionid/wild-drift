@@ -103,9 +103,9 @@ class MultiplayerManager {
                         std::cout << "Packet received from client: " << (char*)event.packet->data << std::endl;
                         
                         // Sending a response to the client
-                        const char *response = "Hello from server!";
-                        ENetPacket *packet = enet_packet_create(response, strlen(response) + 1, ENET_PACKET_FLAG_RELIABLE);
-                        enet_peer_send(event.peer, 0, packet);
+                        // const char *response = "Hello from server!";
+                        // ENetPacket *packet = enet_packet_create(response, strlen(response) + 1, ENET_PACKET_FLAG_RELIABLE);
+                        // enet_peer_send(event.peer, 0, packet);
                         
                         enet_packet_destroy(event.packet);
                         break;
