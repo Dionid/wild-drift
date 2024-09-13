@@ -76,7 +76,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->node_storage->rootNodes) {
+                for (const auto& otherNode: ctx->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
@@ -175,7 +175,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->node_storage->rootNodes) {
+                for (const auto& otherNode: ctx->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }

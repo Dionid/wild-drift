@@ -15,7 +15,7 @@ namespace cen {
             cen::CollisionEngine* collisionEngine;
             EventBus eventBus;
             std::unique_ptr<cen::RenderingEngine2D> renderingEngine;
-            std::unique_ptr<cen::NodeStorage> node_storage;
+            std::unique_ptr<cen::NodeStorage> nodeStorage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
 
             // TODO: refactor init
@@ -29,7 +29,7 @@ namespace cen {
             ) {
                 this->camera = camera;
                 this->collisionEngine = collisionEngine;
-                this->node_storage = std::move(nodeStorage);
+                this->nodeStorage = std::move(nodeStorage);
                 this->renderingEngine = std::move(renderingEngine);
                 this->topics = std::move(topics);
                 this->eventBus = eventBus;

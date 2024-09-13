@@ -15,17 +15,17 @@ void simulationTick(
 ) {
     // # Game Logic
     // ## Invalidate previous
-    for (const auto& node: ctx->scene->node_storage->rootNodes) {
+    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
         node->TraverseInvalidatePrevious();
     }
 
     // ## Fixed Update
-    for (const auto& node: ctx->scene->node_storage->rootNodes) {
+    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
         node->TraverseFixedUpdate(ctx);
     }
 
     // ## Collision
-    ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
+    ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx->scene->nodeStorage.get());
 }
 
 void simulationPipeline(
@@ -35,7 +35,7 @@ void simulationPipeline(
     // # Scene init
 
     // ## MatchEndMenu
-    auto matchEndMenu = ctx->scene->node_storage->AddNode(std::make_unique<MatchEndMenu>(
+    auto matchEndMenu = ctx->scene->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
         [&](cen::GameContext* ctx) {
             ctx->scene->eventBus.emit(RestartEvent());
         }
@@ -44,7 +44,7 @@ void simulationPipeline(
     matchEndMenu->Deactivate();
 
     // ## Match
-    MatchManager* matchManager = ctx->scene->node_storage->AddNode(std::make_unique<MatchManager>(
+    MatchManager* matchManager = ctx->scene->nodeStorage->AddNode(std::make_unique<MatchManager>(
         gameAudio,
         [&](cen::GameContext* ctx) {
             matchManager->Deactivate();
@@ -57,7 +57,7 @@ void simulationPipeline(
     matchManager->Deactivate();
 
     // ## MainMenu
-    MainMenu* mainMenu = ctx->scene->node_storage->AddNode(std::make_unique<MainMenu>(
+    MainMenu* mainMenu = ctx->scene->nodeStorage->AddNode(std::make_unique<MainMenu>(
         [&](cen::GameContext* ctx) {
             ctx->scene->eventBus.emit(StartEvent());
         }
@@ -85,15 +85,15 @@ void simulationPipeline(
     );
 
     // ## Init Nodes
-    for (const auto& node: ctx->scene->node_storage->rootNodes) {
+    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
         node->TraverseInit(ctx);
     }
 
     // ## Node Storage
-    ctx->scene->node_storage->Init();
+    ctx->scene->nodeStorage->Init();
 
     // ## Tick Manager
-    SpcGameTickManager tickManager = SpcGameTickManager(ctx->scene->node_storage.get());
+    SpcGameTickManager tickManager = SpcGameTickManager(ctx->scene->nodeStorage.get());
 
     // ## Main Loop
     const int targetFPS = 60;
@@ -123,7 +123,7 @@ void simulationPipeline(
         };
 
         // # Update
-        ctx->scene->node_storage->InitNewNodes(ctx);
+        ctx->scene->nodeStorage->InitNewNodes(ctx);
 
         // # Fixed update
         auto now = std::chrono::high_resolution_clock::now();
@@ -165,7 +165,7 @@ void simulationPipeline(
         }
 
         // # Initial
-        for (const auto& node: ctx->scene->node_storage->rootNodes) {
+        for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
             node->TraverseUpdate(ctx);
         }
 
@@ -180,7 +180,7 @@ void simulationPipeline(
         auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
 
         ctx->scene->renderingEngine->SyncRenderBuffer(
-            ctx->scene->node_storage.get(),
+            ctx->scene->nodeStorage.get(),
             alpha
         );
 

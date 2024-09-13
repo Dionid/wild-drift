@@ -10,7 +10,7 @@ LaunchBallTimer::LaunchBallTimer(
 }
 
 void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+    auto ball = ctx->scene->nodeStorage->GetById<Ball>(this->ballId);
 
     if (ball == nullptr) {
         return;
@@ -164,9 +164,9 @@ void MatchManager::Init(cen::GameContext* ctx) {
 };
 
 void MatchManager::ResetEntities(cen::GameContext* ctx) {
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
-    auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
-    auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
+    auto ball = ctx->scene->nodeStorage->GetById<Ball>(this->ballId);
+    auto player = ctx->scene->nodeStorage->GetById<Player>(this->playerId);
+    auto enemy = ctx->scene->nodeStorage->GetById<Enemy>(this->enemyId);
 
     if (ball == nullptr || player == nullptr || enemy == nullptr) {
         return;

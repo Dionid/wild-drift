@@ -282,7 +282,7 @@ void Enemy::FixedUpdate(cen::GameContext* ctx) {
     float directionX = 0;
     float directionY = 0;
 
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+    auto ball = ctx->scene->nodeStorage->GetById<Ball>(this->ballId);
 
     // # AI
     if (ball != nullptr) {
