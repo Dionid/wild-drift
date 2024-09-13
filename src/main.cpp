@@ -11,8 +11,7 @@
 #include "game_tick.h"
 
 void simulationTick(
-    cen::GameContext* ctx,
-    SpcGameTickManager& tickManager
+    cen::GameContext* ctx
 ) {
     // # Game Logic
     // ## Invalidate previous
@@ -27,16 +26,15 @@ void simulationTick(
 
     // ## Collision
     ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
-
-    // ## Save new GameStateTick and PlayerInputTick
-    tickManager.SaveGameTick(ctx->playerInput);
 }
 
 void simulationPipeline(
     cen::GameContext* ctx,
     SpcAudio* gameAudio
 ) {
-    // # MatchEndMenu
+    // # Scene init
+
+    // ## MatchEndMenu
     auto matchEndMenu = ctx->scene->node_storage->AddNode(std::make_unique<MatchEndMenu>(
         [&](cen::GameContext* ctx) {
             ctx->scene->eventBus.emit(RestartEvent());
@@ -45,7 +43,7 @@ void simulationPipeline(
 
     matchEndMenu->Deactivate();
 
-    // # Match
+    // ## Match
     MatchManager* matchManager = ctx->scene->node_storage->AddNode(std::make_unique<MatchManager>(
         gameAudio,
         [&](cen::GameContext* ctx) {
@@ -58,7 +56,7 @@ void simulationPipeline(
 
     matchManager->Deactivate();
 
-    // # MainMenu
+    // ## MainMenu
     MainMenu* mainMenu = ctx->scene->node_storage->AddNode(std::make_unique<MainMenu>(
         [&](cen::GameContext* ctx) {
             ctx->scene->eventBus.emit(StartEvent());
@@ -86,19 +84,18 @@ void simulationPipeline(
         &ose
     );
 
-    // # Init
-    // # While nodes are initing more of them can be added
+    // ## Init Nodes
     for (const auto& node: ctx->scene->node_storage->rootNodes) {
         node->TraverseInit(ctx);
     }
 
-    // # Node Storage
+    // ## Node Storage
     ctx->scene->node_storage->Init();
 
-    // # Tick Manager
+    // ## Tick Manager
     SpcGameTickManager tickManager = SpcGameTickManager(ctx->scene->node_storage.get());
 
-    // # Main Loop
+    // ## Main Loop
     const int targetFPS = 60;
     const int fixedUpdateRate = 40;
 
@@ -117,8 +114,8 @@ void simulationPipeline(
         // # Start
         auto frameStart = std::chrono::high_resolution_clock::now();
 
-        // TODO: # Input
-        auto newPlayerInput = cen::PlayerInput{
+        // # Input
+        auto currentPlayerInput = cen::PlayerInput{
             IsKeyDown(KEY_W),
             IsKeyDown(KEY_S),
             IsKeyDown(KEY_A),
@@ -150,15 +147,17 @@ void simulationPipeline(
                 tickManager.Rollback(compareResult);
 
                 // ## Simulate new GameTicks using PlayerInputTicks
-                for (const auto& playerInputTick: tickManager.playerInputs) {
+                for (const auto& playerInputTick: tickManager.playerInputTicks) {
                     ctx->playerInput = playerInputTick.input;
-                    simulationTick(ctx, tickManager);
+                    simulationTick(ctx);
+                    tickManager.SaveGameTick(ctx->playerInput);
                 }
             }
 
-            // # Simulation Tick
-            ctx->playerInput = newPlayerInput;
-            simulationTick(ctx, tickManager);
+            // # Simulation current Tick
+            ctx->playerInput = currentPlayerInput;
+            simulationTick(ctx);
+            tickManager.SaveGameTick(ctx->playerInput);
 
             // ## Correct time and cycles
             accumulatedFixedTime -= targetFixedUpdateTime;
@@ -174,6 +173,7 @@ void simulationPipeline(
         for (const auto& topic: ctx->scene->topics) {
             topic->flush();
         }
+
         ctx->scene->eventBus.flush(ctx);
 
         // # Map GameState to RendererState

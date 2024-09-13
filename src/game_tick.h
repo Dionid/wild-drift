@@ -159,8 +159,8 @@ class SpcGameTickManager: public cen::TickManager<GameStateTick> {
 
             int invalidPendingGameStateTickIndex = -1;
 
-            for (int i = 0; i < this->pendingGameStates.size(); i++) {
-                if (this->pendingGameStates[i].id == compareResult.invalidPendingGameStateTickId) {
+            for (int i = 0; i < this->pendingGameStateTicks.size(); i++) {
+                if (this->pendingGameStateTicks[i].id == compareResult.invalidPendingGameStateTickId) {
                     invalidPendingGameStateTickIndex = i;
                     break;
                 }
@@ -171,34 +171,34 @@ class SpcGameTickManager: public cen::TickManager<GameStateTick> {
                 return;
             }
 
-            for (int i = this->pendingGameStates.size() - 1; i >= invalidPendingGameStateTickIndex; i--) {
-                const auto& invalidPendingGameStateTick = this->pendingGameStates[i];
+            for (int i = this->pendingGameStateTicks.size() - 1; i >= invalidPendingGameStateTickIndex; i--) {
+                const auto& invalidPendingGameStateTick = this->pendingGameStateTicks[i];
                 // TODO: Rollback events (create, add of Nodes)
                 // ...
             }
 
             // # Empty pending GameStateTicks
-            this->pendingGameStates.erase(
-                this->pendingGameStates.begin(),
-                this->pendingGameStates.end()
+            this->pendingGameStateTicks.erase(
+                this->pendingGameStateTicks.begin(),
+                this->pendingGameStateTicks.end()
             );
 
             // # Apply last arrived
-            auto lastValidArrivedGameStateTick = this->arrivedGameStates.back();
+            auto lastValidArrivedGameStateTick = this->arrivedGameStateTicks.back();
             this->lastValidatedTick = lastValidArrivedGameStateTick.id;
             this->ApplyGameTick(lastValidArrivedGameStateTick);
 
             // # Empty arrived GameStateTicks
-            this->arrivedGameStates.erase(
-                this->arrivedGameStates.begin(),
-                this->arrivedGameStates.end()
+            this->arrivedGameStateTicks.erase(
+                this->arrivedGameStateTicks.begin(),
+                this->arrivedGameStateTicks.end()
             );
 
             // # Remove PlayerInputTicks till last arrived
             auto lastValidPlayerInputTickIndex = -1;
 
-            for (int i = 0; i < this->playerInputs.size(); i++) {
-                if (this->playerInputs[i].id == lastValidArrivedGameStateTick.id) {
+            for (int i = 0; i < this->playerInputTicks.size(); i++) {
+                if (this->playerInputTicks[i].id == lastValidArrivedGameStateTick.id) {
                     lastValidPlayerInputTickIndex = i;
                     break;
                 }
@@ -209,9 +209,9 @@ class SpcGameTickManager: public cen::TickManager<GameStateTick> {
                 return;
             }
 
-            this->playerInputs.erase(
-                this->playerInputs.begin(),
-                this->playerInputs.begin() + lastValidPlayerInputTickIndex
+            this->playerInputTicks.erase(
+                this->playerInputTicks.begin(),
+                this->playerInputTicks.begin() + lastValidPlayerInputTickIndex
             );
             
             // // TODO: # Simulate new GameTicks using PlayerInputTicks

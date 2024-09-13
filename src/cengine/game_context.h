@@ -2,12 +2,12 @@
 #define GAME_CONTEXT_H_
 
 #include <vector>
+#include "core.h"
 
 namespace cen {
 
 class Node;
 class Scene;
-class PlayerInput;
 
 struct GameContext {
     Scene* scene;

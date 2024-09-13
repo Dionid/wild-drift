@@ -18,6 +18,7 @@ namespace cen {
             std::unique_ptr<cen::NodeStorage> node_storage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
 
+            // TODO: refactor init
             Scene(
                 Camera2D* camera,
                 cen::CollisionEngine* collisionEngine,

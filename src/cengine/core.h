@@ -12,8 +12,22 @@ namespace cen {
 typedef uint64_t node_id_t;
 typedef node_id_t player_id_t;
 
-// # Constants
+// # Input
+struct PlayerInput {
+    bool up;
+    bool down;
+    bool left;
+    bool right;
 
+    bool compare(const PlayerInput& other) const {
+        return this->up == other.up &&
+            this->down == other.down &&
+            this->left == other.left &&
+            this->right == other.right;
+    }
+};
+
+// # Math
 constexpr Vector2 Vector2Up {0, -1};
 constexpr Vector2 Vector2Down {0, 1};
 constexpr Vector2 Vector2Left {-1, 0};
@@ -23,15 +37,12 @@ inline Vector2 Vector2Abs(Vector2 v) {
     return { fabs(v.x), fabs(v.y) };
 };
 
-// # Structs
-
 struct Size {
     float width;
     float height;
 };
 
 // # Custom RTTI
-
 typedef uint64_t type_id_t;
 
 class TypeIdGenerator {

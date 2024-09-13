@@ -12,20 +12,7 @@ namespace cen {
 
 typedef uint64_t tick_id_t;
 
-struct PlayerInput {
-    bool up;
-    bool down;
-    bool left;
-    bool right;
-
-    bool compare(const PlayerInput& other) const {
-        return this->up == other.up &&
-            this->down == other.down &&
-            this->left == other.left &&
-            this->right == other.right;
-    }
-};
-
+// # GameStateTick
 struct GameStateTick {
     tick_id_t id;
     bool sent;
@@ -40,7 +27,7 @@ struct GameStateTick {
     virtual bool compare(const GameStateTick& other) const = 0;
 };
 
-// # In fact, it is just player input buffer
+// # PlayerInputTick
 struct PlayerInputTick {
     tick_id_t id;
     player_id_t playerId;
@@ -67,9 +54,10 @@ class TickManager {
     public:
         tick_id_t currentTick;
         tick_id_t lastValidatedTick;
-        std::vector<T> pendingGameStates;
-        std::vector<T> arrivedGameStates;
-        std::vector<PlayerInputTick> playerInputs;
+
+        std::vector<T> pendingGameStateTicks;
+        std::vector<T> arrivedGameStateTicks;
+        std::vector<PlayerInputTick> playerInputTicks;
 
         virtual void SaveGameTick(cen::PlayerInput& input) = 0;
         virtual void Rollback(cen::CompareResult compareResult) = 0;
@@ -84,11 +72,11 @@ class TickManager {
             }
 
             // TODO: Refactor to use a circular buffer
-            if (this->arrivedGameStates.size() > 100) {
-                this->arrivedGameStates.erase(this->arrivedGameStates.begin(), this->arrivedGameStates.begin() + 20);
+            if (this->arrivedGameStateTicks.size() > 100) {
+                this->arrivedGameStateTicks.erase(this->arrivedGameStateTicks.begin(), this->arrivedGameStateTicks.begin() + 20);
             }
 
-            this->arrivedGameStates.push_back(gameStateTick);
+            this->arrivedGameStateTicks.push_back(gameStateTick);
         }
 
         void AddPendingGameState(
@@ -101,11 +89,11 @@ class TickManager {
             }
 
             // TODO: Refactor to use a circular buffer
-            if (this->pendingGameStates.size() > 100) {
-                this->pendingGameStates.erase(this->pendingGameStates.begin(), this->pendingGameStates.begin() + 20);
+            if (this->pendingGameStateTicks.size() > 100) {
+                this->pendingGameStateTicks.erase(this->pendingGameStateTicks.begin(), this->pendingGameStateTicks.begin() + 20);
             }
 
-            this->pendingGameStates.push_back(gameStateTick);
+            this->pendingGameStateTicks.push_back(gameStateTick);
         }
 
         void AddPlayerInput(
@@ -116,21 +104,21 @@ class TickManager {
             }
 
             // TODO: Refactor to use a circular buffer
-            if (this->playerInputs.size() > 100) {
-                this->playerInputs.erase(this->playerInputs.begin(), this->playerInputs.begin() + 20);
+            if (this->playerInputTicks.size() > 100) {
+                this->playerInputTicks.erase(this->playerInputTicks.begin(), this->playerInputTicks.begin() + 20);
             }
 
-            this->playerInputs.push_back(playerInputTick);
+            this->playerInputTicks.push_back(playerInputTick);
         }
 
         CompareResult CompareArrivedAndPending() {
             CompareResult result;
 
-            for (int i = 0; i < this->arrivedGameStates.size(); i++) {
-                const T arrivedGameStateTick = this->arrivedGameStates[i];
+            for (int i = 0; i < this->arrivedGameStateTicks.size(); i++) {
+                const T arrivedGameStateTick = this->arrivedGameStateTicks[i];
                 result.found = false;
-                for (int j = 0; j < this->pendingGameStates.size(); j++) {
-                    const T pendingGameStateTick = this->pendingGameStates[j];
+                for (int j = 0; j < this->pendingGameStateTicks.size(); j++) {
+                    const T pendingGameStateTick = this->pendingGameStateTicks[j];
 
                     if (arrivedGameStateTick.id == pendingGameStateTick.id) {
                         result.found = true;
@@ -164,31 +152,31 @@ class TickManager {
 
             int validPendingGameStateTickIndex = -1;
 
-            for (int i = 0; i < this->pendingGameStates.size(); i++) {
-                if (this->pendingGameStates[i].id == compareResult.validPendingGameStateTickId) {
+            for (int i = 0; i < this->pendingGameStateTicks.size(); i++) {
+                if (this->pendingGameStateTicks[i].id == compareResult.validPendingGameStateTickId) {
                     validPendingGameStateTickIndex = i;
                     break;
                 }
             }
 
-            this->pendingGameStates.erase(
-                this->pendingGameStates.begin(),
-                this->pendingGameStates.begin() + validPendingGameStateTickIndex
+            this->pendingGameStateTicks.erase(
+                this->pendingGameStateTicks.begin(),
+                this->pendingGameStateTicks.begin() + validPendingGameStateTickIndex
             );
 
             // # Remove validated PlayerInputTick
             int validPlayerInputTickIndex = -1;
 
-            for (int i = 0; i < this->arrivedGameStates.size(); i++) {
-                if (this->playerInputs[i].id == compareResult.validPendingGameStateTickId) {
+            for (int i = 0; i < this->arrivedGameStateTicks.size(); i++) {
+                if (this->playerInputTicks[i].id == compareResult.validPendingGameStateTickId) {
                     validPlayerInputTickIndex = i;
                     break;
                 }
             }
 
-            this->playerInputs.erase(
-                this->playerInputs.begin(),
-                this->playerInputs.begin() + validPlayerInputTickIndex
+            this->playerInputTicks.erase(
+                this->playerInputTicks.begin(),
+                this->playerInputTicks.begin() + validPlayerInputTickIndex
             );
         }
 };
