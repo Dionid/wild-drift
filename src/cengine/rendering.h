@@ -7,8 +7,6 @@
 #include <cstring>
 #include <mutex>
 #include <atomic>
-#include "core.h"
-#include "node.h"
 #include "view.h"
 #include "gui.h"
 #include "node_storage.h"

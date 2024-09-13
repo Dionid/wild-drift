@@ -1,8 +1,8 @@
 #ifndef CENGINE_DEBUG_H_
 #define CENGINE_DEBUG_H_
 
-#include <raylib.h>
 #include <unistd.h>
+#include "core.h"
 
 namespace cen {
 

@@ -1,9 +1,7 @@
 #ifndef CENGINE_CHARACTER_BODY_NODE_H
 #define CENGINE_CHARACTER_BODY_NODE_H
 
-#include "core.h"
 #include "scene.h"
-#include "node_2d.h"
 #include "collision.h"
 
 namespace cen {

@@ -2,7 +2,6 @@
 #define CENGINE_GUI_H_
 
 #include <functional>
-#include "raylib.h"
 #include "node_2d.h"
 
 namespace cen {

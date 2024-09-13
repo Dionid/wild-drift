@@ -1,8 +1,6 @@
 #ifndef CENGINE_H_
 #define CENGINE_H_
 
-#include <raylib.h>
-#include <raymath.h>
 #include "core.h"
 #include "scene.h"
 #include "event.h"

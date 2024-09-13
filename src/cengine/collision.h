@@ -2,15 +2,11 @@
 #define CENGINE_COLLISION_H
 
 #include <memory>
-#include <raymath.h>
-#include "core.h"
-#include "node.h"
 #include "node_2d.h"
 
 namespace cen {
 
 // # Collision
-
 struct CollisionHit {
     float penetration;
     Vector2 normal;
