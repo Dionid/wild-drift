@@ -65,7 +65,7 @@ void gameLoopPipeline(
 
     // # Init
     // # While nodes are initing more of them can be added
-    for (const auto& node: ctx->scene->node_storage->nodes) {
+    for (const auto& node: ctx->scene->node_storage->rootNodes) {
         node->TraverseInit(ctx);
     }
 
@@ -101,11 +101,11 @@ void gameLoopPipeline(
         int fixedUpdateCycles = 0;
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
             // # Invalidate previous
-            for (const auto& node: ctx->scene->node_storage->nodes) {
+            for (const auto& node: ctx->scene->node_storage->rootNodes) {
                 node->TraverseInvalidatePrevious();
             }
 
-            for (const auto& node: ctx->scene->node_storage->nodes) {
+            for (const auto& node: ctx->scene->node_storage->rootNodes) {
                 node->TraverseFixedUpdate(ctx);
             }
 
@@ -117,7 +117,7 @@ void gameLoopPipeline(
         }
 
         // # Initial
-        for (const auto& node: ctx->scene->node_storage->nodes) {
+        for (const auto& node: ctx->scene->node_storage->rootNodes) {
             node->TraverseUpdate(ctx);
         }
 

@@ -50,3 +50,38 @@
 1. Put Collider directly into ColliderBody2D.
 1. Initial nested Nodes must be added in Init method.
 1. ...
+
+# Multiplayer
+
+1. General
+    1. Clients sending
+    1. ! Ticks must be synchronized between Clients and Server
+1. Server
+    1. ! Imitates second player as AI in Solo
+    1. Creates entities
+    1. Receives only inputs and RPC-s from Clients
+    1. Sends world state to Clients
+    1. ! Match reset will be sync points
+1. Clients
+    1. After receiving world state validate it with what it got
+        1. We need to save inputs with tick number (TickInputState)
+        1. We can save transform and velocity in the end every tick, with tick number (TickGameState)
+        1. ! TickState is also what Server sends us
+        1. We compare TickState with what we got from Server
+        1. If it is invalid, than we replay every input from last valid TickGameState and set it to current GameState
+1. Problems
+    1. How to create and destroy entities
+
+
+## Variants
+
+1. Every client simulates world and sends input to each other throw Server
+    1. Cons
+        1. Clients can desynchronize pretty quickly
+1. Clients sending inputs to Server and Server sends back world state
+    1. Cons
+        1. Latency
+1. Clients simulate world, send inputs to Server and Server simulates world and sends back world state
+    1. Cons
+        1. Hard to implement
+

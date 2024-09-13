@@ -14,7 +14,7 @@ enum class NodeStorageState {
 
 class NodeStorage {
     public:
-        std::vector<std::unique_ptr<Node>> nodes;
+        std::vector<std::unique_ptr<Node>> rootNodes;
         std::vector<Node*> flatNodes;
         std::vector<Node*> newNodes;
         std::vector<Node2D*> renderNodes;
@@ -61,7 +61,7 @@ class NodeStorage {
             if (nPtr->id == 0) {
                 nPtr->id = NodeIdGenerator::GetInstance().GetNextId();
             }
-            this->nodes.push_back(std::move(node));
+            this->rootNodes.push_back(std::move(node));
             this->flatNodes.push_back(nPtr);
             if (this->state == NodeStorageState::INITIALIZED) {
                 this->newNodes.push_back(nPtr);
@@ -107,9 +107,9 @@ class NodeStorage {
         void RemoveNode(Node* node) {
             this->RemoveFromIndex(node);
 
-            for (auto i = 0; i < this->nodes.size(); i++) {
-                if (this->nodes[i].get() == node) {
-                    this->nodes.erase(this->nodes.begin() + i);
+            for (auto i = 0; i < this->rootNodes.size(); i++) {
+                if (this->rootNodes[i].get() == node) {
+                    this->rootNodes.erase(this->rootNodes.begin() + i);
                     break;
                 }
             }
@@ -118,16 +118,16 @@ class NodeStorage {
         void RemoveNodeById(node_id_t id) {
             this->RemoveFromIndexById(id);
 
-            for (auto i = 0; i < this->nodes.size(); i++) {
-                if (this->nodes[i]->id == id) {
-                    this->nodes.erase(this->nodes.begin() + i);
+            for (auto i = 0; i < this->rootNodes.size(); i++) {
+                if (this->rootNodes[i]->id == id) {
+                    this->rootNodes.erase(this->rootNodes.begin() + i);
                     break;
                 }
             }
         }
 
         Node* GetById(node_id_t targetId) {
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->rootNodes) {
                 auto result = node->GetById(targetId);
                 if (result != nullptr) {
                     return result;
@@ -141,7 +141,7 @@ class NodeStorage {
         T* GetById(node_id_t targetId) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
 
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->rootNodes) {
                 auto result = node->GetById<T>(targetId);
                 if (result != nullptr) {
                     return result;
@@ -157,7 +157,7 @@ class NodeStorage {
 
             std::vector<Node*> nodes;
 
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->rootNodes) {
                 if (T* nPtr = dynamic_cast<T*>(node.get())) {
                     nodes.push_back(nPtr);
                 }
@@ -170,7 +170,7 @@ class NodeStorage {
         T* GetFirstByType() {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
 
-            for (const auto& node: this->nodes) {
+            for (const auto& node: this->rootNodes) {
                 if (T* nPtr = dynamic_cast<T*>(node.get())) {
                     return nPtr;
                 }

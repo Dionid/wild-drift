@@ -16,7 +16,7 @@ typedef uint64_t player_id_t;
 
 class NetworkMessageItem {
     public:
-        virtual void Serialize() = 0;
+        virtual void Serialize(std::vector<char>& buffer) = 0;
         virtual void Deserialize() = 0;
 };
 
@@ -27,8 +27,17 @@ class PlayerInput: public NetworkMessageItem {
         bool isTop;
         bool isDown;
 
-        void Serialize() override {
+        void Serialize(std::vector<char>& buffer) override {
+            std::vector<char> newBuffer;
 
+            newBuffer.push_back('PI');
+            newBuffer.push_back(isLeft);
+            newBuffer.push_back(isRight);
+            newBuffer.push_back(isTop);
+            newBuffer.push_back(isDown);
+
+            buffer.push_back(newBuffer.size());
+            buffer.insert(buffer.end(), newBuffer.begin(), newBuffer.end());
         };
 
         void Deserialize() override {
@@ -39,10 +48,20 @@ class PlayerInput: public NetworkMessageItem {
 class NetworkMessage: public NetworkMessageItem {
     public:
         cen::player_id_t playerId;
-        std::vector<NetworkMessageItem> items;
+        std::vector<NetworkMessageItem*> items;
 
-    void Serialize() override {
+    void Serialize(std::vector<char>& buffer) override {
+        std::vector<char> newBuffer;
 
+        newBuffer.push_back('NM');
+        newBuffer.push_back(playerId);
+
+        for (NetworkMessageItem* const item : items) {
+            item->Serialize(newBuffer);
+        }
+
+        buffer.push_back(newBuffer.size());
+        buffer.insert(buffer.end(), newBuffer.begin(), newBuffer.end());
     };
 
     void Deserialize() override {
@@ -50,10 +69,15 @@ class NetworkMessage: public NetworkMessageItem {
     };
 };
 
+#ifndef CEN_MULTIPLAYER_SERVER_PORT
+#define CEN_MULTIPLAYER_SERVER_PORT 3000
+#endif
+
 class MultiplayerManager {
     public:
         std::unordered_map<int, PlayerInput> otherPlayersInputStorage;
         cen::NodeStorage* nodeStorage;
+        int tick;
     
     int runServerPipeline() {
         std::chrono::milliseconds targetSyncTime(1000 / 60);
@@ -66,17 +90,17 @@ class MultiplayerManager {
 
         ENetAddress address;
         ENetHost *server;
-        ENetEvent event;
 
-        /* Bind the server to port 1234. */
         address.host = ENET_HOST_ANY;
-        address.port = 1234;
+        address.port = CEN_MULTIPLAYER_SERVER_PORT;
 
-        server = enet_host_create(&address /* the address to bind the server host to */,
-                                32       /* allow up to 32 clients and/or outgoing connections */,
-                                2        /* allow up to 2 channels */,
-                                0        /* incoming bandwidth */,
-                                0        /* outgoing bandwidth */);
+        server = enet_host_create(
+            &address /* the address to bind the server host to */,
+            4        /* allow up to 32 clients and/or outgoing connections */,
+            2        /* allow up to 2 channels */,
+            0        /* incoming bandwidth */,
+            0        /* outgoing bandwidth */
+        );
 
         if (server == NULL) {
             std::cerr << "An error occurred while trying to create an ENet server host." << std::endl;
@@ -84,6 +108,8 @@ class MultiplayerManager {
         }
 
         std::cout << "Server started on port 1234..." << std::endl;
+
+        ENetEvent event;
 
         while (!WindowShouldClose())    // Detect window close button or ESC key
         {
@@ -145,14 +171,14 @@ class MultiplayerManager {
 
         ENetHost *client;
         ENetAddress address;
-        ENetEvent event;
         ENetPeer *peer;
 
-        client = enet_host_create(NULL /* create a client host */,
-                              1    /* only allow 1 outgoing connection */,
-                              2    /* allow up to 2 channels */,
-                              0    /* assume any amount of incoming bandwidth */,
-                              0    /* assume any amount of outgoing bandwidth */
+        client = enet_host_create(
+            NULL /* create a client host */,
+            1    /* only allow 1 outgoing connection */,
+            2    /* allow up to 2 channels */,
+            0    /* assume any amount of incoming bandwidth */,
+            0    /* assume any amount of outgoing bandwidth */
         );
 
         if (client == NULL) {
@@ -160,9 +186,8 @@ class MultiplayerManager {
             return EXIT_FAILURE;
         }
 
-        /* Connect to the server at localhost:1234 */
         enet_address_set_host(&address, "127.0.0.1");
-        address.port = 1234;
+        address.port = CEN_MULTIPLAYER_SERVER_PORT;
 
         peer = enet_host_connect(client, &address, 2, 0);
         if (peer == NULL) {
@@ -170,14 +195,16 @@ class MultiplayerManager {
             return EXIT_FAILURE;
         }
 
+        ENetEvent event;
+
         if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             std::cout << "Connection to server succeeded." << std::endl;
 
             // Send a packet to the server
-            const char *message = "Hello from client!";
-            ENetPacket *packet = enet_packet_create(message, strlen(message) + 1, ENET_PACKET_FLAG_RELIABLE);
-            enet_peer_send(peer, 0, packet);
-            enet_host_flush(client);
+            // const char *message = "Hello from client!";
+            // ENetPacket *packet = enet_packet_create(message, strlen(message) + 1, ENET_PACKET_FLAG_RELIABLE);
+            // enet_peer_send(peer, 0, packet);
+            // enet_host_flush(client);
         } else {
             std::cerr << "Connection to server failed." << std::endl;
             enet_peer_reset(peer);
