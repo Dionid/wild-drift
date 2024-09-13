@@ -49,15 +49,16 @@ struct PlayerInputTick {
 
 struct CompareResult {
     bool found;
-    int correctPendingGameStateTickId;
-    int incorrectPendingGameStateTickId;
-    int correctArrivedGameStateTickId;
+    int validPendingGameStateTickId;
+    
+    int invalidPendingGameStateTickId;
+    int validArrivedGameStateTickId;
 
     CompareResult() {
         this->found = true;
-        this->correctPendingGameStateTickId = -1;
-        this->incorrectPendingGameStateTickId = -1;
-        this->correctArrivedGameStateTickId = -1;
+        this->validPendingGameStateTickId = -1;
+        this->invalidPendingGameStateTickId = -1;
+        this->validArrivedGameStateTickId = -1;
     }
 };
 
@@ -65,17 +66,22 @@ template <class T>
 class TickManager {
     public:
         tick_id_t currentTick;
+        tick_id_t lastValidatedTick;
         std::vector<T> pendingGameStates;
         std::vector<T> arrivedGameStates;
         std::vector<PlayerInputTick> playerInputs;
 
-        virtual void SaveGameTick() = 0;
+        virtual void SaveGameTick(cen::PlayerInput& input) = 0;
         virtual void Rollback(cen::CompareResult compareResult) = 0;
 
         void AddArrivedGameState(
             const T& gameStateTick
         ) {
             static_assert(std::is_base_of<GameStateTick, T>::value, "T must be derived from GameStateTick");
+
+            if (gameStateTick.id < this->lastValidatedTick) {
+                return;
+            }
 
             // TODO: Refactor to use a circular buffer
             if (this->arrivedGameStates.size() > 100) {
@@ -90,6 +96,10 @@ class TickManager {
         ) {
             static_assert(std::is_base_of<GameStateTick, T>::value, "T must be derived from GameStateTick");
 
+            if (gameStateTick.id < this->currentTick) {
+                return;
+            }
+
             // TODO: Refactor to use a circular buffer
             if (this->pendingGameStates.size() > 100) {
                 this->pendingGameStates.erase(this->pendingGameStates.begin(), this->pendingGameStates.begin() + 20);
@@ -101,6 +111,10 @@ class TickManager {
         void AddPlayerInput(
             const PlayerInputTick& playerInputTick
         ) {
+            if (playerInputTick.id < this->currentTick) {
+                return;
+            }
+
             // TODO: Refactor to use a circular buffer
             if (this->playerInputs.size() > 100) {
                 this->playerInputs.erase(this->playerInputs.begin(), this->playerInputs.begin() + 20);
@@ -121,12 +135,12 @@ class TickManager {
                     if (arrivedGameStateTick.id == pendingGameStateTick.id) {
                         result.found = true;
 
-                        // # Check if arrived GameStateTick is correct
+                        // # Check if arrived GameStateTick is valid
                         if (arrivedGameStateTick.compare(pendingGameStateTick)) {
-                            result.correctPendingGameStateTickId = pendingGameStateTick.id;
+                            result.validPendingGameStateTickId = pendingGameStateTick.id;
                         } else {
-                            result.incorrectPendingGameStateTickId = pendingGameStateTick.id;
-                            result.correctArrivedGameStateTickId = arrivedGameStateTick.id;
+                            result.invalidPendingGameStateTickId = pendingGameStateTick.id;
+                            result.validArrivedGameStateTickId = arrivedGameStateTick.id;
 
                             return result;
                         }
@@ -144,57 +158,39 @@ class TickManager {
         void RemoveValidated(
             CompareResult compareResult
         ) {
-            if (compareResult.correctPendingGameStateTickId == -1) {
+            if (compareResult.validPendingGameStateTickId == -1) {
                 return;
             }
 
-            int correctPendingGameStateTickIndex = -1;
+            int validPendingGameStateTickIndex = -1;
 
             for (int i = 0; i < this->pendingGameStates.size(); i++) {
-                if (this->pendingGameStates[i].id == compareResult.correctPendingGameStateTickId) {
-                    correctPendingGameStateTickIndex = i;
+                if (this->pendingGameStates[i].id == compareResult.validPendingGameStateTickId) {
+                    validPendingGameStateTickIndex = i;
                     break;
                 }
             }
 
             this->pendingGameStates.erase(
                 this->pendingGameStates.begin(),
-                this->pendingGameStates.begin() + correctPendingGameStateTickIndex
+                this->pendingGameStates.begin() + validPendingGameStateTickIndex
+            );
+
+            // # Remove validated PlayerInputTick
+            int validPlayerInputTickIndex = -1;
+
+            for (int i = 0; i < this->arrivedGameStates.size(); i++) {
+                if (this->playerInputs[i].id == compareResult.validPendingGameStateTickId) {
+                    validPlayerInputTickIndex = i;
+                    break;
+                }
+            }
+
+            this->playerInputs.erase(
+                this->playerInputs.begin(),
+                this->playerInputs.begin() + validPlayerInputTickIndex
             );
         }
-
-        // void MergeCorrectGameStateTick(
-        //     CompareResult compareResult
-        // ) {
-        //     if (compareResult.correctPendingGameStateTickId == -1) {
-        //         return;
-        //     }
-
-        //     int correctPendingGameStateTickIndex = -1;
-
-        //     for (int i = 0; i < this->pendingGameStates.size(); i++) {
-        //         if (this->pendingGameStates[i].id == compareResult.correctPendingGameStateTickId) {
-        //             correctPendingGameStateTickIndex = i;
-        //             break;
-        //         }
-        //     }
-
-        //     // # Merge correct GameStateTick
-        //     for (int i = 0; i < correctPendingGameStateTickIndex; i++) {
-        //         if (i + 1 < correctPendingGameStateTickIndex) {
-        //             auto& gameStateTick = this->pendingGameStates[i];
-        //             auto& nextGameStateTick = this->pendingGameStates[i + 1];
-
-        //             nextGameStateTick.add(gameStateTick);
-        //         }
-        //     }
-
-        //     // # Remove merged GameStateTicks
-        //     this->pendingGameStates.erase(
-        //         this->pendingGameStates.begin(),
-        //         this->pendingGameStates.begin() + correctPendingGameStateTickIndex
-        //     );
-        // }
 };
 
 }

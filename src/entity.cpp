@@ -124,8 +124,8 @@ void Player::ApplyFieldBoundaries(cen::GameContext* ctx) {
 // # Player Update function
 void Player::FixedUpdate(cen::GameContext* ctx) {
     // # Calc velocity
-    auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
-    auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
+    auto directionY = ctx->playerInput.down - ctx->playerInput.up;
+    auto directionX = ctx->playerInput.right - ctx->playerInput.left;
 
     this->Move(
         ctx,

@@ -81,19 +81,12 @@ class SpcGameTickManager: public cen::TickManager<GameStateTick> {
             this->nodeStorage = nodeStorage;
         }
 
-        void SaveGameTick() override {
+        void SaveGameTick(
+            cen::PlayerInput& input
+        ) override {
             GameStateTick gameStateTick = GameStateTick(
                 this->currentTick
             );
-
-            // TODO: Move capture to simulationPipeline
-            // # Input
-            auto input = cen::PlayerInput{
-                IsKeyDown(KEY_W),
-                IsKeyDown(KEY_S),
-                IsKeyDown(KEY_A),
-                IsKeyDown(KEY_D)
-            };
 
             // # Add PlayerInputTick
             this->AddPlayerInput(cen::PlayerInputTick{
@@ -133,34 +126,98 @@ class SpcGameTickManager: public cen::TickManager<GameStateTick> {
             this->AddPendingGameState(gameStateTick);
         }
 
+        void ApplyGameTick(GameStateTick gameStateTick) {
+            // # Player
+            auto player = this->nodeStorage->GetById<Player>(gameStateTick.player.playerId);
+
+            if (player != nullptr) {
+                player->position = gameStateTick.player.position;
+                player->velocity = gameStateTick.player.velocity;
+            }
+
+            // # Enemy
+            auto enemy = this->nodeStorage->GetById<Enemy>(gameStateTick.enemy.playerId);
+
+            if (enemy != nullptr) {
+                enemy->position = gameStateTick.enemy.position;
+                enemy->velocity = gameStateTick.enemy.velocity;
+            }
+
+            // # Ball
+            auto ball = this->nodeStorage->GetById<Ball>(gameStateTick.ball.ballId);
+
+            if (ball != nullptr) {
+                ball->position = gameStateTick.ball.position;
+                ball->velocity = gameStateTick.ball.velocity;
+            }
+        }
+
         void Rollback(cen::CompareResult compareResult) override {
-            if (compareResult.incorrectPendingGameStateTickId == -1) {
+            if (compareResult.invalidPendingGameStateTickId == -1) {
                 return;
             }
 
-            int incorrectPendingGameStateTickIndex = -1;
+            int invalidPendingGameStateTickIndex = -1;
 
             for (int i = 0; i < this->pendingGameStates.size(); i++) {
-                if (this->pendingGameStates[i].id == compareResult.incorrectPendingGameStateTickId) {
-                    incorrectPendingGameStateTickIndex = i;
+                if (this->pendingGameStates[i].id == compareResult.invalidPendingGameStateTickId) {
+                    invalidPendingGameStateTickIndex = i;
                     break;
                 }
             }
 
-            if (incorrectPendingGameStateTickIndex == -1) {
-                std::cout << "Incorrect GameStateTick not found" << std::endl;
+            if (invalidPendingGameStateTickIndex == -1) {
+                std::cout << "Invalid GameStateTick not found" << std::endl;
+                return;
             }
 
-            for (int i = this->pendingGameStates.size() - 1; i >= incorrectPendingGameStateTickIndex; i--) {
-                const auto& incorrectPendingGameStateTick = this->pendingGameStates[i];
-                // TODO: Rollback
+            for (int i = this->pendingGameStates.size() - 1; i >= invalidPendingGameStateTickIndex; i--) {
+                const auto& invalidPendingGameStateTick = this->pendingGameStates[i];
+                // TODO: Rollback events (create, add of Nodes)
                 // ...
             }
 
+            // # Empty pending GameStateTicks
             this->pendingGameStates.erase(
-                this->pendingGameStates.begin() + incorrectPendingGameStateTickIndex,
+                this->pendingGameStates.begin(),
                 this->pendingGameStates.end()
             );
+
+            // # Apply last arrived
+            auto lastValidArrivedGameStateTick = this->arrivedGameStates.back();
+            this->lastValidatedTick = lastValidArrivedGameStateTick.id;
+            this->ApplyGameTick(lastValidArrivedGameStateTick);
+
+            // # Empty arrived GameStateTicks
+            this->arrivedGameStates.erase(
+                this->arrivedGameStates.begin(),
+                this->arrivedGameStates.end()
+            );
+
+            // # Remove PlayerInputTicks till last arrived
+            auto lastValidPlayerInputTickIndex = -1;
+
+            for (int i = 0; i < this->playerInputs.size(); i++) {
+                if (this->playerInputs[i].id == lastValidArrivedGameStateTick.id) {
+                    lastValidPlayerInputTickIndex = i;
+                    break;
+                }
+            }
+
+            if (lastValidPlayerInputTickIndex == -1) {
+                std::cout << "Last valid PlayerInputTick not found" << std::endl;
+                return;
+            }
+
+            this->playerInputs.erase(
+                this->playerInputs.begin(),
+                this->playerInputs.begin() + lastValidPlayerInputTickIndex
+            );
+            
+            // // TODO: # Simulate new GameTicks using PlayerInputTicks
+            // for (const auto& playerInput: this->playerInputs) {
+            //     // ...
+            // }
         }
 };
 

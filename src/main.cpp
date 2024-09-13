@@ -10,6 +10,28 @@
 #include "menus.h"
 #include "game_tick.h"
 
+void simulationTick(
+    cen::GameContext* ctx,
+    SpcGameTickManager& tickManager
+) {
+    // # Game Logic
+    // ## Invalidate previous
+    for (const auto& node: ctx->scene->node_storage->rootNodes) {
+        node->TraverseInvalidatePrevious();
+    }
+
+    // ## Fixed Update
+    for (const auto& node: ctx->scene->node_storage->rootNodes) {
+        node->TraverseFixedUpdate(ctx);
+    }
+
+    // ## Collision
+    ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
+
+    // ## Save new GameStateTick and PlayerInputTick
+    tickManager.SaveGameTick(ctx->playerInput);
+}
+
 void simulationPipeline(
     cen::GameContext* ctx,
     SpcAudio* gameAudio
@@ -96,7 +118,12 @@ void simulationPipeline(
         auto frameStart = std::chrono::high_resolution_clock::now();
 
         // TODO: # Input
-        // ...
+        auto newPlayerInput = cen::PlayerInput{
+            IsKeyDown(KEY_W),
+            IsKeyDown(KEY_S),
+            IsKeyDown(KEY_A),
+            IsKeyDown(KEY_D)
+        };
 
         // # Update
         ctx->scene->node_storage->InitNewNodes(ctx);
@@ -110,39 +137,32 @@ void simulationPipeline(
         int fixedUpdateCycles = 0;
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
             // # Reconcile GameStateTick
-
             // ## Take arrived GameStateTick and check if they are correct
             const auto& compareResult = tickManager.CompareArrivedAndPending();
 
-            // ## Merge correct GameStateTick
-            tickManager.RemoveValidated(compareResult);
+            if (
+                compareResult.invalidPendingGameStateTickId == -1
+            ) {
+                // ## Merge correct GameStateTick
+                tickManager.RemoveValidated(compareResult);
+            } else {
+                // ## Rollback and Apply
+                tickManager.Rollback(compareResult);
 
-            // ## Rollback to incorrect - 1 GameStateTick, canceling one by one
-            tickManager.Rollback(compareResult);
-
-            // TODO: ## Apply correct GameTick
-            // ...
-
-            // TODO: ## Simulate new GameTicks using PlayerInputTicks
-            // ...
-
-            // # Invalidate previous
-            for (const auto& node: ctx->scene->node_storage->rootNodes) {
-                node->TraverseInvalidatePrevious();
+                // ## Simulate new GameTicks using PlayerInputTicks
+                for (const auto& playerInputTick: tickManager.playerInputs) {
+                    ctx->playerInput = playerInputTick.input;
+                    simulationTick(ctx, tickManager);
+                }
             }
 
-            for (const auto& node: ctx->scene->node_storage->rootNodes) {
-                node->TraverseFixedUpdate(ctx);
-            }
+            // # Simulation Tick
+            ctx->playerInput = newPlayerInput;
+            simulationTick(ctx, tickManager);
 
-            // ## Collision
-            ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
-
+            // ## Correct time and cycles
             accumulatedFixedTime -= targetFixedUpdateTime;
             fixedUpdateCycles++;
-
-            // ## Save new GameStateTick and PlayerInputTick
-            tickManager.SaveGameTick();
         }
 
         // # Initial
@@ -230,8 +250,11 @@ int main() {
     );
 
     // # Game Context
+    auto input = cen::PlayerInput{};
+
     cen::GameContext ctx = {
         &scene,
+        input,
         screenWidth,
         screenHeight
     };

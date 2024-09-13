@@ -86,3 +86,17 @@
     1. Cons
         1. Hard to implement
 
+
+
+
+1. Compare pending and arrived GameStateTicks
+    1. Get valid pending
+    1. Get invalid pending
+1. If invalid state exists
+    1. Rollback
+        1. Revert all pending states till invalid one
+        1. Empty all pending states
+        1. Apply all arrived GameStateTicks (save lastValidTick)
+        1. Simulate using inputs from last valid GameStateTick
+1. If not
+    1. Remove validated GameStateTicks & InputTicks including validated itself

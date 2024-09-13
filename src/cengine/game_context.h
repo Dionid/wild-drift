@@ -7,9 +7,11 @@ namespace cen {
 
 class Node;
 class Scene;
+class PlayerInput;
 
 struct GameContext {
     Scene* scene;
+    PlayerInput& playerInput;
     float worldWidth;
     float worldHeight;
 };
