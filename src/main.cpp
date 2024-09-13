@@ -8,8 +8,9 @@
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
+#include "game_tick.h"
 
-void gameLoopPipeline(
+void simulationPipeline(
     cen::GameContext* ctx,
     SpcAudio* gameAudio
 ) {
@@ -73,7 +74,7 @@ void gameLoopPipeline(
     ctx->scene->node_storage->Init();
 
     // # Tick Manager
-    cen::TickManager tickManager;
+    SpcGameTickManager tickManager = SpcGameTickManager(ctx->scene->node_storage.get());
 
     // # Main Loop
     const int targetFPS = 60;
@@ -114,33 +115,10 @@ void gameLoopPipeline(
             const auto& compareResult = tickManager.CompareArrivedAndPending();
 
             // ## Merge correct GameStateTick
-            tickManager.MergeCorrectGameStateTick(compareResult);
+            tickManager.RemoveValidated(compareResult);
 
             // ## Rollback to incorrect - 1 GameStateTick, canceling one by one
-            if (compareResult.incorrectPendingGameStateTickId != -1) {
-                int incorrectPendingGameStateTickIndex = -1;
-
-                for (int i = 0; i < tickManager.pendingGameStates.size(); i++) {
-                    if (tickManager.pendingGameStates[i].id == compareResult.incorrectPendingGameStateTickId) {
-                        incorrectPendingGameStateTickIndex = i;
-                        break;
-                    }
-                }
-
-                if (incorrectPendingGameStateTickIndex == -1) {
-                    std::cout << "Incorrect GameStateTick not found" << std::endl;
-                }
-
-                for (int i = tickManager.pendingGameStates.size() - 1; i >= incorrectPendingGameStateTickIndex; i--) {
-                    // TODO: Rollback
-                    // ...
-                }
-
-                tickManager.pendingGameStates.erase(
-                    tickManager.pendingGameStates.begin() + incorrectPendingGameStateTickIndex,
-                    tickManager.pendingGameStates.end()
-                );
-            }
+            tickManager.Rollback(compareResult);
 
             // TODO: ## Apply correct GameTick
             // ...
@@ -163,8 +141,8 @@ void gameLoopPipeline(
             accumulatedFixedTime -= targetFixedUpdateTime;
             fixedUpdateCycles++;
 
-            // TODO: Save new GameStateTick and PlayerInputTick
-            // ...
+            // ## Save new GameStateTick and PlayerInputTick
+            tickManager.SaveGameTick();
         }
 
         // # Initial
@@ -263,7 +241,7 @@ int main() {
     // # Game Loop Thread
     std::vector<std::thread> threads;
 
-    threads.push_back(std::thread(gameLoopPipeline, &ctx, &gameAudio));
+    threads.push_back(std::thread(simulationPipeline, &ctx, &gameAudio));
 
     // # Server Thread
     // bool isServer;

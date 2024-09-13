@@ -10,6 +10,7 @@ namespace cen {
 
 // # Id Types
 typedef uint64_t node_id_t;
+typedef node_id_t player_id_t;
 
 // # Constants
 

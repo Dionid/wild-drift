@@ -11,7 +11,6 @@
 namespace cen {
 
 typedef uint64_t tick_id_t;
-typedef node_id_t player_id_t;
 
 struct PlayerInput {
     bool up;
@@ -27,74 +26,22 @@ struct PlayerInput {
     }
 };
 
-struct GameStateTickPlayer {
-    player_id_t playerId;
-    PlayerInput input;
-    Vector2 positionDelta;
-    Vector2 velocityDelta;
-
-    bool compare(const GameStateTickPlayer& other) const {
-        return this->input.compare(other.input) &&
-            this->positionDelta.x == other.positionDelta.x &&
-            this->positionDelta.y == other.positionDelta.y &&
-            this->velocityDelta.x == other.velocityDelta.x &&
-            this->velocityDelta.y == other.velocityDelta.y;
-    }
-
-    void add(const GameStateTickPlayer& other) {
-        this->positionDelta.x += other.positionDelta.x;
-        this->positionDelta.y += other.positionDelta.y;
-        this->velocityDelta.x += other.velocityDelta.x;
-        this->velocityDelta.y += other.velocityDelta.y;
-    }
-};
-
-struct GameStateTickBall {
-    node_id_t ballId;
-    Vector2 position;
-    Vector2 velocity;
-
-    bool compare(const GameStateTickBall& other) const {
-        return this->position.x == other.position.x &&
-            this->position.y == other.position.y &&
-            this->velocity.x == other.velocity.x &&
-            this->velocity.y == other.velocity.y;
-    }
-
-    void add(const GameStateTickBall& other) {
-        this->position.x += other.position.x;
-        this->position.y += other.position.y;
-        this->velocity.x += other.velocity.x;
-        this->velocity.y += other.velocity.y;
-    }
-};
-
 struct GameStateTick {
     tick_id_t id;
-    GameStateTickPlayer player1;
-    GameStateTickPlayer player2;
-    GameStateTickBall ball;
-    // # Vector of added entities
-    // ...
-    // # Vector of deleted entities
-    // ...
+    bool sent;
 
-    bool compare(const GameStateTick& other) const {
-        return this->id == other.id &&
-            this->player1.compare(other.player1) &&
-            this->player2.compare(other.player2) &&
-            this->ball.compare(other.ball);
+    GameStateTick(
+        tick_id_t id
+    ) {
+        this->id = id;
+        this->sent = false;
     }
 
-    void add(const GameStateTick& other) {
-        this->player1.add(other.player1);
-        this->player2.add(other.player2);
-        this->ball.add(other.ball);
-    }
+    virtual bool compare(const GameStateTick& other) const = 0;
 };
 
 // # In fact, it is just player input buffer
-class PlayerInputTick {
+struct PlayerInputTick {
     tick_id_t id;
     player_id_t playerId;
     PlayerInput input;
@@ -114,21 +61,62 @@ struct CompareResult {
     }
 };
 
+template <class T>
 class TickManager {
     public:
-        int currentTick;
-        std::vector<GameStateTick> pendingGameStates;
-        std::vector<GameStateTick> arrivedGameStates;
+        tick_id_t currentTick;
+        std::vector<T> pendingGameStates;
+        std::vector<T> arrivedGameStates;
         std::vector<PlayerInputTick> playerInputs;
+
+        virtual void SaveGameTick() = 0;
+        virtual void Rollback(cen::CompareResult compareResult) = 0;
+
+        void AddArrivedGameState(
+            const T& gameStateTick
+        ) {
+            static_assert(std::is_base_of<GameStateTick, T>::value, "T must be derived from GameStateTick");
+
+            // TODO: Refactor to use a circular buffer
+            if (this->arrivedGameStates.size() > 100) {
+                this->arrivedGameStates.erase(this->arrivedGameStates.begin(), this->arrivedGameStates.begin() + 20);
+            }
+
+            this->arrivedGameStates.push_back(gameStateTick);
+        }
+
+        void AddPendingGameState(
+            const T& gameStateTick
+        ) {
+            static_assert(std::is_base_of<GameStateTick, T>::value, "T must be derived from GameStateTick");
+
+            // TODO: Refactor to use a circular buffer
+            if (this->pendingGameStates.size() > 100) {
+                this->pendingGameStates.erase(this->pendingGameStates.begin(), this->pendingGameStates.begin() + 20);
+            }
+
+            this->pendingGameStates.push_back(gameStateTick);
+        }
+
+        void AddPlayerInput(
+            const PlayerInputTick& playerInputTick
+        ) {
+            // TODO: Refactor to use a circular buffer
+            if (this->playerInputs.size() > 100) {
+                this->playerInputs.erase(this->playerInputs.begin(), this->playerInputs.begin() + 20);
+            }
+
+            this->playerInputs.push_back(playerInputTick);
+        }
 
         CompareResult CompareArrivedAndPending() {
             CompareResult result;
 
             for (int i = 0; i < this->arrivedGameStates.size(); i++) {
-                const GameStateTick& arrivedGameStateTick = this->arrivedGameStates[i];
+                const T arrivedGameStateTick = this->arrivedGameStates[i];
                 result.found = false;
                 for (int j = 0; j < this->pendingGameStates.size(); j++) {
-                    const GameStateTick& pendingGameStateTick = this->pendingGameStates[j];
+                    const T pendingGameStateTick = this->pendingGameStates[j];
 
                     if (arrivedGameStateTick.id == pendingGameStateTick.id) {
                         result.found = true;
@@ -153,7 +141,7 @@ class TickManager {
             return result;
         }
 
-        void MergeCorrectGameStateTick(
+        void RemoveValidated(
             CompareResult compareResult
         ) {
             if (compareResult.correctPendingGameStateTickId == -1) {
@@ -169,22 +157,44 @@ class TickManager {
                 }
             }
 
-            // # Merge correct GameStateTick
-            for (int i = 0; i < correctPendingGameStateTickIndex; i++) {
-                if (i + 1 < correctPendingGameStateTickIndex) {
-                    auto& gameStateTick = this->pendingGameStates[i];
-                    auto& nextGameStateTick = this->pendingGameStates[i + 1];
-
-                    nextGameStateTick.add(gameStateTick);
-                }
-            }
-
-            // # Remove merged GameStateTicks
             this->pendingGameStates.erase(
                 this->pendingGameStates.begin(),
                 this->pendingGameStates.begin() + correctPendingGameStateTickIndex
             );
         }
+
+        // void MergeCorrectGameStateTick(
+        //     CompareResult compareResult
+        // ) {
+        //     if (compareResult.correctPendingGameStateTickId == -1) {
+        //         return;
+        //     }
+
+        //     int correctPendingGameStateTickIndex = -1;
+
+        //     for (int i = 0; i < this->pendingGameStates.size(); i++) {
+        //         if (this->pendingGameStates[i].id == compareResult.correctPendingGameStateTickId) {
+        //             correctPendingGameStateTickIndex = i;
+        //             break;
+        //         }
+        //     }
+
+        //     // # Merge correct GameStateTick
+        //     for (int i = 0; i < correctPendingGameStateTickIndex; i++) {
+        //         if (i + 1 < correctPendingGameStateTickIndex) {
+        //             auto& gameStateTick = this->pendingGameStates[i];
+        //             auto& nextGameStateTick = this->pendingGameStates[i + 1];
+
+        //             nextGameStateTick.add(gameStateTick);
+        //         }
+        //     }
+
+        //     // # Remove merged GameStateTicks
+        //     this->pendingGameStates.erase(
+        //         this->pendingGameStates.begin(),
+        //         this->pendingGameStates.begin() + correctPendingGameStateTickIndex
+        //     );
+        // }
 };
 
 }
