@@ -4,16 +4,15 @@
 #include <vector>
 #include "rendering.h"
 #include "node_storage.h"
+#include "collision.h"
 #include "event.h"
 
 namespace cen {
-    class CollisionEngine;
-
     class Scene {
         public:
             Camera2D* camera;
             cen::CollisionEngine* collisionEngine;
-            EventBus eventBus;
+            cen::EventBus eventBus;
             cen::ScreenResolution screen;
             cen::PlayerInput playerInput;
             std::unique_ptr<cen::RenderingEngine2D> renderingEngine;

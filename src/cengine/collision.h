@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "node_2d.h"
+#include "node_storage.h"
 
 namespace cen {
 
