@@ -10,8 +10,6 @@ namespace cen {
 
 // # Node Id Manager
 
-typedef uint64_t node_id_t;
-
 class NodeIdGenerator {
 public:
     NodeIdGenerator(const NodeIdGenerator&) = delete;

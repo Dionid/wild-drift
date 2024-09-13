@@ -72,6 +72,9 @@ void gameLoopPipeline(
     // # Node Storage
     ctx->scene->node_storage->Init();
 
+    // # Tick Manager
+    cen::TickManager tickManager;
+
     // # Main Loop
     const int targetFPS = 60;
     const int fixedUpdateRate = 40;
@@ -86,8 +89,13 @@ void gameLoopPipeline(
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        tickManager.currentTick++;
+
         // # Start
         auto frameStart = std::chrono::high_resolution_clock::now();
+
+        // TODO: # Input
+        // ...
 
         // # Update
         ctx->scene->node_storage->InitNewNodes(ctx);
@@ -100,6 +108,46 @@ void gameLoopPipeline(
 
         int fixedUpdateCycles = 0;
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+            // # Reconcile GameStateTick
+
+            // ## Take arrived GameStateTick and check if they are correct
+            const auto& compareResult = tickManager.CompareArrivedAndPending();
+
+            // ## Merge correct GameStateTick
+            tickManager.MergeCorrectGameStateTick(compareResult);
+
+            // ## Rollback to incorrect - 1 GameStateTick, canceling one by one
+            if (compareResult.incorrectPendingGameStateTickId != -1) {
+                int incorrectPendingGameStateTickIndex = -1;
+
+                for (int i = 0; i < tickManager.pendingGameStates.size(); i++) {
+                    if (tickManager.pendingGameStates[i].id == compareResult.incorrectPendingGameStateTickId) {
+                        incorrectPendingGameStateTickIndex = i;
+                        break;
+                    }
+                }
+
+                if (incorrectPendingGameStateTickIndex == -1) {
+                    std::cout << "Incorrect GameStateTick not found" << std::endl;
+                }
+
+                for (int i = tickManager.pendingGameStates.size() - 1; i >= incorrectPendingGameStateTickIndex; i--) {
+                    // TODO: Rollback
+                    // ...
+                }
+
+                tickManager.pendingGameStates.erase(
+                    tickManager.pendingGameStates.begin() + incorrectPendingGameStateTickIndex,
+                    tickManager.pendingGameStates.end()
+                );
+            }
+
+            // TODO: ## Apply correct GameTick
+            // ...
+
+            // TODO: ## Simulate new GameTicks using PlayerInputTicks
+            // ...
+
             // # Invalidate previous
             for (const auto& node: ctx->scene->node_storage->rootNodes) {
                 node->TraverseInvalidatePrevious();
@@ -114,6 +162,9 @@ void gameLoopPipeline(
 
             accumulatedFixedTime -= targetFixedUpdateTime;
             fixedUpdateCycles++;
+
+            // TODO: Save new GameStateTick and PlayerInputTick
+            // ...
         }
 
         // # Initial
@@ -125,7 +176,6 @@ void gameLoopPipeline(
         for (const auto& topic: ctx->scene->topics) {
             topic->flush();
         }
-
         ctx->scene->eventBus.flush(ctx);
 
         // # Map GameState to RendererState
@@ -210,19 +260,20 @@ int main() {
 
     cen::MultiplayerManager multiplayerManager;
 
-    bool isServer;
-    std::cout << "Are you the server? (1/0): ";
-    std::cin >> isServer;
-
     // # Game Loop Thread
     std::vector<std::thread> threads;
 
     threads.push_back(std::thread(gameLoopPipeline, &ctx, &gameAudio));
-    if (isServer) {
-        threads.push_back(std::thread(multiplayerServerPipeline, &multiplayerManager));
-    } else {
-        threads.push_back(std::thread(multiplayerClientPipeline, &multiplayerManager));
-    }
+
+    // # Server Thread
+    // bool isServer;
+    // std::cout << "Are you the server? (1/0): ";
+    // std::cin >> isServer;
+    // if (isServer) {
+    //     threads.push_back(std::thread(multiplayerServerPipeline, &multiplayerManager));
+    // } else {
+    //     threads.push_back(std::thread(multiplayerClientPipeline, &multiplayerManager));
+    // }
 
     // # Render Loop Thread
     renderingPipeline(scene.renderingEngine.get(), &debugger);

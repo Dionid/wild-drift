@@ -8,42 +8,8 @@
 
 namespace cen {
 
-// # Shared pointers
-
-class MultipleInheritableEnableSharedFromThis: public std::enable_shared_from_this<MultipleInheritableEnableSharedFromThis>
-{
-public:
-  virtual ~MultipleInheritableEnableSharedFromThis()
-  {}
-};
-
-template <typename T>
-class enable_shared_from_base
-  : public MultipleInheritableEnableSharedFromThis
-{
-public:
-    std::shared_ptr<T> shared_from_this() {
-        return std::dynamic_pointer_cast<T>(MultipleInheritableEnableSharedFromThis::shared_from_this());
-    }
-
-    template <class Down>
-    std::shared_ptr<Down> downcasted_shared_from_this() {
-        return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::shared_from_this());
-    }
-
-    std::weak_ptr<T> weak_from_this() {
-        if (auto shared = MultipleInheritableEnableSharedFromThis::shared_from_this()) {
-            return std::dynamic_pointer_cast<T>(shared);
-        }
-
-        return std::weak_ptr<T>();
-    }
-
-    template <class Down>
-    std::weak_ptr<Down> downcasted_weak_from_this() {
-        return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::weak_from_this());
-    }
-};
+// # Id Types
+typedef uint64_t node_id_t;
 
 // # Constants
 

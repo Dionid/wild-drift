@@ -19,5 +19,6 @@
 #include "character_body_node_2d.h"
 #include "debug.h"
 #include "multiplayer.h"
+#include "tick.h"
 
 #endif // CENGINE_H_

@@ -20,7 +20,7 @@ class NetworkMessageItem {
         virtual void Deserialize() = 0;
 };
 
-class PlayerInput: public NetworkMessageItem {
+class NetworkPlayerInput: public NetworkMessageItem {
     public:
         bool isLeft;
         bool isRight;
@@ -75,7 +75,7 @@ class NetworkMessage: public NetworkMessageItem {
 
 class MultiplayerManager {
     public:
-        std::unordered_map<int, PlayerInput> otherPlayersInputStorage;
+        std::unordered_map<int, NetworkPlayerInput> otherPlayersInputStorage;
         cen::NodeStorage* nodeStorage;
         int tick;
     
