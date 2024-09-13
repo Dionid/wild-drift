@@ -7,7 +7,6 @@
 #include <iostream>
 #include "raylib.h"
 #include "enet/enet.h"
-#include "game_context.h"
 #include "node_storage.h"
 
 namespace cen {

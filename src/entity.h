@@ -27,8 +27,8 @@ class Paddle: public cen::CharacterBody2D {
         void ApplyFriction();
         void ApplyWorldBoundaries(float worldWidth, float worldHeight);
 
-        void Move(cen::GameContext* ctx, int directionX, int directionY);
-        virtual void ApplyFieldBoundaries(cen::GameContext* ctx) = 0;
+        void Move(int directionX, int directionY);
+        virtual void ApplyFieldBoundaries() = 0;
 };
 
 // # Player
@@ -48,9 +48,9 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        void FixedUpdate(cen::GameContext* ctx) override;
-        void Init(cen::GameContext* ctx) override;
-        void ApplyFieldBoundaries(cen::GameContext* ctx) override;
+        void FixedUpdate() override;
+        void Init() override;
+        void ApplyFieldBoundaries() override;
 };
 
 // # Ball
@@ -75,8 +75,8 @@ class Ball: public cen::CharacterBody2D {
             float maxVelocity
         );
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
+        void Init() override;
+        void FixedUpdate() override;
         void OnCollision(cen::Collision c) override;
         void OnCollisionStarted(cen::Collision c) override;
 };
@@ -102,9 +102,9 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
-        void ApplyFieldBoundaries(cen::GameContext* ctx) override;
+        void Init() override;
+        void FixedUpdate() override;
+        void ApplyFieldBoundaries() override;
 };
 
 // # Goal
@@ -126,7 +126,7 @@ class Goal: public cen::CollisionObject2D {
             cen::Size size
         );
 
-        void Init(cen::GameContext* ctx) override;
+        void Init() override;
 };
 
 struct StartEvent: public cen::Event {

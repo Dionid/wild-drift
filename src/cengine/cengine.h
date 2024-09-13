@@ -5,7 +5,6 @@
 #include <raymath.h>
 #include "core.h"
 #include "scene.h"
-#include "game_context.h"
 #include "event.h"
 #include "node.h"
 #include "timer.h"

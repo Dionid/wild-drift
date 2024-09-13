@@ -11,7 +11,6 @@
 #include "node.h"
 #include "view.h"
 #include "gui.h"
-#include "game_context.h"
 #include "node_storage.h"
 #include "debug.h"
 

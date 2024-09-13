@@ -17,7 +17,7 @@ class LaunchBallTimer: public cen::Timer {
             cen::Node* parent
         );
 
-        void OnTimerEnd(cen::GameContext* ctx) override;
+        void OnTimerEnd() override;
 };
 
 class MatchManager: public cen::Node2D {
@@ -29,27 +29,27 @@ class MatchManager: public cen::Node2D {
         int playerScore;
         int enemyScore;
         int winScore;
-        std::function<void(cen::GameContext*)> onEnd;
+        std::function<void()> onEnd;
         LaunchBallTimer* launchBallTimer;
         cen::TextView* playerScoreText;
         cen::TextView* enemyScoreText;
 
         MatchManager(
             SpcAudio* gameAudio,
-            std::function<void(cen::GameContext*)> onEnd,
+            std::function<void()> onEnd,
             int winScore = 3,
             int playerScore = 0,
             int enemyScore = 0
         );
 
-        void Reset(cen::GameContext* ctx);
+        void Reset();
 
-        void PlayerScored(cen::GameContext* ctx);
-        void EnemyScored(cen::GameContext* ctx);
-        void ResetEntities(cen::GameContext* ctx);
+        void PlayerScored();
+        void EnemyScored();
+        void ResetEntities();
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
+        void Init() override;
+        void FixedUpdate() override;
 };
 
 #endif // CSP_MATCH_H_

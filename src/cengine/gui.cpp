@@ -33,7 +33,7 @@ Btn::Btn(
     };
 };
 
-void Btn::Update(cen::GameContext* ctx) {
+void Btn::Update() {
     state = BtnState::Normal;
 
     Vector2 mousePoint = GetMousePosition();
@@ -47,7 +47,7 @@ void Btn::Update(cen::GameContext* ctx) {
             state = BtnState::Pressing;
         } else if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
             if (this->callbacks.onClick != nullptr) {
-                this->callbacks.onClick(ctx, this);
+                this->callbacks.onClick(this);
             }
         }
     }

@@ -2,19 +2,19 @@
 #include "menus.h"
 
 MainMenu::MainMenu(
-    std::function<void(cen::GameContext*)> onStart
+    std::function<void()> onStart
 ): cen::Node2D(Vector2{}) {
     this->onStart = onStart;
 }
 
-void MainMenu::Init(cen::GameContext* ctx) {
+void MainMenu::Init() {
     this->AddNode(
         std::make_unique<cen::Btn>(
             start,
             btnFontSize,
             Vector2{
-                ctx->worldWidth / 2,
-                ctx->worldHeight / 2 + 50
+                this->scene->screen.width / 2.0f,
+                this->scene->screen.height / 2.0f + 50.0f
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
@@ -22,9 +22,9 @@ void MainMenu::Init(cen::GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, cen::Btn* btn) {
+                [this](cen::Btn* btn) {
                     if (this->onStart) {
-                        this->onStart(ctx);
+                        this->onStart();
                     }
                 }
             )
@@ -34,8 +34,8 @@ void MainMenu::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::TextView>(
             Vector2{
-                ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
-                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
             },
             title,
             titleFontSize,
@@ -47,21 +47,21 @@ void MainMenu::Init(cen::GameContext* ctx) {
 // # MatchEndMenu
 
 MatchEndMenu::MatchEndMenu(
-    std::function<void(cen::GameContext*)> onRestart,
+    std::function<void()> onRestart,
     bool playerWon
 ): cen::Node2D(Vector2{}) {
     this->onRestart = onRestart;
     this->playerWon = playerWon;
 }
 
-void MatchEndMenu::Init(cen::GameContext* ctx) {
+void MatchEndMenu::Init() {
     this->AddNode(
         std::make_unique<cen::Btn>(
             "Play again",
             btnFontSize,
             Vector2{
-                ctx->worldWidth / 2,
-                ctx->worldHeight / 2 + 50
+                this->scene->screen.width / 2.0f,
+                this->scene->screen.height / 2.0f + 50.0f
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
@@ -69,9 +69,9 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, cen::Btn* btn) {
+                [this](cen::Btn* btn) {
                     if (this->onRestart) {
-                        this->onRestart(ctx);
+                        this->onRestart();
                     }
                 }
             )
@@ -81,8 +81,8 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
     titleView = this->AddNode(
         std::make_unique<cen::TextView>(
             Vector2{
-                ctx->worldWidth / 2 - MeasureText("YOU WON", titleFontSize) / 2,
-                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+                this->scene->screen.width / 2.0f - MeasureText("YOU WON", titleFontSize) / 2.0f,
+                this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
             },
             "YOU WON",
             titleFontSize,
@@ -91,11 +91,11 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
     );
 }
 
-void MatchEndMenu::SetPlayerWon(cen::GameContext* ctx, bool playerWon) {
+void MatchEndMenu::SetPlayerWon(bool playerWon) {
     this->playerWon = playerWon;
     titleView->text = playerWon ? "YOU WON" : "YOU LOST";
     titleView->position = Vector2{
-        ctx->worldWidth / 2 - MeasureText(titleView->text.c_str(), titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30
+        this->scene->screen.width / 2.0f - MeasureText(titleView->text.c_str(), titleFontSize) / 2.0f,
+        this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
     };
 }

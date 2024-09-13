@@ -11,44 +11,44 @@
 #include "game_tick.h"
 
 void simulationTick(
-    cen::GameContext* ctx
+    cen::Scene* scene
 ) {
     // # Game Logic
     // ## Invalidate previous
-    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
+    for (const auto& node: scene->nodeStorage->rootNodes) {
         node->TraverseInvalidatePrevious();
     }
 
     // ## Fixed Update
-    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
-        node->TraverseFixedUpdate(ctx);
+    for (const auto& node: scene->nodeStorage->rootNodes) {
+        node->TraverseFixedUpdate();
     }
 
     // ## Collision
-    ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx->scene->nodeStorage.get());
+    scene->collisionEngine->NarrowCollisionCheckNaive(scene->nodeStorage.get());
 }
 
 void simulationPipeline(
-    cen::GameContext* ctx,
+    cen::Scene* scene,
     SpcAudio* gameAudio
 ) {
     // # Scene init
 
     // ## MatchEndMenu
-    auto matchEndMenu = ctx->scene->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
-        [&](cen::GameContext* ctx) {
-            ctx->scene->eventBus.emit(RestartEvent());
+    auto matchEndMenu = scene->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
+        [&]() {
+            scene->eventBus.emit(RestartEvent());
         }
     ));
 
     matchEndMenu->Deactivate();
 
     // ## Match
-    MatchManager* matchManager = ctx->scene->nodeStorage->AddNode(std::make_unique<MatchManager>(
+    MatchManager* matchManager = scene->nodeStorage->AddNode(std::make_unique<MatchManager>(
         gameAudio,
-        [&](cen::GameContext* ctx) {
+        [&]() {
             matchManager->Deactivate();
-            matchEndMenu->SetPlayerWon(ctx, matchManager->playerScore > matchManager->enemyScore);
+            matchEndMenu->SetPlayerWon(matchManager->playerScore > matchManager->enemyScore);
             matchEndMenu->Activate();
             EnableCursor();
         }
@@ -57,43 +57,43 @@ void simulationPipeline(
     matchManager->Deactivate();
 
     // ## MainMenu
-    MainMenu* mainMenu = ctx->scene->nodeStorage->AddNode(std::make_unique<MainMenu>(
-        [&](cen::GameContext* ctx) {
-            ctx->scene->eventBus.emit(StartEvent());
+    MainMenu* mainMenu = scene->nodeStorage->AddNode(std::make_unique<MainMenu>(
+        [&]() {
+            scene->eventBus.emit(StartEvent());
         }
     ));
 
     auto ose = cen::EventListener(
-        [&](cen::GameContext* ctx, const cen::Event& event) {
+        [&](const cen::Event& event) {
             PlaySound(gameAudio->start);
             mainMenu->Deactivate();
             matchEndMenu->Deactivate();
-            matchManager->Reset(ctx);
+            matchManager->Reset();
             matchManager->Activate();
             DisableCursor();
         }
     );
 
-    ctx->scene->eventBus.on(
+    scene->eventBus.on(
         StartEvent{},
         &ose
     );
 
-    ctx->scene->eventBus.on(
+    scene->eventBus.on(
         RestartEvent{},
         &ose
     );
 
     // ## Init Nodes
-    for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
-        node->TraverseInit(ctx);
+    for (const auto& node: scene->nodeStorage->rootNodes) {
+        node->TraverseInit();
     }
 
     // ## Node Storage
-    ctx->scene->nodeStorage->Init();
+    scene->nodeStorage->Init();
 
     // ## Tick Manager
-    SpcGameTickManager tickManager = SpcGameTickManager(ctx->scene->nodeStorage.get());
+    SpcGameTickManager tickManager = SpcGameTickManager(scene->nodeStorage.get());
 
     // ## Main Loop
     const int targetFPS = 60;
@@ -123,7 +123,7 @@ void simulationPipeline(
         };
 
         // # Update
-        ctx->scene->nodeStorage->InitNewNodes(ctx);
+        scene->nodeStorage->InitNewNodes();
 
         // # Fixed update
         auto now = std::chrono::high_resolution_clock::now();
@@ -148,16 +148,16 @@ void simulationPipeline(
 
                 // ## Simulate new GameTicks using PlayerInputTicks
                 for (const auto& playerInputTick: tickManager.playerInputTicks) {
-                    ctx->playerInput = playerInputTick.input;
-                    simulationTick(ctx);
-                    tickManager.SaveGameTick(ctx->playerInput);
+                    // ctx->playerInput = playerInputTick.input;
+                    scene->playerInput = playerInputTick.input;
+                    simulationTick(scene);
+                    // tickManager.SaveGameTick(ctx->playerInput);
                 }
             }
 
             // # Simulation current Tick
-            ctx->playerInput = currentPlayerInput;
-            simulationTick(ctx);
-            tickManager.SaveGameTick(ctx->playerInput);
+            scene->playerInput = currentPlayerInput;
+            simulationTick(scene);
 
             // ## Correct time and cycles
             accumulatedFixedTime -= targetFixedUpdateTime;
@@ -165,22 +165,22 @@ void simulationPipeline(
         }
 
         // # Initial
-        for (const auto& node: ctx->scene->nodeStorage->rootNodes) {
-            node->TraverseUpdate(ctx);
+        for (const auto& node: scene->nodeStorage->rootNodes) {
+            node->TraverseUpdate();
         }
 
         // # Flush events
-        for (const auto& topic: ctx->scene->topics) {
+        for (const auto& topic: scene->topics) {
             topic->flush();
         }
 
-        ctx->scene->eventBus.flush(ctx);
+        scene->eventBus.flush();
 
         // # Map GameState to RendererState
         auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
 
-        ctx->scene->renderingEngine->SyncRenderBuffer(
-            ctx->scene->nodeStorage.get(),
+        scene->renderingEngine->SyncRenderBuffer(
+            scene->nodeStorage.get(),
             alpha
         );
 
@@ -246,25 +246,16 @@ int main() {
 
     cen::Scene scene = cen::Scene(
         &camera,
-        &collisionEngine
+        &collisionEngine,
+        cen::ScreenResolution{screenWidth, screenHeight}
     );
-
-    // # Game Context
-    auto input = cen::PlayerInput{};
-
-    cen::GameContext ctx = {
-        &scene,
-        input,
-        screenWidth,
-        screenHeight
-    };
 
     cen::MultiplayerManager multiplayerManager;
 
     // # Game Loop Thread
     std::vector<std::thread> threads;
 
-    threads.push_back(std::thread(simulationPipeline, &ctx, &gameAudio));
+    threads.push_back(std::thread(simulationPipeline, &scene, &gameAudio));
 
     // # Server Thread
     // bool isServer;

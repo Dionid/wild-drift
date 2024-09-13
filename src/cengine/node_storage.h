@@ -12,8 +12,11 @@ enum class NodeStorageState {
     INITIALIZED
 };
 
+class Scene;
+
 class NodeStorage {
     public:
+        Scene* scene;
         std::vector<std::unique_ptr<Node>> rootNodes;
         std::vector<Node*> flatNodes;
         std::vector<Node*> newNodes;
@@ -22,8 +25,10 @@ class NodeStorage {
         NodeStorageState state = NodeStorageState::CREATED;
 
         NodeStorage(
+            Scene* scene = nullptr,
             uint64_t nextId = 0
         ) {
+            this->scene = scene;
             this->nextId = nextId;
         }
 
@@ -45,23 +50,24 @@ class NodeStorage {
             }
         }
 
-        void InitNewNodes(cen::GameContext* ctx) {
+        void InitNewNodes() {
             for (auto i = 0; i < this->newNodes.size(); i++) {
-                this->newNodes[i]->Init(ctx);
+                this->newNodes[i]->Init();
             }
  
             this->newNodes.clear();
         }
 
         template <typename T>
-        T* AddNode(std::unique_ptr<T> node) {
+        T* AddNode(std::unique_ptr<T> newNode) {
             static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
-            node->storage = this;
-            T* nPtr = node.get();
+            newNode->storage = this;
+            newNode->scene = this->scene;
+            T* nPtr = newNode.get();
             if (nPtr->id == 0) {
                 nPtr->id = NodeIdGenerator::GetInstance().GetNextId();
             }
-            this->rootNodes.push_back(std::move(node));
+            this->rootNodes.push_back(std::move(newNode));
             this->flatNodes.push_back(nPtr);
             if (this->state == NodeStorageState::INITIALIZED) {
                 this->newNodes.push_back(nPtr);

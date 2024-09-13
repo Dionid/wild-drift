@@ -20,7 +20,7 @@ class Timer: public Node {
             this->duration = duration;
         }
 
-        void Init(cen::GameContext* ctx) override {
+        void Init() override {
             this->createdAt = GetTime();
         }
 
@@ -29,11 +29,11 @@ class Timer: public Node {
             this->Activate();
         }
 
-        virtual void OnTimerEnd(cen::GameContext* ctx) = 0;
+        virtual void OnTimerEnd() = 0;
 
-        void Update(cen::GameContext* ctx) override {
+        void Update() override {
             if (GetTime() - this->createdAt >= this->duration / 1000.0f) {
-                this->OnTimerEnd(ctx);
+                this->OnTimerEnd();
                 this->Deactivate();
             }
         }

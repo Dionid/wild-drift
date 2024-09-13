@@ -52,7 +52,6 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
 };
 
 void Paddle::Move(
-    cen::GameContext* ctx,
     int directionX,
     int directionY
 ) {
@@ -75,10 +74,10 @@ void Paddle::Move(
     this->ApplyFriction();
 
     // # Field boundaries
-    this->ApplyFieldBoundaries(ctx);
+    this->ApplyFieldBoundaries();
 
     // # World Boundaries
-    this->ApplyWorldBoundaries(ctx->worldWidth, ctx->worldHeight);
+    this->ApplyWorldBoundaries(this->scene->screen.width, this->scene->screen.height);
 
     // # Velocity -> Position
     this->ApplyVelocityToPosition();
@@ -97,7 +96,7 @@ Player::Player(
 
 const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Player::Init(cen::GameContext* ctx) {
+void Player::Init() {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
@@ -114,21 +113,20 @@ void Player::Init(cen::GameContext* ctx) {
     );
 };
 
-void Player::ApplyFieldBoundaries(cen::GameContext* ctx) {
-    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
-        this->position.x = ctx->worldWidth/2 - this->size.width/2;
+void Player::ApplyFieldBoundaries() {
+    if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
+        this->position.x = this->scene->screen.width/2 - this->size.width/2;
         this->velocity.x = 0;
     }
 }
 
 // # Player Update function
-void Player::FixedUpdate(cen::GameContext* ctx) {
+void Player::FixedUpdate() {
     // # Calc velocity
-    auto directionY = ctx->playerInput.down - ctx->playerInput.up;
-    auto directionX = ctx->playerInput.right - ctx->playerInput.left;
+    auto directionY = this->scene->playerInput.down - this->scene->playerInput.up;
+    auto directionX = this->scene->playerInput.right - this->scene->playerInput.left;
 
     this->Move(
-        ctx,
         directionX,
         directionY
     );
@@ -151,7 +149,7 @@ Ball::Ball(
 
 const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Ball::Init(cen::GameContext* ctx) {
+void Ball::Init() {
     this->AddNode(
         std::make_unique<cen::CircleView>(
             this->radius
@@ -207,9 +205,9 @@ void Ball::OnCollision(cen::Collision collision) {
     );
 };
 
-void Ball::FixedUpdate(cen::GameContext* ctx) {
-    auto worldWidth = ctx->worldWidth;
-    auto worldHeight = ctx->worldHeight;
+void Ball::FixedUpdate() {
+    auto worldWidth = this->scene->screen.width;
+    auto worldHeight = this->scene->screen.height;
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -252,7 +250,7 @@ Enemy::Enemy(
     this->ballId = ballId;
 };
 
-void Enemy::Init(cen::GameContext* ctx) {
+void Enemy::Init() {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
@@ -268,21 +266,21 @@ void Enemy::Init(cen::GameContext* ctx) {
     );
 }
 
-void Enemy::ApplyFieldBoundaries(cen::GameContext* ctx) {
-    if (this->position.x - this->size.width/2 < ctx->worldWidth/2) {
-        this->position.x = ctx->worldWidth/2 + this->size.width/2;
+void Enemy::ApplyFieldBoundaries() {
+    if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
+        this->position.x = this->scene->screen.width/2 + this->size.width/2;
         this->velocity.x = 0;
     }
 }
 
-void Enemy::FixedUpdate(cen::GameContext* ctx) {
-    auto worldWidth = ctx->worldWidth;
-    auto worldHeight = ctx->worldHeight;
+void Enemy::FixedUpdate() {
+    auto worldWidth = this->scene->screen.width;
+    auto worldHeight = this->scene->screen.height;
 
     float directionX = 0;
     float directionY = 0;
 
-    auto ball = ctx->scene->nodeStorage->GetById<Ball>(this->ballId);
+    auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
 
     // # AI
     if (ball != nullptr) {
@@ -305,7 +303,6 @@ void Enemy::FixedUpdate(cen::GameContext* ctx) {
     }
 
     this->Move(
-        ctx,
         directionX,
         directionY
     );
@@ -326,7 +323,7 @@ Goal::Goal(
     this->position = position;
 };
 
-void Goal::Init(cen::GameContext* ctx) {
+void Goal::Init() {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,

@@ -6,7 +6,6 @@
 #include <vector>
 #include <memory>
 #include <functional>
-#include "game_context.h"
 
 namespace cen {
     struct Event {
@@ -56,10 +55,10 @@ namespace cen {
 
     struct EventListener {
         int id;
-        std::function<void(cen::GameContext*, const Event&)> OnEvent;
+        std::function<void(const Event&)> OnEvent;
 
         EventListener(
-            std::function<void(cen::GameContext*, const Event&)> OnEvent,
+            std::function<void(const Event&)> OnEvent,
             int id = 0
         ): id(id), OnEvent(OnEvent) {}
     };
@@ -110,11 +109,11 @@ namespace cen {
                 );
             }
 
-            void flush(cen::GameContext* ctx) {
+            void flush() {
                 for (auto& event : this->events) {
                     auto listenersVec = this->listeners[event.name];
                     for (auto& listener : listenersVec) {
-                        listener->OnEvent(ctx, event);
+                        listener->OnEvent(event);
                     }
                 }
                 this->events.clear();

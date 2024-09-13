@@ -42,6 +42,13 @@ struct Size {
     float height;
 };
 
+// # World
+
+struct ScreenResolution {
+    int width;
+    int height;
+};
+
 // # Custom RTTI
 typedef uint64_t type_id_t;
 

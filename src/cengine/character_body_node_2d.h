@@ -48,7 +48,7 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         void MoveAndSlide(
-            cen::GameContext* ctx
+            
         ) {
             if (this->velocity.x == 0 && this->velocity.y == 0) {
                 return;
@@ -76,7 +76,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->nodeStorage->rootNodes) {
+                for (const auto& otherNode: this->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
@@ -149,7 +149,7 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         std::vector<Collision> MoveAndCollide(
-            cen::GameContext* ctx
+            
         ) {
             std::vector<Collision> collisions;
 
@@ -175,7 +175,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->nodeStorage->rootNodes) {
+                for (const auto& otherNode: this->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
