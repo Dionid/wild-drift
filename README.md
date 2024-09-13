@@ -12,6 +12,7 @@
     1. Animations
     1. AssetsLoader threads
     1. Game Speed
+    1. Sprites
     1. Dialogs
 1. Improvements
     1. ? pThreads

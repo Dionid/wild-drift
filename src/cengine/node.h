@@ -7,8 +7,6 @@
 
 namespace cen {
 
-// # Node Id Manager
-
 class Scene;
 
 class NodeIdGenerator {

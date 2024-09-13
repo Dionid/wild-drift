@@ -33,11 +33,10 @@ void simulationPipeline(
     SpcAudio* gameAudio
 ) {
     // # Scene init
-
     // ## MatchEndMenu
     auto matchEndMenu = scene->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
         [&]() {
-            scene->eventBus.emit(RestartEvent());
+            scene->eventBus->emit(RestartEvent());
         }
     ));
 
@@ -59,7 +58,7 @@ void simulationPipeline(
     // ## MainMenu
     MainMenu* mainMenu = scene->nodeStorage->AddNode(std::make_unique<MainMenu>(
         [&]() {
-            scene->eventBus.emit(StartEvent());
+            scene->eventBus->emit(StartEvent());
         }
     ));
 
@@ -74,12 +73,12 @@ void simulationPipeline(
         }
     );
 
-    scene->eventBus.on(
+    scene->eventBus->on(
         StartEvent{},
         &ose
     );
 
-    scene->eventBus.on(
+    scene->eventBus->on(
         RestartEvent{},
         &ose
     );
@@ -174,7 +173,7 @@ void simulationPipeline(
             topic->flush();
         }
 
-        scene->eventBus.flush();
+        scene->eventBus->flush();
 
         // # Map GameState to RendererState
         auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
@@ -190,8 +189,8 @@ void simulationPipeline(
     }
 };
 
-void renderingPipeline(cen::RenderingEngine2D* renderingEngine, cen::Debugger* debugger) {
-    renderingEngine->runPipeline(debugger);
+void renderingPipeline(cen::Scene* scene) {
+    scene->renderingEngine->runPipeline(&scene->debugger);
 }
 
 int multiplayerServerPipeline(cen::MultiplayerManager* multiplayerManager) {
@@ -210,8 +209,6 @@ int main() {
     InitWindow(screenWidth, screenHeight, "super pong");
     EnableCursor();
     SetTargetFPS(FPS);
-
-    cen::Debugger debugger;
 
     // # Camera
     Camera2D camera = { 0 };
@@ -245,9 +242,9 @@ int main() {
     cen::CollisionEngine collisionEngine;
 
     cen::Scene scene = cen::Scene(
+        cen::ScreenResolution{screenWidth, screenHeight},
         &camera,
-        &collisionEngine,
-        cen::ScreenResolution{screenWidth, screenHeight}
+        cen::Debugger{}
     );
 
     cen::MultiplayerManager multiplayerManager;
@@ -268,7 +265,7 @@ int main() {
     // }
 
     // # Render Loop Thread
-    renderingPipeline(scene.renderingEngine.get(), &debugger);
+    renderingPipeline(&scene);
 
     // # Exit
     // ## Join threads after stop signal
