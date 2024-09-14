@@ -7,6 +7,7 @@
 #include "collision.h"
 #include "event.h"
 #include "debug.h"
+#include "tick.h"
 
 namespace cen {
     class Scene {
@@ -24,7 +25,7 @@ namespace cen {
             Scene(
                 cen::ScreenResolution screen,
                 Camera2D* camera,
-                cen::Debugger debugger,
+                cen::Debugger debugger = cen::Debugger{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
                 std::unique_ptr<RenderingEngine2D> renderingEngine = std::make_unique<RenderingEngine2D>(),
@@ -35,6 +36,7 @@ namespace cen {
                 this->screen = screen;
                 this->camera = camera;
                 this->debugger = debugger;
+                this->playerInput = playerInput;
                 this->collisionEngine = std::move(collisionEngine);
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;

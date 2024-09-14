@@ -12,21 +12,6 @@ namespace cen {
 typedef uint64_t node_id_t;
 typedef node_id_t player_id_t;
 
-// # Input
-struct PlayerInput {
-    bool up;
-    bool down;
-    bool left;
-    bool right;
-
-    bool compare(const PlayerInput& other) const {
-        return this->up == other.up &&
-            this->down == other.down &&
-            this->left == other.left &&
-            this->right == other.right;
-    }
-};
-
 // # Math
 constexpr Vector2 Vector2Up {0, -1};
 constexpr Vector2 Vector2Down {0, 1};
@@ -93,6 +78,21 @@ template<typename T>
 static int getTypeId(T* value) {
     return TypeTag<T>::id;
 }
+
+// # Input
+struct PlayerInput {
+    bool up;
+    bool down;
+    bool left;
+    bool right;
+
+    bool compare(const PlayerInput& other) const {
+        return this->up == other.up &&
+            this->down == other.down &&
+            this->left == other.left &&
+            this->right == other.right;
+    }
+};
 
 }
 

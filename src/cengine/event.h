@@ -65,7 +65,7 @@ namespace cen {
 
     class EventBus {
         public:
-            std::unordered_map<std::string, std::vector<EventListener*>> listeners;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>> listeners;
             std::vector<Event> events;
             int nextEventListenerId = 0;
 
@@ -75,24 +75,16 @@ namespace cen {
 
             void on(
                 const Event& event,
-                EventListener* listener
+                std::unique_ptr<EventListener> listener
             ) {
-                this->listeners[event.name].push_back(listener);
                 if (listener->id == 0) {
                     listener->id = this->nextId();
                 }
+                this->listeners[event.name].push_back(std::move(listener));
             }
 
             void emit(const Event& event) {
                 this->events.push_back(event);
-            }
-
-            void off(const Event& event, EventListener* listener) {
-                auto& listenersVec = this->listeners[event.name];
-                listenersVec.erase(
-                    std::remove(listenersVec.begin(), listenersVec.end(), listener),
-                    listenersVec.end()
-                );
             }
 
             void offById(const Event& event, int listenerId) {
@@ -101,7 +93,7 @@ namespace cen {
                     std::remove_if(
                         listenersVec.begin(),
                         listenersVec.end(),
-                        [listenerId](EventListener* l) {
+                        [listenerId](const std::unique_ptr<EventListener>& l) {
                             return l->id == listenerId;
                         }
                     ),
@@ -111,8 +103,8 @@ namespace cen {
 
             void flush() {
                 for (auto& event : this->events) {
-                    auto listenersVec = this->listeners[event.name];
-                    for (auto& listener : listenersVec) {
+                    std::vector<std::unique_ptr<EventListener>>& listenersVec = this->listeners[event.name];
+                    for (const auto& listener : listenersVec) {
                         listener->OnEvent(event);
                     }
                 }

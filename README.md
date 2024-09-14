@@ -9,6 +9,7 @@
 1. New features
     1. Debug as flag
     1. Settings
+    1. Capsule Collider
     1. Animations
     1. AssetsLoader threads
     1. Game Speed
