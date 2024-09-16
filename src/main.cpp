@@ -11,29 +11,19 @@
 #include "game_tick.h"
 #include "scene.h"
 
-void simulationTick(
-    cen::Scene* scene
-) {
-    // # Game Logic
-    // ## Invalidate previous
-    for (const auto& node: scene->nodeStorage->rootNodes) {
-        node->TraverseInvalidatePrevious();
-    }
-
-    // ## Fixed Update
-    for (const auto& node: scene->nodeStorage->rootNodes) {
-        node->TraverseFixedUpdate();
-    }
-
-    // ## Collision
-    scene->collisionEngine->NarrowCollisionCheckNaive(scene->nodeStorage.get());
-}
-
 void simulationPipeline(
     MainScene* scene
 ) {
     // # Init scene
     scene->Init();
+
+    // ## Init Nodes
+    for (const auto& node: scene->nodeStorage->rootNodes) {
+        node->TraverseInit();
+    }
+
+    // ## Node Storage
+    scene->nodeStorage->Init();
 
     // ## Tick Manager
     SpcGameTickManager tickManager = SpcGameTickManager(scene->nodeStorage.get());
@@ -52,6 +42,7 @@ void simulationPipeline(
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        // # Tick
         tickManager.currentTick++;
 
         // # Start
@@ -92,14 +83,14 @@ void simulationPipeline(
                 // ## Simulate new GameTicks using PlayerInputTicks
                 for (const auto& playerInputTick: tickManager.playerInputTicks) {
                     scene->playerInput = playerInputTick.input;
-                    simulationTick(scene);
+                    scene->SimulationTick();
                     tickManager.SaveGameTick(scene->playerInput);
                 }
             }
 
             // # Simulation current Tick
             scene->playerInput = currentPlayerInput;
-            simulationTick(scene);
+            scene->SimulationTick();
             tickManager.SaveGameTick(scene->playerInput);
 
             // ## Correct time and cycles

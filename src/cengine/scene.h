@@ -57,6 +57,24 @@ namespace cen {
 
                 return topicPtr;
             }
+
+            void SimulationTick() {
+                // # Game Logic
+                // ## Invalidate previous
+                for (const auto& node: this->nodeStorage->rootNodes) {
+                    node->TraverseInvalidatePrevious();
+                }
+
+                // ## Fixed Update
+                for (const auto& node: this->nodeStorage->rootNodes) {
+                    node->TraverseFixedUpdate();
+                }
+
+                // ## Collision
+                this->collisionEngine->NarrowCollisionCheckNaive(this->nodeStorage.get());
+            }
+
+            virtual void Init() {};
     };
 }
 

@@ -46,6 +46,12 @@
 
 1. [VSCode CLang](https://code.visualstudio.com/docs/cpp/config-clang-mac)
 1. [Unity Execution Order](https://docs.unity3d.com/Manual/ExecutionOrder.html)
+1. Multiplayer
+    1. [Networking Physics (+ description links)](https://www.youtube.com/watch?v=9OjIDko1uzc)
+    1. https://gafferongames.com/categories/networked-physics/
+    1. https://archive.org/details/GDC2015Fiedler
+    1. [Fast-Paced Multiplayer](https://www.gabrielgambetta.com/client-server-game-architecture.html)
+    1. ...
 
 # Caution
 
@@ -90,7 +96,6 @@
 
 
 
-
 1. Compare pending and arrived GameStateTicks
     1. Get valid pending
     1. Get invalid pending
@@ -102,3 +107,62 @@
         1. Simulate using inputs from last valid GameStateTick
 1. If not
     1. Remove validated GameStateTicks & InputTicks including validated itself
+
+
+1. 3 steps: Prediction, Interpolation, Reconciliation
+1. Prediction
+    1. 2 cases:
+        1. Other players
+            1. We can make InputManager that will give us last input (locally it would be the same as current input) and apply it to player
+        1. Bots
+            1. We will just use local AI logic and apply new from server
+1. Reconciliation
+    1. Process
+        1. Check last server GameStateTick
+        1. Rollback to that tick canceling new events
+        1. Apply last server GameStateTick
+        1. Resimulate using inputs from last valid GameStateTick
+    1. 2 cases:
+        1. Other players
+        1. Bots
+            1. Just apply from server and resimulate
+1. Interpolation
+    1. ...
+
+
+
+1. Variations
+    1. Lock Step
+        1. Everybody waits for everybody
+    1. State Sync
+        1. Server sends state to everybody, client don't simulate
+    1. (CA-AC) Client Authoritative + Anti-Cheat
+        1. Clients simulates everything, server validates
+
+
+1. CA-AC
+    1. Mechanics
+        1. Clients sending
+            1. Their positions + events to Server, server propagates them to other clients
+    1. Questions
+        1. Who will be responsible for simulating grenades?
+        1. How mobs are simulated? (maybe they should be simulated on server)
+
+
+1. My goal
+    1. Make multiplayer as smooth as possible and as easy to implement as possible
+    1. Move a lot of computations to server (for mobile)
+
+
+# PRI (Prediction, Reconciliation, Interpolation)
+
+! You interpolate enemy position in interpolation way
+
+1. Get local Input
+1. Send Input
+1. Get GameStateTick
+1. Compare
+1. Rollback (canceling all pending states)
+1. Resimulate
+1. Simulate locally
+1. Save GameStateTick

@@ -12,29 +12,15 @@ class MainScene: public cen::Scene {
         MainScene(
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
-            Camera2D* camera,
-            cen::Debugger debugger = cen::Debugger{},
-            std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
-            std::unique_ptr<cen::NodeStorage> nodeStorage = std::make_unique<cen::NodeStorage>(),
-            std::unique_ptr<cen::RenderingEngine2D> renderingEngine = std::make_unique<cen::RenderingEngine2D>(),
-            std::vector<std::unique_ptr<cen::TopicBase>> topics = std::vector<std::unique_ptr<cen::TopicBase>>(),
-            std::unique_ptr<cen::EventBus> eventBus = std::make_unique<cen::EventBus>(),
-            cen::PlayerInput playerInput = cen::PlayerInput{}
+            Camera2D* camera
         ): cen::Scene(
             screen,
-            camera,
-            debugger,
-            std::move(collisionEngine),
-            std::move(nodeStorage),
-            std::move(renderingEngine),
-            std::move(topics),
-            std::move(eventBus),
-            playerInput
+            camera
         ) {
             this->gameAudio = gameAudio;
         }
 
-        void Init() {
+        void Init() override {
             // # Scene init
             // ## MatchEndMenu
             auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
@@ -92,14 +78,6 @@ class MainScene: public cen::Scene {
                     onStartEvent
                 )
             );
-
-            // ## Init Nodes
-            for (const auto& node: this->nodeStorage->rootNodes) {
-                node->TraverseInit();
-            }
-
-            // ## Node Storage
-            this->nodeStorage->Init();
         }
 };
 
