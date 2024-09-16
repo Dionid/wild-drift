@@ -37,10 +37,6 @@ void simulationPipeline(
     int fixedUpdateCyclesLimit = 10;
     std::chrono::milliseconds accumulatedFixedTime(0);
 
-    // TODO: remove or return
-    // # Wait until StepLockNetworkManager sync
-    // scene->stepLockNetworkManager->InitialSync();
-
     // # Init everything after sync
     auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
 
@@ -75,12 +71,6 @@ void simulationPipeline(
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
             scene->simulationTick++;
 
-            // TODO: remove or return
-            // // # StepLock
-            // scene->stepLockNetworkManager->currentTick++;
-            // // # Send input + wait until all inputs are received
-            // scene->stepLockNetworkManager->SendAndWait(currentPlayerInput);
-
             // // FUTURE: # PRI
             // // # Tick
             // tickManager.currentTick++;
@@ -88,7 +78,6 @@ void simulationPipeline(
             // // # Reconcile GameStateTick
             // // ## Take arrived GameStateTick and check if they are correct
             // const auto& compareResult = tickManager.CompareArrivedAndPending();
-
             // if (
             //     compareResult.invalidPendingGameStateTickId == -1
             // ) {
