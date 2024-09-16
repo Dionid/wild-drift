@@ -128,14 +128,6 @@ void renderingPipeline(cen::Scene* scene) {
     scene->renderingEngine->runPipeline(&scene->debugger);
 }
 
-int multiplayerServerPipeline(cen::MultiplayerManager* multiplayerManager) {
-    return multiplayerManager->runServerPipeline();
-}
-
-int multiplayerClientPipeline(cen::MultiplayerManager* multiplayerManager) {
-    return multiplayerManager->runClientPipeline();
-}
-
 int main() {
     // # Init
     const int screenWidth = 800;
@@ -180,22 +172,12 @@ int main() {
         &camera
     );
 
-    cen::MultiplayerManager multiplayerManager;
+    cen::NetworkManager networkManager;
 
     // # Game Loop Thread
     std::vector<std::thread> threads;
 
     threads.push_back(std::thread(simulationPipeline, &scene));
-
-    // # Server Thread
-    // bool isServer;
-    // std::cout << "Are you the server? (1/0): ";
-    // std::cin >> isServer;
-    // if (isServer) {
-    //     threads.push_back(std::thread(multiplayerServerPipeline, &multiplayerManager));
-    // } else {
-    //     threads.push_back(std::thread(multiplayerClientPipeline, &multiplayerManager));
-    // }
 
     // # Render Loop Thread
     renderingPipeline(&scene);

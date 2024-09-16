@@ -70,12 +70,9 @@ class NetworkMessage: public NetworkMessageItem {
 #define CEN_MULTIPLAYER_SERVER_PORT 3000
 #endif
 
-class MultiplayerManager {
+class NetworkManager {
     public:
-        std::unordered_map<int, NetworkPlayerInput> otherPlayersInputStorage;
-        cen::NodeStorage* nodeStorage;
-        int tick;
-    
+
     int runServerPipeline() {
         std::chrono::milliseconds targetSyncTime(1000 / 60);
 
