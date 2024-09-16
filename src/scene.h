@@ -35,10 +35,7 @@ class MainScene: public cen::Scene {
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio,
                 [this, matchManager, matchEndMenu]() {
-                    matchManager->Deactivate();
-                    matchEndMenu->SetPlayerWon(matchManager->playerScore > matchManager->enemyScore);
-                    matchEndMenu->Activate();
-                    EnableCursor();
+                    this->eventBus->emit(OnMatchEndEvent());
                 }
             ));
 
@@ -51,6 +48,8 @@ class MainScene: public cen::Scene {
                 }
             ));
 
+            // # Events
+            // ## StartEvent
             auto onStartEvent = [
                 this,
                 mainMenu,
@@ -76,6 +75,26 @@ class MainScene: public cen::Scene {
                 RestartEvent{},
                 std::make_unique<cen::EventListener>(
                     onStartEvent
+                )
+            );
+
+            // ## MatchEndEvent
+            auto onMatchEndEvent = [
+                this,
+                mainMenu,
+                matchEndMenu,
+                matchManager
+            ](const cen::Event& event) {
+                matchManager->Deactivate();
+                matchEndMenu->SetPlayerWon(matchManager->playerScore > matchManager->enemyScore);
+                matchEndMenu->Activate();
+                EnableCursor();
+            };
+
+            this->eventBus->on(
+                OnMatchEndEvent{},
+                std::make_unique<cen::EventListener>(
+                    onMatchEndEvent
                 )
             );
         }

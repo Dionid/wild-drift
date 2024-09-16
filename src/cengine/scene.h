@@ -12,6 +12,7 @@
 namespace cen {
     class Scene {
         public:
+            u_int64_t frameTick;
             Camera2D* camera;
             cen::ScreenResolution screen;
             cen::PlayerInput playerInput;
@@ -25,6 +26,7 @@ namespace cen {
             Scene(
                 cen::ScreenResolution screen,
                 Camera2D* camera,
+                uint64_t frameTick = 0,
                 cen::Debugger debugger = cen::Debugger{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),

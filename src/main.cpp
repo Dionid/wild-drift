@@ -43,7 +43,7 @@ void simulationPipeline(
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // # Tick
-        tickManager.currentTick++;
+        scene->frameTick++;
 
         // # Start
         auto frameStart = std::chrono::high_resolution_clock::now();
@@ -67,6 +67,8 @@ void simulationPipeline(
 
         int fixedUpdateCycles = 0;
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+            tickManager.currentTick++;
+
             // # Reconcile GameStateTick
             // ## Take arrived GameStateTick and check if they are correct
             const auto& compareResult = tickManager.CompareArrivedAndPending();

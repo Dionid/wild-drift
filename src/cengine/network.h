@@ -9,37 +9,19 @@
 
 namespace cen {
 
+class NetworkNode {
+    public:
+        NetworkNode() {}
+
+        virtual void OnSpawn() = 0;
+};
+
 typedef uint64_t player_id_t;
 
 class NetworkMessageItem {
     public:
         virtual void Serialize(std::vector<char>& buffer) = 0;
         virtual void Deserialize() = 0;
-};
-
-class NetworkPlayerInput: public NetworkMessageItem {
-    public:
-        bool isLeft;
-        bool isRight;
-        bool isTop;
-        bool isDown;
-
-        void Serialize(std::vector<char>& buffer) override {
-            std::vector<char> newBuffer;
-
-            newBuffer.push_back('PI');
-            newBuffer.push_back(isLeft);
-            newBuffer.push_back(isRight);
-            newBuffer.push_back(isTop);
-            newBuffer.push_back(isDown);
-
-            buffer.push_back(newBuffer.size());
-            buffer.insert(buffer.end(), newBuffer.begin(), newBuffer.end());
-        };
-
-        void Deserialize() override {
-
-        };
 };
 
 class NetworkMessage: public NetworkMessageItem {

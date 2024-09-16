@@ -344,3 +344,4 @@ void Goal::Init() {
 
 const std::string StartEvent::type = "StartEvent";
 const std::string RestartEvent::type = "RestartEvent";
+const std::string OnMatchEndEvent::type = "OnMatchEndEvent";

@@ -52,4 +52,31 @@ class MatchManager: public cen::Node2D {
         void FixedUpdate() override;
 };
 
+
+// class ServerMatchManager: public cen::Node {
+//     public:
+//         cen::Scene* scene;
+//         cen::node_id_t ballId;
+//         cen::node_id_t playerId;
+//         cen::node_id_t enemyId;
+//         LaunchBallTimer* launchBallTimer;
+//         int playerScore;
+//         int enemyScore;
+//         int winScore;
+
+//         ServerMatchManager(
+//             cen::Scene* scene
+//         );
+
+//         void Reset();
+
+//         void PlayerScored();
+//         void EnemyScored();
+//         void ResetEntities();
+
+//         void InitSolo();
+//         void FixedUpdate() override;
+// };
+
+
 #endif // CSP_MATCH_H_

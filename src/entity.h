@@ -139,4 +139,9 @@ struct RestartEvent: public cen::Event {
     RestartEvent(): cen::Event(RestartEvent::type) {}
 };
 
+struct OnMatchEndEvent: public cen::Event {
+    static const std::string type;
+    OnMatchEndEvent(): cen::Event(OnMatchEndEvent::type) {}
+};
+
 #endif // CSP_ENTITY_H_
