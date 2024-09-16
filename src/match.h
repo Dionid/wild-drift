@@ -5,6 +5,7 @@
 #include "cengine/cengine.h"
 #include "entity.h"
 #include "audio.h"
+#include "step_lock_manager.h"
 
 class LaunchBallTimer: public cen::Timer {
     public:
@@ -29,14 +30,14 @@ class MatchManager: public cen::Node2D {
         int playerScore;
         int enemyScore;
         int winScore;
-        std::function<void()> onEnd;
         LaunchBallTimer* launchBallTimer;
         cen::TextView* playerScoreText;
         cen::TextView* enemyScoreText;
+        StepLockNetworkManager* stepLockNetworkManager;
 
         MatchManager(
             SpcAudio* gameAudio,
-            std::function<void()> onEnd,
+            StepLockNetworkManager* stepLockNetworkManager,
             int winScore = 3,
             int playerScore = 0,
             int enemyScore = 0
@@ -50,6 +51,8 @@ class MatchManager: public cen::Node2D {
 
         void Init() override;
         void FixedUpdate() override;
+
+        void InitMultiplayerMode(bool isHost);
 };
 
 #endif // CSP_MATCH_H_

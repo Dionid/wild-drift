@@ -35,9 +35,7 @@ class MainScene: public cen::Scene {
             // ## Match
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio,
-                [this]() {
-                    this->eventBus->emit(OnMatchEndEvent());
-                }
+                this->stepLockNetworkManager
             ));
 
             matchManager->Deactivate();
@@ -53,7 +51,6 @@ class MainScene: public cen::Scene {
                 matchEndMenu,
                 matchManager
             ](const cen::Event& event) {
-                this->stepLockNetworkManager->InitialSync();
                 PlaySound(this->gameAudio->start);
                 mainMenu->Deactivate();
                 matchEndMenu->Deactivate();
@@ -93,6 +90,29 @@ class MainScene: public cen::Scene {
                 OnMatchEndEvent{},
                 std::make_unique<cen::EventListener>(
                     onMatchEndEvent
+                )
+            );
+
+            // ## HostEvent
+            auto onHostEvent = [
+                this,
+                mainMenu,
+                matchEndMenu,
+                matchManager
+            ](const cen::Event& event) {
+                DisableCursor();
+                matchManager->InitMultiplayerMode(true);
+                PlaySound(this->gameAudio->start);
+                mainMenu->Deactivate();
+                matchEndMenu->Deactivate();
+                matchManager->Reset();
+                matchManager->Activate();
+            };
+
+            this->eventBus->on(
+                HostEvent{},
+                std::make_unique<cen::EventListener>(
+                    onHostEvent
                 )
             );
         }

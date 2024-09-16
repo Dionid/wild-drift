@@ -1,5 +1,7 @@
 
+#include <sstream>
 #include <map>
+#include <thread>
 #include <vector>
 #include "cengine/cengine.h"
 
@@ -11,7 +13,7 @@ struct PlayerInputTick {
     cen::PlayerInput input;
 };
 
-std::vector<std::string> split(const std::string& str, char delimiter) {
+static std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::stringstream ss(str);
     std::string token;
@@ -56,8 +58,23 @@ class StepLockNetworkManager {
         cen::NetworkManager* networkManager;
         std::vector<cen::player_id_t> playerIds;
 
-        void InitialSync() {
-            return;
+        StepLockNetworkManager(cen::NetworkManager* networkManager) {
+            this->networkManager = networkManager;
+        }
+
+        bool InitialSync() {
+            auto startTime = std::chrono::high_resolution_clock::now();
+            auto maxWaitingTime = std::chrono::milliseconds(5000);
+
+            while(true) {
+                if (std::chrono::high_resolution_clock::now() - startTime > maxWaitingTime) {
+                    return false;
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            return true;
         }
 
         std::unordered_map<cen::player_id_t, PlayerInputTick> SendAndWait(cen::PlayerInput currentInput) {
@@ -73,7 +90,7 @@ class StepLockNetworkManager {
 
             // # Send
             auto message = PlayerInputNetworkMessage(this->currentPlayerId, currentInputTick);
-            this->networkManager->BroadcastMessage(message.Serialize());
+            this->networkManager->BroadcastMessageToClients(message.Serialize());
 
             // # Wait
             std::unordered_map<cen::player_id_t, PlayerInputTick> inputs;

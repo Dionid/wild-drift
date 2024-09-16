@@ -173,8 +173,15 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    // # NetworkManager
+    cen::NetworkManager networkManager(
+        1234
+    );
+
     // # StepLockNetworkManager
-    StepLockNetworkManager stepLockNetworkManager;
+    StepLockNetworkManager stepLockNetworkManager(
+        &networkManager
+    );
 
     // # Scene
     MainScene scene = MainScene(
@@ -182,10 +189,6 @@ int main() {
         cen::ScreenResolution{screenWidth, screenHeight},
         &camera,
         &stepLockNetworkManager
-    );
-
-    cen::NetworkManager networkManager(
-        1234
     );
 
     // # Game Loop Thread
