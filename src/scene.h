@@ -100,13 +100,13 @@ class MainScene: public cen::Scene {
                 matchEndMenu,
                 matchManager
             ](const cen::Event& event) {
-                DisableCursor();
-                matchManager->InitMultiplayerMode(true);
-                PlaySound(this->gameAudio->start);
-                mainMenu->Deactivate();
-                matchEndMenu->Deactivate();
-                matchManager->Reset();
-                matchManager->Activate();
+                // DisableCursor();
+                // matchManager->InitMultiplayerMode(true);
+                // PlaySound(this->gameAudio->start);
+                // mainMenu->Deactivate();
+                // matchEndMenu->Deactivate();
+                // matchManager->Reset();
+                // matchManager->Activate();
             };
 
             this->eventBus->on(
@@ -115,6 +115,124 @@ class MainScene: public cen::Scene {
                     onHostEvent
                 )
             );
+        }
+
+        void RunSimulation() {
+            // # Init scene
+            this->Init();
+
+            // ## Init Nodes
+            for (const auto& node: this->nodeStorage->rootNodes) {
+                node->TraverseInit();
+            }
+
+            // ## Node Storage
+            this->nodeStorage->Init();
+
+            // # Main Loop
+            // ## Update
+            const int targetFPS = 60;
+            const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
+
+            // ## Fixed update
+            const int fixedUpdateRate = 40;
+            const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
+            int fixedUpdateCyclesLimit = 10;
+            std::chrono::milliseconds accumulatedFixedTime(0);
+
+            // # Init everything after sync
+            auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
+
+            while (!WindowShouldClose())    // Detect window close button or ESC key
+            {
+                // # Frame Tick
+                this->frameTick++;
+
+                // # Input
+                auto currentPlayerInput = cen::PlayerInput{
+                    IsKeyDown(KEY_W),
+                    IsKeyDown(KEY_S),
+                    IsKeyDown(KEY_A),
+                    IsKeyDown(KEY_D)
+                };
+
+                this->playerInputManager.currentPlayerInput = currentPlayerInput;
+
+                // # Start
+                auto frameStart = std::chrono::high_resolution_clock::now();
+
+                // # Update
+                this->nodeStorage->InitNewNodes();
+
+                // # Fixed update
+                auto now = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
+                lastFixedFrameTime = now;
+                accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
+
+                int fixedUpdateCycles = 0;
+                while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+                    this->simulationTick++;
+
+                    // // FUTURE: # PRI
+                    // // # Tick
+                    // tickManager.currentTick++;
+
+                    // // # Reconcile GameStateTick
+                    // // ## Take arrived GameStateTick and check if they are correct
+                    // const auto& compareResult = tickManager.CompareArrivedAndPending();
+                    // if (
+                    //     compareResult.invalidPendingGameStateTickId == -1
+                    // ) {
+                    //     // ## Merge correct GameStateTick
+                    //     tickManager.RemoveValidated(compareResult);
+                    // } else {
+                    //     // ## Rollback and Apply
+                    //     tickManager.Rollback(compareResult);
+
+                    //     // ## Simulate new GameTicks using PlayerInputTicks
+                    //     for (const auto& playerInputTick: tickManager.playerInputTicks) {
+                    //         this->playerInput = playerInputTick.input;
+                    //         this->SimulationTick();
+                    //         tickManager.SaveGameTick(this->playerInput);
+                    //     }
+                    // }
+
+                    // # Simulation current Tick
+                    this->SimulationTick();
+
+                    // # PRI
+                    // tickManager.SaveGameTick(this->playerInput);
+
+                    // ## Correct time and cycles
+                    accumulatedFixedTime -= targetFixedUpdateTime;
+                    fixedUpdateCycles++;
+                }
+
+                // # Initial
+                for (const auto& node: this->nodeStorage->rootNodes) {
+                    node->TraverseUpdate();
+                }
+
+                // # Flush events
+                for (const auto& topic: this->topics) {
+                    topic->flush();
+                }
+
+                this->eventBus->flush();
+
+                // # Sync GameState and RendererState
+                auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
+
+                this->renderingEngine->SyncRenderBuffer(
+                    this->nodeStorage.get(),
+                    alpha
+                );
+
+                // QUESTION: maybe sleep better? But it overshoots (nearly 3ms)
+                // # End (busy wait)
+                while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
+            }
         }
 };
 

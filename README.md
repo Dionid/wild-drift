@@ -50,6 +50,7 @@
     1. [Networking Physics (+ description links)](https://www.youtube.com/watch?v=9OjIDko1uzc)
     1. https://gafferongames.com/categories/networked-physics/
     1. https://archive.org/details/GDC2015Fiedler
+    1. [8 Frames in 16ms: Rollback Networking in Mortal Kombat and Injustice 2](https://www.youtube.com/watch?v=7jb0FOcImdg)
     1. [Fast-Paced Multiplayer](https://www.gabrielgambetta.com/client-server-game-architecture.html)
     1. ...
 
@@ -84,107 +85,14 @@
 
 ## Variants
 
-1. Every client simulates world and sends input to each other throw Server
-    1. Cons
-        1. Clients can desynchronize pretty quickly
-1. Clients sending inputs to Server and Server sends back world state
-    1. Cons
-        1. Latency
-1. Clients simulate world, send inputs to Server and Server simulates world and sends back world state
-    1. Cons
-        1. Hard to implement
-
-
-
-1. Compare pending and arrived GameStateTicks
-    1. Get valid pending
-    1. Get invalid pending
-1. If invalid state exists
-    1. Rollback
-        1. Revert all pending states till invalid one
-        1. Empty all pending states
-        1. Apply all arrived GameStateTicks (save lastValidTick)
-        1. Simulate using inputs from last valid GameStateTick
-1. If not
-    1. Remove validated GameStateTicks & InputTicks including validated itself
-
-
-1. 3 steps: Prediction, Interpolation, Reconciliation
-1. Prediction
-    1. 2 cases:
-        1. Other players
-            1. We can make InputManager that will give us last input (locally it would be the same as current input) and apply it to player
-        1. Bots
-            1. We will just use local AI logic and apply new from server
-1. Reconciliation
-    1. Process
-        1. Check last server GameStateTick
-        1. Rollback to that tick canceling new events
-        1. Apply last server GameStateTick
-        1. Resimulate using inputs from last valid GameStateTick
-    1. 2 cases:
-        1. Other players
-        1. Bots
-            1. Just apply from server and resimulate
-1. Interpolation
-    1. ...
-
-
-
-1. Variations
-    1. Lock Step
-        1. Everybody waits for everybody
-    1. State Sync
-        1. Server sends state to everybody, client don't simulate
-    1. (CA-AC) Client Authoritative + Anti-Cheat
-        1. Clients simulates everything, server validates
-
-
-1. CA-AC
-    1. Mechanics
-        1. Clients sending
-            1. Their positions + events to Server, server propagates them to other clients
-    1. Questions
-        1. Who will be responsible for simulating grenades?
-        1. How mobs are simulated? (maybe they should be simulated on server)
-
-
-1. My goal
-    1. Make multiplayer as smooth as possible and as easy to implement as possible
-    1. Move a lot of computations to server (for mobile)
-
-
-# PRI (Prediction, Reconciliation, Interpolation)
-
-! You interpolate enemy position in interpolation way
-
-1. Get local Input
-1. Send Input
-1. Get GameStateTick
-1. Compare
-1. Rollback (canceling all pending states)
-1. Resimulate
-1. Simulate locally
-1. Save GameStateTick
-
-
-
-1. Click "Solo"
-1. Server send classes _tids;
-1. Server spawns player, enemy and ball
-
-
-!!! Sync ids
-
-1. Если я создал объект на клиенте
-    1. Могу ли я просто поверить клиенту и отправить ему мапинг id?
-    1. Может надо разделить понятия на расчет физики и остальную игровую логику?
-
-1. !!! Если я буду обмениваться Ивентами по UDP, то они будут просто проебываться
-    1. Переотправлять все события до получения одобрения?
-
-
-Ok, может все-таки Lock Step попробовать?
-
-1. Все клиенты должны получить все input чтобы симулировать шаги
-
+1. Lock Step
+    1. Clients sends inputs to each other, waits till all inputs are received and simulates
+    1. Cons: everybody waits for everybody
+1. Input Rollback
+    1. Clients sends inputs to each other, if input is invalid, client rolls back to last valid state and resimulates
+1. State Sync
+    1. Client sends input, server sends state to everybody, client don't simulate
+1. (CA-AC) Client Authoritative + Anti-Cheat
+    1. Clients simulates everything, server validates
+1. PRI
+    1. Prediction, Reconciliation, Interpolation both on client and server
