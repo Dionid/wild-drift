@@ -13,11 +13,8 @@ class MainMenu: public cen::Node2D {
         const int btnFontSize = defaultBtnFontSize;
         const char* title = "Super Pong";
         const char* start = "Start";
-        std::function<void()> onStart;
 
-        MainMenu(
-            std::function<void()> onStart = std::function<void()>()
-        );
+        MainMenu();
 
         void Init() override;
 };
@@ -29,10 +26,7 @@ class MatchEndMenu: public cen::Node2D {
         bool playerWon = false;
         cen::TextView* titleView;
 
-        std::function<void()> onRestart;
-
         MatchEndMenu(
-            std::function<void()> onRestart = std::function<void()>(),
             bool playerWon = false
         );
 

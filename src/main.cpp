@@ -26,10 +26,6 @@ void simulationPipeline(
     // ## Node Storage
     scene->nodeStorage->Init();
 
-    // TODO: return on PRI
-    // ## Tick Manager
-    // SpcGameTickManager tickManager = SpcGameTickManager(scene->nodeStorage.get());
-
     // ## Main Loop
     // ### Update
     const int targetFPS = 60;
@@ -41,8 +37,9 @@ void simulationPipeline(
     int fixedUpdateCyclesLimit = 10;
     std::chrono::milliseconds accumulatedFixedTime(0);
 
+    // TODO: remove or return
     // # Wait until StepLockNetworkManager sync
-    scene->stepLockNetworkManager->InitialSync();
+    // scene->stepLockNetworkManager->InitialSync();
 
     // # Init everything after sync
     auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
@@ -78,13 +75,13 @@ void simulationPipeline(
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
             scene->simulationTick++;
 
-            // # StepLock
-            scene->stepLockNetworkManager->currentTick++;
+            // TODO: remove or return
+            // // # StepLock
+            // scene->stepLockNetworkManager->currentTick++;
+            // // # Send input + wait until all inputs are received
+            // scene->stepLockNetworkManager->SendAndWait(currentPlayerInput);
 
-            // # Send input + wait until all inputs are received
-            scene->stepLockNetworkManager->SendAndWait(currentPlayerInput);
-
-            // # PRI
+            // // FUTURE: # PRI
             // // # Tick
             // tickManager.currentTick++;
 
@@ -111,6 +108,7 @@ void simulationPipeline(
 
             // # Simulation current Tick
             scene->SimulationTick();
+
             // # PRI
             // tickManager.SaveGameTick(scene->playerInput);
 
@@ -185,7 +183,6 @@ int main() {
     camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
 
     // # StepLockNetworkManager
     StepLockNetworkManager stepLockNetworkManager;

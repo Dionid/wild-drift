@@ -1,11 +1,8 @@
 #include "cengine/cengine.h"
 #include "menus.h"
+#include "events.h"
 
-MainMenu::MainMenu(
-    std::function<void()> onStart
-): cen::Node2D(Vector2{}) {
-    this->onStart = onStart;
-}
+MainMenu::MainMenu(): cen::Node2D(Vector2{}) {}
 
 void MainMenu::Init() {
     this->AddNode(
@@ -23,9 +20,7 @@ void MainMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    if (this->onStart) {
-                        this->onStart();
-                    }
+                    this->scene->eventBus->emit(StartEvent());
                 }
             )
         )
@@ -47,10 +42,8 @@ void MainMenu::Init() {
 // # MatchEndMenu
 
 MatchEndMenu::MatchEndMenu(
-    std::function<void()> onRestart,
     bool playerWon
 ): cen::Node2D(Vector2{}) {
-    this->onRestart = onRestart;
     this->playerWon = playerWon;
 }
 
@@ -70,9 +63,7 @@ void MatchEndMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    if (this->onRestart) {
-                        this->onRestart();
-                    }
+                    this->scene->eventBus->emit(RestartEvent());
                 }
             )
         )

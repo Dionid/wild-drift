@@ -2,6 +2,7 @@
 #include "menus.h"
 #include "match.h"
 #include "step_lock_manager.h"
+#include "events.h"
 
 #ifndef MAIN_SCENE_H
 #define MAIN_SCENE_H
@@ -27,18 +28,14 @@ class MainScene: public cen::Scene {
         void Init() override {
             // # Scene init
             // ## MatchEndMenu
-            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
-                [&]() {
-                    this->eventBus->emit(RestartEvent());
-                }
-            ));
+            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
 
             matchEndMenu->Deactivate();
 
             // ## Match
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio,
-                [this, matchManager, matchEndMenu]() {
+                [this]() {
                     this->eventBus->emit(OnMatchEndEvent());
                 }
             ));
@@ -46,11 +43,7 @@ class MainScene: public cen::Scene {
             matchManager->Deactivate();
 
             // ## MainMenu
-            MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>(
-                [this]() {
-                    this->eventBus->emit(StartEvent());
-                }
-            ));
+            MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
 
             // # Events
             // ## StartEvent
@@ -60,6 +53,7 @@ class MainScene: public cen::Scene {
                 matchEndMenu,
                 matchManager
             ](const cen::Event& event) {
+                this->stepLockNetworkManager->InitialSync();
                 PlaySound(this->gameAudio->start);
                 mainMenu->Deactivate();
                 matchEndMenu->Deactivate();

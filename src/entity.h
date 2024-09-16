@@ -129,19 +129,4 @@ class Goal: public cen::CollisionObject2D {
         void Init() override;
 };
 
-struct StartEvent: public cen::Event {
-    static const std::string type;
-    StartEvent(): cen::Event(StartEvent::type) {}
-};
-
-struct RestartEvent: public cen::Event {
-    static const std::string type;
-    RestartEvent(): cen::Event(RestartEvent::type) {}
-};
-
-struct OnMatchEndEvent: public cen::Event {
-    static const std::string type;
-    OnMatchEndEvent(): cen::Event(OnMatchEndEvent::type) {}
-};
-
 #endif // CSP_ENTITY_H_
