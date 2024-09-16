@@ -60,12 +60,16 @@ int main() {
     // # Rendering Engine
     cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D();
 
+    // # Event Bus
+    cen::EventBus eventBus = cen::EventBus();
+
     // # Scene
     MainScene scene = MainScene(
         &gameAudio,
         cen::ScreenResolution{screenWidth, screenHeight},
         &camera,
-        &renderingEngine
+        &renderingEngine,
+        &eventBus
     );
 
     // # Threads

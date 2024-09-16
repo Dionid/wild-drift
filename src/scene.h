@@ -15,11 +15,13 @@ class MainScene: public cen::Scene {
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
-            cen::RenderingEngine2D* renderingEngine
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
         ): cen::Scene(
             screen,
             camera,
-            renderingEngine
+            renderingEngine,
+            eventBus
         ) {
             this->gameAudio = gameAudio;
         }

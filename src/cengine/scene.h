@@ -14,11 +14,13 @@ namespace cen {
         public:
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
+
             Camera2D* camera;
             cen::ScreenResolution screen;
             cen::PlayerInputManager playerInputManager;
             cen::RenderingEngine2D* renderingEngine;
-            std::unique_ptr<cen::EventBus> eventBus;
+            EventBus* eventBus;
+            
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
             std::unique_ptr<cen::NodeStorage> nodeStorage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
@@ -27,13 +29,13 @@ namespace cen {
                 cen::ScreenResolution screen,
                 Camera2D* camera,
                 RenderingEngine2D* renderingEngine,
-                uint64_t frameTick = 0,
-                uint64_t simulationTick = 0,
+                EventBus* eventBus,
+                cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
                 std::vector<std::unique_ptr<cen::TopicBase>> topics = std::vector<std::unique_ptr<cen::TopicBase>>(),
-                std::unique_ptr<EventBus> eventBus = std::make_unique<EventBus>(),
-                cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{}
+                uint64_t frameTick = 0,
+                uint64_t simulationTick = 0
             ) {
                 this->screen = screen;
                 this->camera = camera;
