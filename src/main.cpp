@@ -12,11 +12,11 @@
 #include "scene.h"
 #include "step_lock_manager.h"
 
-void simulationPipeline(MainScene* scene) {
+void runSimulation(MainScene* scene) {
     scene->RunSimulation();
 };
 
-void renderingPipeline(cen::RenderingEngine2D* renderingEngine) {
+void runRendering(cen::RenderingEngine2D* renderingEngine) {
     renderingEngine->Run();
 }
 
@@ -68,13 +68,14 @@ int main() {
         &renderingEngine
     );
 
-    // # Game Loop Thread
+    // # Threads
     std::vector<std::thread> threads;
 
-    threads.push_back(std::thread(simulationPipeline, &scene));
+    // # Simulation Loop Thread
+    threads.push_back(std::thread(runSimulation, &scene));
 
-    // # Render Loop Thread
-    renderingPipeline(&renderingEngine);
+    // # Rendering Loop Thread
+    runRendering(&renderingEngine);
 
     // # Exit
     // ## Join threads after stop signal
