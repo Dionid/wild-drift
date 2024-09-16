@@ -183,11 +183,11 @@ class Node: public cen::WithType {
         };
 
         void TraverseInit() {
-            if (this->isInitialized) {
-                return;
+            if (!this->isInitialized) {
+                this->Init();
+                this->isInitialized = true;
             }
-            this->Init();
-            this->isInitialized = true;
+
             for (const auto& node: this->children) {
                 node->TraverseInit();
             }

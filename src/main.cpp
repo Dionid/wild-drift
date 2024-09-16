@@ -82,6 +82,10 @@ int main() {
     runRendering(&renderingEngine);
 
     // # Exit
+    
+    // ## Stop signal
+    scene.isAlive.store(false, std::memory_order_release);
+
     // ## Join threads after stop signal
     for (auto& thread: threads) {
         if (thread.joinable()) {

@@ -2,6 +2,7 @@
 #define CENGINE_SCENE_H
 
 #include <vector>
+#include <atomic>
 #include "rendering.h"
 #include "node_storage.h"
 #include "collision.h"
@@ -13,6 +14,7 @@ namespace cen {
     class Scene {
         public:
             bool isInitialized = false;
+            std::atomic<bool> isAlive = true;
 
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
@@ -113,7 +115,7 @@ namespace cen {
                 std::chrono::milliseconds accumulatedFixedTime(0);
                 auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
 
-                while (!WindowShouldClose())    // Detect window close button or ESC key
+                while (this->isAlive.load(std::memory_order_acquire))    // Detect window close button or ESC key
                 {
                     // # Frame Tick
                     this->frameTick++;

@@ -73,21 +73,22 @@ namespace cen {
                 return ++this->nextEventListenerId;
             }
 
-            void on(
+            int on(
                 const Event& event,
                 std::unique_ptr<EventListener> listener
             ) {
-                if (listener->id == 0) {
-                    listener->id = this->nextId();
-                }
+                int id = listener->id == 0 ? this->nextId() : listener->id;
+                listener->id = id;
                 this->listeners[event.name].push_back(std::move(listener));
+
+                return id;
             }
 
             void emit(const Event& event) {
                 this->events.push_back(event);
             }
 
-            void offById(const Event& event, int listenerId) {
+            void off(const Event& event, int listenerId) {
                 auto& listenersVec = this->listeners[event.name];
                 listenersVec.erase(
                     std::remove_if(
