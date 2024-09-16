@@ -42,6 +42,7 @@ class NodeStorage;
 
 class Node: public cen::WithType {
     public:
+        bool isInitialized = false;
         NodeStorage* storage;
         Node* parent;
         Scene* scene;
@@ -182,7 +183,11 @@ class Node: public cen::WithType {
         };
 
         void TraverseInit() {
+            if (this->isInitialized) {
+                return;
+            }
             this->Init();
+            this->isInitialized = true;
             for (const auto& node: this->children) {
                 node->TraverseInit();
             }

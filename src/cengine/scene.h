@@ -12,6 +12,8 @@
 namespace cen {
     class Scene {
         public:
+            bool isInitialized = false;
+
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
 
@@ -20,7 +22,7 @@ namespace cen {
             cen::PlayerInputManager playerInputManager;
             cen::RenderingEngine2D* renderingEngine;
             EventBus* eventBus;
-            
+
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
             std::unique_ptr<cen::NodeStorage> nodeStorage;
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
@@ -49,6 +51,21 @@ namespace cen {
             }
 
             virtual void Init() {};
+
+            void FullInit() {
+                // # Init scene
+                this->Init();
+
+                // ## Init Nodes
+                for (const auto& node: this->nodeStorage->rootNodes) {
+                    node->TraverseInit();
+                }
+
+                // ## Node Storage
+                this->nodeStorage->Init();
+
+                this->isInitialized = true;
+            }
 
             template <typename T>
             cen::Topic<T>* AddTopic(std::unique_ptr<cen::Topic<T>> topic) {
@@ -79,16 +96,10 @@ namespace cen {
             }
 
             void RunSimulation() {
-                // # Init scene
-                this->Init();
-
-                // ## Init Nodes
-                for (const auto& node: this->nodeStorage->rootNodes) {
-                    node->TraverseInit();
+                if (!this->isInitialized) {
+                    // # Init scene
+                    this->FullInit();
                 }
-
-                // ## Node Storage
-                this->nodeStorage->Init();
 
                 // # Main Loop
                 // ## Update
