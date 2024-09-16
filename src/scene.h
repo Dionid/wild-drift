@@ -1,6 +1,7 @@
 #include "cengine/cengine.h"
 #include "menus.h"
 #include "match.h"
+#include "step_lock_manager.h"
 
 #ifndef MAIN_SCENE_H
 #define MAIN_SCENE_H
@@ -8,16 +9,19 @@
 class MainScene: public cen::Scene {
     public:
         SpcAudio* gameAudio;
+        StepLockNetworkManager* stepLockNetworkManager;
 
         MainScene(
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
-            Camera2D* camera
+            Camera2D* camera,
+            StepLockNetworkManager* stepLockNetworkManager
         ): cen::Scene(
             screen,
             camera
         ) {
             this->gameAudio = gameAudio;
+            this->stepLockNetworkManager = stepLockNetworkManager;
         }
 
         void Init() override {

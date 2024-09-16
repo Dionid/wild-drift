@@ -10,6 +10,7 @@
 #include "menus.h"
 #include "game_tick.h"
 #include "scene.h"
+#include "step_lock_manager.h"
 
 void simulationPipeline(
     MainScene* scene
@@ -25,28 +26,31 @@ void simulationPipeline(
     // ## Node Storage
     scene->nodeStorage->Init();
 
+    // TODO: return on PRI
     // ## Tick Manager
-    SpcGameTickManager tickManager = SpcGameTickManager(scene->nodeStorage.get());
+    // SpcGameTickManager tickManager = SpcGameTickManager(scene->nodeStorage.get());
 
     // ## Main Loop
+    // ### Update
     const int targetFPS = 60;
-    const int fixedUpdateRate = 40;
-
     const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
-    const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
 
-    auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
+    // ### Fixed update
+    const int fixedUpdateRate = 40;
+    const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
+    int fixedUpdateCyclesLimit = 10;
     std::chrono::milliseconds accumulatedFixedTime(0);
 
-    int fixedUpdateCyclesLimit = 10;
+    // # Wait until StepLockNetworkManager sync
+    scene->stepLockNetworkManager->InitialSync();
+
+    // # Init everything after sync
+    auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
 
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // # Tick
+        // # Frame Tick
         scene->frameTick++;
-
-        // # Start
-        auto frameStart = std::chrono::high_resolution_clock::now();
 
         // # Input
         auto currentPlayerInput = cen::PlayerInput{
@@ -55,6 +59,11 @@ void simulationPipeline(
             IsKeyDown(KEY_A),
             IsKeyDown(KEY_D)
         };
+
+        scene->playerInputManager.currentPlayerInput = currentPlayerInput;
+
+        // # Start
+        auto frameStart = std::chrono::high_resolution_clock::now();
 
         // # Update
         scene->nodeStorage->InitNewNodes();
@@ -67,33 +76,43 @@ void simulationPipeline(
 
         int fixedUpdateCycles = 0;
         while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
-            tickManager.currentTick++;
+            scene->simulationTick++;
 
-            // # Reconcile GameStateTick
-            // ## Take arrived GameStateTick and check if they are correct
-            const auto& compareResult = tickManager.CompareArrivedAndPending();
+            // # StepLock
+            scene->stepLockNetworkManager->currentTick++;
 
-            if (
-                compareResult.invalidPendingGameStateTickId == -1
-            ) {
-                // ## Merge correct GameStateTick
-                tickManager.RemoveValidated(compareResult);
-            } else {
-                // ## Rollback and Apply
-                tickManager.Rollback(compareResult);
+            // # Send input + wait until all inputs are received
+            scene->stepLockNetworkManager->SendAndWait(currentPlayerInput);
 
-                // ## Simulate new GameTicks using PlayerInputTicks
-                for (const auto& playerInputTick: tickManager.playerInputTicks) {
-                    scene->playerInput = playerInputTick.input;
-                    scene->SimulationTick();
-                    tickManager.SaveGameTick(scene->playerInput);
-                }
-            }
+            // # PRI
+            // // # Tick
+            // tickManager.currentTick++;
+
+            // // # Reconcile GameStateTick
+            // // ## Take arrived GameStateTick and check if they are correct
+            // const auto& compareResult = tickManager.CompareArrivedAndPending();
+
+            // if (
+            //     compareResult.invalidPendingGameStateTickId == -1
+            // ) {
+            //     // ## Merge correct GameStateTick
+            //     tickManager.RemoveValidated(compareResult);
+            // } else {
+            //     // ## Rollback and Apply
+            //     tickManager.Rollback(compareResult);
+
+            //     // ## Simulate new GameTicks using PlayerInputTicks
+            //     for (const auto& playerInputTick: tickManager.playerInputTicks) {
+            //         scene->playerInput = playerInputTick.input;
+            //         scene->SimulationTick();
+            //         tickManager.SaveGameTick(scene->playerInput);
+            //     }
+            // }
 
             // # Simulation current Tick
-            scene->playerInput = currentPlayerInput;
             scene->SimulationTick();
-            tickManager.SaveGameTick(scene->playerInput);
+            // # PRI
+            // tickManager.SaveGameTick(scene->playerInput);
 
             // ## Correct time and cycles
             accumulatedFixedTime -= targetFixedUpdateTime;
@@ -167,14 +186,21 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+
+    // # StepLockNetworkManager
+    StepLockNetworkManager stepLockNetworkManager;
+
     // # Scene
     MainScene scene = MainScene(
         &gameAudio,
         cen::ScreenResolution{screenWidth, screenHeight},
-        &camera
+        &camera,
+        &stepLockNetworkManager
     );
 
-    cen::NetworkManager networkManager;
+    cen::NetworkManager networkManager(
+        1234
+    );
 
     // # Game Loop Thread
     std::vector<std::thread> threads;

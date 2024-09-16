@@ -13,9 +13,10 @@ namespace cen {
     class Scene {
         public:
             u_int64_t frameTick;
+            u_int64_t simulationTick;
             Camera2D* camera;
             cen::ScreenResolution screen;
-            cen::PlayerInput playerInput;
+            cen::PlayerInputManager playerInputManager;
             cen::Debugger debugger;
             std::unique_ptr<cen::EventBus> eventBus;
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
@@ -27,18 +28,19 @@ namespace cen {
                 cen::ScreenResolution screen,
                 Camera2D* camera,
                 uint64_t frameTick = 0,
+                uint64_t simulationTick = 0,
                 cen::Debugger debugger = cen::Debugger{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
                 std::unique_ptr<RenderingEngine2D> renderingEngine = std::make_unique<RenderingEngine2D>(),
                 std::vector<std::unique_ptr<cen::TopicBase>> topics = std::vector<std::unique_ptr<cen::TopicBase>>(),
                 std::unique_ptr<EventBus> eventBus = std::make_unique<EventBus>(),
-                cen::PlayerInput playerInput = cen::PlayerInput{}
+                cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{}
             ) {
                 this->screen = screen;
                 this->camera = camera;
                 this->debugger = debugger;
-                this->playerInput = playerInput;
+                this->playerInputManager = playerInputManager;
                 this->collisionEngine = std::move(collisionEngine);
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;

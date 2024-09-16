@@ -16,7 +16,7 @@ void LaunchBallTimer::OnTimerEnd() {
         return;
     }
 
-    float randomAngle = (this->scene->frameTick % 100 / 100.0f) * 2 * PI;
+    float randomAngle = (this->scene->simulationTick % 100 / 100.0f) * 2 * PI;
     ball->velocity.x = cos(randomAngle) * 5;
     ball->velocity.y = sin(randomAngle) * 5;
 }
@@ -55,7 +55,7 @@ void MatchManager::Init() {
     this->playerId = player->id;
 
     float ballRadius = 15.0f;
-    float randomAngle = (this->scene->frameTick % 100 / 100.0f) * 2 * PI;
+    float randomAngle = (this->scene->simulationTick % 100 / 100.0f) * 2 * PI;
     Ball* ball = this->AddNode(
         std::make_unique<Ball>(
             this->gameAudio,

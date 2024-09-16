@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <map>
 #include <raylib.h>
 #include <raymath.h>
 
@@ -92,6 +93,13 @@ struct PlayerInput {
             this->left == other.left &&
             this->right == other.right;
     }
+};
+
+class PlayerInputManager {
+    public:
+        player_id_t currentPlayerId;
+        PlayerInput currentPlayerInput;
+        std::map<player_id_t, PlayerInput> playerInputs;
 };
 
 }

@@ -16,59 +16,32 @@ class NetworkNode {
         virtual void OnSpawn() = 0;
 };
 
-typedef uint64_t player_id_t;
-
-class NetworkMessageItem {
-    public:
-        virtual void Serialize(std::vector<char>& buffer) = 0;
-        virtual void Deserialize() = 0;
-};
-
-class NetworkMessage: public NetworkMessageItem {
-    public:
-        cen::player_id_t playerId;
-        std::vector<NetworkMessageItem*> items;
-
-    void Serialize(std::vector<char>& buffer) override {
-        std::vector<char> newBuffer;
-
-        newBuffer.push_back('NM');
-        newBuffer.push_back(playerId);
-
-        for (NetworkMessageItem* const item : items) {
-            item->Serialize(newBuffer);
-        }
-
-        buffer.push_back(newBuffer.size());
-        buffer.insert(buffer.end(), newBuffer.begin(), newBuffer.end());
-    };
-
-    void Deserialize() override {
-
-    };
-};
-
-#ifndef CEN_MULTIPLAYER_SERVER_PORT
-#define CEN_MULTIPLAYER_SERVER_PORT 3000
-#endif
-
 class NetworkManager {
     public:
 
-    int runServerPipeline() {
-        std::chrono::milliseconds targetSyncTime(1000 / 60);
+    uint64_t serverPort;
+    ENetAddress address;
+    ENetHost* server;
+    std::chrono::milliseconds targetSyncTime;
 
+    ~NetworkManager() {
+        enet_deinitialize();
+        enet_host_destroy(server);
+    }
+
+    NetworkManager(uint64_t serverPort) {
+        this->serverPort = serverPort;
+        targetSyncTime = std::chrono::milliseconds(1000 / 60);
+    }
+
+    int InitServer() {
         if (enet_initialize() != 0) {
             std::cerr << "An error occurred while initializing ENet." << std::endl;
             return EXIT_FAILURE;
         }
-        atexit(enet_deinitialize);
-
-        ENetAddress address;
-        ENetHost *server;
 
         address.host = ENET_HOST_ANY;
-        address.port = CEN_MULTIPLAYER_SERVER_PORT;
+        address.port = this->serverPort;
 
         server = enet_host_create(
             &address /* the address to bind the server host to */,
@@ -83,8 +56,34 @@ class NetworkManager {
             return EXIT_FAILURE;
         }
 
-        std::cout << "Server started on port 1234..." << std::endl;
+        std::cout << "Server started on port " << this->serverPort << std::endl;
+    }
 
+    // # Get message from client
+    std::string PollNextMessage(enet_uint32 timeout = 0) {
+        ENetEvent event;
+        while (enet_host_service(server, &event, timeout) > 0) {
+            switch (event.type) {
+                case ENET_EVENT_TYPE_RECEIVE: {
+                    std::string message = (char*)event.packet->data;
+                    enet_packet_destroy(event.packet);
+                    return message;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+        return "";
+    }
+
+    // # Broadcast message
+    void BroadcastMessage(std::string message) {
+        ENetPacket *packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
+        enet_host_broadcast(server, 0, packet);
+    }
+
+    int runServerPipeline() {
         ENetEvent event;
 
         while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -163,7 +162,7 @@ class NetworkManager {
         }
 
         enet_address_set_host(&address, "127.0.0.1");
-        address.port = CEN_MULTIPLAYER_SERVER_PORT;
+        address.port = this->serverPort;
 
         peer = enet_host_connect(client, &address, 2, 0);
         if (peer == NULL) {

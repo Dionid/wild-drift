@@ -123,8 +123,8 @@ void Player::ApplyFieldBoundaries() {
 // # Player Update function
 void Player::FixedUpdate() {
     // # Calc velocity
-    auto directionY = this->scene->playerInput.down - this->scene->playerInput.up;
-    auto directionX = this->scene->playerInput.right - this->scene->playerInput.left;
+    auto directionY = this->scene->playerInputManager.currentPlayerInput.down - this->scene->playerInputManager.currentPlayerInput.up;
+    auto directionX = this->scene->playerInputManager.currentPlayerInput.right - this->scene->playerInputManager.currentPlayerInput.left;
 
     this->Move(
         directionX,
