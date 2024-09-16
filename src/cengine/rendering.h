@@ -352,13 +352,15 @@ class RenderingEngine2D {
             }
         };
 
-        int runPipeline(cen::Debugger* debugger) {
+        int Run() {
+            // TODO: Different way to pass debugger
+            cen::Debugger debugger;
             while (!WindowShouldClose())    // Detect window close button or ESC key
             {
                 BeginDrawing();
                     ClearBackground(BLACK);
                     this->Render();
-                    debugger->Render();
+                    debugger.Render();
                 EndDrawing();
             }
 

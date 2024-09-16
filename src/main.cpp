@@ -16,8 +16,8 @@ void simulationPipeline(MainScene* scene) {
     scene->RunSimulation();
 };
 
-void renderingPipeline(cen::Scene* scene) {
-    scene->renderingEngine->runPipeline(&scene->debugger);
+void renderingPipeline(cen::RenderingEngine2D* renderingEngine) {
+    renderingEngine->Run();
 }
 
 int main() {
@@ -57,22 +57,15 @@ int main() {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    // # NetworkManager
-    cen::NetworkManager networkManager(
-        1234
-    );
-
-    // # StepLockNetworkManager
-    StepLockNetworkManager stepLockNetworkManager(
-        &networkManager
-    );
+    // # Rendering Engine
+    cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D();
 
     // # Scene
     MainScene scene = MainScene(
         &gameAudio,
         cen::ScreenResolution{screenWidth, screenHeight},
         &camera,
-        &stepLockNetworkManager
+        &renderingEngine
     );
 
     // # Game Loop Thread
@@ -81,7 +74,7 @@ int main() {
     threads.push_back(std::thread(simulationPipeline, &scene));
 
     // # Render Loop Thread
-    renderingPipeline(&scene);
+    renderingPipeline(&renderingEngine);
 
     // # Exit
     // ## Join threads after stop signal

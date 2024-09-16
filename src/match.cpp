@@ -26,13 +26,11 @@ void LaunchBallTimer::OnTimerEnd() {
 
 MatchManager::MatchManager(
     SpcAudio* gameAudio,
-    StepLockNetworkManager* stepLockNetworkManager,
     int winScore,
     int playerScore,
     int enemyScore
 ): cen::Node2D(Vector2{}) {
     this->gameAudio = gameAudio;
-    this->stepLockNetworkManager = stepLockNetworkManager;
     this->winScore = winScore;
     this->playerScore = playerScore;
     this->enemyScore = enemyScore;
@@ -163,36 +161,6 @@ void MatchManager::Init() {
         )
     );
 };
-
-void MatchManager::InitMultiplayerMode(bool isHost) {
-    auto waitingNode = this->AddNode(
-        std::make_unique<cen::TextView>(
-            (Vector2){ this->scene->screen.width/2.0f, this->scene->screen.height/2.0f },
-            "Waiting...",
-            20,
-            WHITE
-        )
-    );
-
-    if (isHost) {
-        auto result = this->stepLockNetworkManager->networkManager->InitServer();
-        if (result > 0) {
-            // ...
-        }
-    } else {
-        auto result = this->stepLockNetworkManager->networkManager->InitClient();
-        if (result > 0) {
-            // ...
-        }
-    }
-
-    this->RemoveChild(waitingNode);
-
-    auto initted = this->stepLockNetworkManager->InitialSync();
-    if (!initted) {
-        return;
-    }
-}
 
 void MatchManager::ResetEntities() {
     auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);

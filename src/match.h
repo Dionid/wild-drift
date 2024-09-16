@@ -33,11 +33,9 @@ class MatchManager: public cen::Node2D {
         LaunchBallTimer* launchBallTimer;
         cen::TextView* playerScoreText;
         cen::TextView* enemyScoreText;
-        StepLockNetworkManager* stepLockNetworkManager;
 
         MatchManager(
             SpcAudio* gameAudio,
-            StepLockNetworkManager* stepLockNetworkManager,
             int winScore = 3,
             int playerScore = 0,
             int enemyScore = 0
@@ -51,8 +49,6 @@ class MatchManager: public cen::Node2D {
 
         void Init() override;
         void FixedUpdate() override;
-
-        void InitMultiplayerMode(bool isHost);
 };
 
 #endif // CSP_MATCH_H_

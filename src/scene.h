@@ -10,19 +10,18 @@
 class MainScene: public cen::Scene {
     public:
         SpcAudio* gameAudio;
-        StepLockNetworkManager* stepLockNetworkManager;
 
         MainScene(
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
-            StepLockNetworkManager* stepLockNetworkManager
+            cen::RenderingEngine2D* renderingEngine
         ): cen::Scene(
             screen,
-            camera
+            camera,
+            renderingEngine
         ) {
             this->gameAudio = gameAudio;
-            this->stepLockNetworkManager = stepLockNetworkManager;
         }
 
         void Init() override {
@@ -34,8 +33,7 @@ class MainScene: public cen::Scene {
 
             // ## Match
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
-                this->gameAudio,
-                this->stepLockNetworkManager
+                this->gameAudio
             ));
 
             matchManager->Deactivate();
@@ -174,35 +172,8 @@ class MainScene: public cen::Scene {
                 while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
                     this->simulationTick++;
 
-                    // // FUTURE: # PRI
-                    // // # Tick
-                    // tickManager.currentTick++;
-
-                    // // # Reconcile GameStateTick
-                    // // ## Take arrived GameStateTick and check if they are correct
-                    // const auto& compareResult = tickManager.CompareArrivedAndPending();
-                    // if (
-                    //     compareResult.invalidPendingGameStateTickId == -1
-                    // ) {
-                    //     // ## Merge correct GameStateTick
-                    //     tickManager.RemoveValidated(compareResult);
-                    // } else {
-                    //     // ## Rollback and Apply
-                    //     tickManager.Rollback(compareResult);
-
-                    //     // ## Simulate new GameTicks using PlayerInputTicks
-                    //     for (const auto& playerInputTick: tickManager.playerInputTicks) {
-                    //         this->playerInput = playerInputTick.input;
-                    //         this->SimulationTick();
-                    //         tickManager.SaveGameTick(this->playerInput);
-                    //     }
-                    // }
-
                     // # Simulation current Tick
                     this->SimulationTick();
-
-                    // # PRI
-                    // tickManager.SaveGameTick(this->playerInput);
 
                     // ## Correct time and cycles
                     accumulatedFixedTime -= targetFixedUpdateTime;
