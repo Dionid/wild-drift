@@ -2,19 +2,21 @@
 #define CENGINE_SCENE_H
 
 #include <vector>
+#include <map>
 #include <atomic>
 #include "rendering.h"
 #include "node_storage.h"
 #include "collision.h"
 #include "event.h"
-#include "debug.h"
-#include "tick.h"
 
 namespace cen {
+    typedef std::string scene_name;
+
     class Scene {
         public:
             bool isInitialized = false;
             std::atomic<bool> isAlive = true;
+            scene_name name;
 
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
@@ -30,6 +32,7 @@ namespace cen {
             std::vector<std::unique_ptr<cen::TopicBase>> topics;
 
             Scene(
+                scene_name name,
                 cen::ScreenResolution screen,
                 Camera2D* camera,
                 RenderingEngine2D* renderingEngine,
@@ -41,6 +44,7 @@ namespace cen {
                 uint64_t frameTick = 0,
                 uint64_t simulationTick = 0
             ) {
+                this->name = name;
                 this->eventBus = eventBus;
                 this->screen = screen;
                 this->camera = camera;
@@ -178,6 +182,59 @@ namespace cen {
                     // # End (busy wait)
                     while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
                 }
+            }
+    };
+
+    struct SceneChangeRequested: public cen::Event {
+        static const std::string type;
+        std::string name;
+
+        SceneChangeRequested(): cen::Event(SceneChangeRequested::type) {
+            this->name = "";
+        }
+
+        SceneChangeRequested(std::string name): cen::Event(SceneChangeRequested::type) {
+            this->name = name;
+        }
+    };
+
+    class SceneManager {
+        public:
+            std::unordered_map<scene_name, std::unique_ptr<Scene>> scenesByName;
+            Scene* currentScene;
+            EventBus* eventBus;
+
+            SceneManager(
+                EventBus* eventBus
+            ) {
+                this->eventBus = eventBus;
+                this->currentScene = nullptr;
+
+                this->eventBus->on(
+                    SceneChangeRequested{},
+                    std::make_unique<EventListener>(
+                        [this](const Event& event) {
+                            std::printf("SceneChangeRequested\n");
+                            auto sceneChangeRequested = static_cast<const SceneChangeRequested&>(event);
+                            this->SetCurrentScene(sceneChangeRequested.name);
+                            this->RunCurrentScene();
+                        }
+                    )
+                );
+            }
+
+            cen::Scene* AddScene(std::unique_ptr<Scene> scene) {
+                auto scenePtr = scene.get();
+                this->scenesByName[scene->name] = std::move(scene);
+                return scenePtr;
+            }
+
+            void SetCurrentScene(scene_name name) {
+                this->currentScene = this->scenesByName[name].get();
+            }
+
+            void RunCurrentScene() {
+                this->currentScene->RunSimulation();
             }
     };
 }

@@ -75,6 +75,7 @@ namespace cen {
             }
 
             EventBus(const EventBus& other) {
+                this->nextEventListenerId = other.nextEventListenerId;
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
                 for (const auto& [name, listenersVec] : other.listeners) {
@@ -88,6 +89,7 @@ namespace cen {
                 if (this == &other) {
                     return *this;
                 }
+                this->nextEventListenerId = other.nextEventListenerId;
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
                 for (const auto& [name, listenersVec] : other.listeners) {
@@ -136,7 +138,8 @@ namespace cen {
             }
 
             void flush() {
-                for (const auto& event : *this->events) {
+                for (size_t i = 0; i < this->events->size(); ++i) {
+                    auto event = this->events->at(i);
                     for (const auto& listener : this->listeners[event.name]) {
                         listener->OnEvent(event);
                     }

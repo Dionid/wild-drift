@@ -45,7 +45,6 @@ FetchContent_MakeAvailable(enet)
 file(GLOB CENGINE_SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/cengine/*.cpp")
 add_library(cengine ${CENGINE_SOURCES})
 target_link_libraries(cengine raylib enet)
-target_include_directories(cengine PRIVATE ${CMAKE_BINARY_DIR}/_deps/raygui-src/src/)
 target_include_directories(cengine PUBLIC ${enet_SOURCE_DIR}/include)
 
 # Declaring our executable

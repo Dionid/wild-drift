@@ -9,10 +9,10 @@
 #include "match.h"
 #include "menus.h"
 #include "game_tick.h"
-#include "scene.h"
+#include "scenes.h"
 #include "step_lock_manager.h"
 
-void runSimulation(MainScene* scene) {
+void runSimulation(cen::Scene* scene) {
     scene->RunSimulation();
 };
 
@@ -63,37 +63,59 @@ int main() {
     // # Event Bus
     cen::EventBus eventBus = cen::EventBus();
 
+    // # Scene
+    // MainScene scene = MainScene(
+    //     &gameAudio,
+    //     cen::ScreenResolution{screenWidth, screenHeight},
+    //     &camera,
+    //     &renderingEngine,
+    //     eventBus
+    // );
+
+    cen::SceneManager sceneManager = cen::SceneManager(
+       &eventBus
+    );
+
     eventBus.on(
-        StartEvent{},
+        cen::SceneChangeRequested{},
         std::make_unique<cen::EventListener>(
-            [](const cen::Event& event){
-                std::cout << "StartEvent" << std::endl;
+            [&sceneManager](const cen::Event& event) {
+                std::printf("SceneChangeRequested\n");
+                auto sceneChangeRequested = static_cast<const cen::SceneChangeRequested&>(event);
+                sceneManager.SetCurrentScene(sceneChangeRequested.name);
+                sceneManager.RunCurrentScene();
             }
         )
     );
 
-    // # Scene
-    MainScene scene = MainScene(
-        &gameAudio,
-        cen::ScreenResolution{screenWidth, screenHeight},
-        &camera,
-        &renderingEngine,
-        eventBus
+    auto scene = sceneManager.AddScene(
+        std::make_unique<MainMenuScene>(
+            cen::ScreenResolution{screenWidth, screenHeight},
+            &camera,
+            &renderingEngine,
+            eventBus
+        )
     );
+
+    // MainMenuScene scene = MainMenuScene(
+    //     cen::ScreenResolution{screenWidth, screenHeight},
+    //     &camera,
+    //     &renderingEngine,
+    //     eventBus
+    // );
 
     // # Threads
     std::vector<std::thread> threads;
 
     // # Simulation Loop Thread
-    threads.push_back(std::thread(runSimulation, &scene));
+    threads.push_back(std::thread(runSimulation, scene));
 
     // # Rendering Loop Thread
     runRendering(&renderingEngine);
 
     // # Exit
-    
     // ## Stop signal
-    scene.isAlive.store(false, std::memory_order_release);
+    scene->isAlive.store(false, std::memory_order_release);
 
     // ## Join threads after stop signal
     for (auto& thread: threads) {
