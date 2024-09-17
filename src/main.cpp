@@ -69,7 +69,7 @@ int main() {
         cen::ScreenResolution{screenWidth, screenHeight},
         &camera,
         &renderingEngine,
-        &eventBus
+        eventBus
     );
 
     // # Threads

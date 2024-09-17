@@ -23,7 +23,7 @@ namespace cen {
             cen::ScreenResolution screen;
             cen::PlayerInputManager playerInputManager;
             cen::RenderingEngine2D* renderingEngine;
-            EventBus* eventBus;
+            EventBus eventBus;
 
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
             std::unique_ptr<cen::NodeStorage> nodeStorage;
@@ -33,7 +33,7 @@ namespace cen {
                 cen::ScreenResolution screen,
                 Camera2D* camera,
                 RenderingEngine2D* renderingEngine,
-                EventBus* eventBus,
+                EventBus eventBus,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
@@ -41,6 +41,7 @@ namespace cen {
                 uint64_t frameTick = 0,
                 uint64_t simulationTick = 0
             ) {
+                this->eventBus = eventBus;
                 this->screen = screen;
                 this->camera = camera;
                 this->renderingEngine = renderingEngine;
@@ -49,7 +50,6 @@ namespace cen {
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;
                 this->topics = std::move(topics);
-                this->eventBus = std::move(eventBus);
             }
 
             virtual void Init() {};
@@ -164,7 +164,7 @@ namespace cen {
                         topic->flush();
                     }
 
-                    this->eventBus->flush();
+                    this->eventBus.flush();
 
                     // # Sync GameState and RendererState
                     auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();

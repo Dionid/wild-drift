@@ -65,9 +65,32 @@ namespace cen {
 
     class EventBus {
         public:
+            std::shared_ptr<std::vector<Event>> events;
             std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>> listeners;
-            std::vector<Event> events;
             int nextEventListenerId = 0;
+
+            EventBus() {
+                this->events = std::make_shared<std::vector<Event>>();
+                this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+            }
+
+            EventBus(const EventBus& other) {
+                this->events = other.events;
+                this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+            }
+
+            EventBus& operator=(const EventBus& other) {
+                if (this == &other) {
+                    return *this;
+                }
+                this->events = other.events;
+                this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+                return *this;
+            }
+
+            ~EventBus() {
+                this->listeners.clear();
+            }
 
             int nextId() {
                 return ++this->nextEventListenerId;
@@ -85,7 +108,7 @@ namespace cen {
             }
 
             void emit(const Event& event) {
-                this->events.push_back(event);
+                this->events->push_back(event);
             }
 
             void off(const Event& event, int listenerId) {
@@ -103,13 +126,12 @@ namespace cen {
             }
 
             void flush() {
-                for (auto& event : this->events) {
-                    std::vector<std::unique_ptr<EventListener>>& listenersVec = this->listeners[event.name];
-                    for (const auto& listener : listenersVec) {
+                for (const auto& event : *this->events) {
+                    for (const auto& listener : this->listeners[event.name]) {
                         listener->OnEvent(event);
                     }
                 }
-                this->events.clear();
+                this->events->clear();
             }
     };
 

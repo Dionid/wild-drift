@@ -16,7 +16,7 @@ class MainScene: public cen::Scene {
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
-            cen::EventBus* eventBus
+            cen::EventBus eventBus
         ): cen::Scene(
             screen,
             camera,
@@ -59,14 +59,14 @@ class MainScene: public cen::Scene {
                 DisableCursor();
             };
 
-            this->eventBus->on(
+            this->eventBus.on(
                 StartEvent{},
                 std::make_unique<cen::EventListener>(
                     onStartEvent
                 )
             );
 
-            this->eventBus->on(
+            this->eventBus.on(
                 RestartEvent{},
                 std::make_unique<cen::EventListener>(
                     onStartEvent
@@ -86,7 +86,7 @@ class MainScene: public cen::Scene {
                 EnableCursor();
             };
 
-            this->eventBus->on(
+            this->eventBus.on(
                 OnMatchEndEvent{},
                 std::make_unique<cen::EventListener>(
                     onMatchEndEvent
@@ -109,7 +109,7 @@ class MainScene: public cen::Scene {
                 // matchManager->Activate();
             };
 
-            this->eventBus->on(
+            this->eventBus.on(
                 HostEvent{},
                 std::make_unique<cen::EventListener>(
                     onHostEvent
