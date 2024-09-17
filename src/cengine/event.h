@@ -77,6 +77,11 @@ namespace cen {
             EventBus(const EventBus& other) {
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+                for (const auto& [name, listenersVec] : other.listeners) {
+                    for (const auto& listener : listenersVec) {
+                        this->listeners[name].push_back(std::make_unique<EventListener>(listener->OnEvent, listener->id));
+                    }
+                }
             }
 
             EventBus& operator=(const EventBus& other) {
@@ -85,6 +90,11 @@ namespace cen {
                 }
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+                for (const auto& [name, listenersVec] : other.listeners) {
+                    for (const auto& listener : listenersVec) {
+                        this->listeners[name].push_back(std::make_unique<EventListener>(listener->OnEvent, listener->id));
+                    }
+                }
                 return *this;
             }
 

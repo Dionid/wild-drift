@@ -63,6 +63,15 @@ int main() {
     // # Event Bus
     cen::EventBus eventBus = cen::EventBus();
 
+    eventBus.on(
+        StartEvent{},
+        std::make_unique<cen::EventListener>(
+            [](const cen::Event& event){
+                std::cout << "StartEvent" << std::endl;
+            }
+        )
+    );
+
     // # Scene
     MainScene scene = MainScene(
         &gameAudio,
