@@ -216,8 +216,8 @@ namespace cen {
                         [this](const Event& event) {
                             std::printf("SceneChangeRequested\n");
                             auto sceneChangeRequested = static_cast<const SceneChangeRequested&>(event);
-                            this->SetCurrentScene(sceneChangeRequested.name);
-                            this->RunCurrentScene();
+                            this->ChangeCurrentScene(sceneChangeRequested.name);
+                            this->RunCurrentSceneSimulation();
                         }
                     )
                 );
@@ -229,12 +229,20 @@ namespace cen {
                 return scenePtr;
             }
 
-            void SetCurrentScene(scene_name name) {
+            void ChangeCurrentScene(scene_name name) {
+                if (this->currentScene) {
+                    // ...
+                }
+
                 this->currentScene = this->scenesByName[name].get();
             }
 
-            void RunCurrentScene() {
+            void RunCurrentSceneSimulation() {
                 this->currentScene->RunSimulation();
+            }
+
+            void StopTheWorld() {
+                this->currentScene->isAlive.store(false, std::memory_order_release);
             }
     };
 }

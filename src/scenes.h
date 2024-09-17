@@ -7,11 +7,11 @@
 #ifndef MAIN_SCENE_H
 #define MAIN_SCENE_H
 
-class MainScene: public cen::Scene {
+class MatchScene: public cen::Scene {
     public:
         SpcAudio* gameAudio;
 
-        MainScene(
+        MatchScene(
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -28,63 +28,23 @@ class MainScene: public cen::Scene {
         }
 
         void Init() override {
-            // # Scene init
-            // ## MatchEndMenu
-            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
-
-            matchEndMenu->Deactivate();
-
             // ## Match
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio
             ));
 
-            matchManager->Deactivate();
+            PlaySound(this->gameAudio->start);
 
-            // ## MainMenu
-            MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
-
-            // # Events
-            // ## StartEvent
-            auto onStartEvent = [
-                this,
-                mainMenu,
-                matchEndMenu,
-                matchManager
-            ](const cen::Event& event) {
-                PlaySound(this->gameAudio->start);
-                mainMenu->Deactivate();
-                matchEndMenu->Deactivate();
-                matchManager->Reset();
-                matchManager->Activate();
-                DisableCursor();
-            };
-
-            this->eventBus.on(
-                StartEvent{},
-                std::make_unique<cen::EventListener>(
-                    onStartEvent
-                )
-            );
-
-            this->eventBus.on(
-                RestartEvent{},
-                std::make_unique<cen::EventListener>(
-                    onStartEvent
-                )
-            );
+            DisableCursor();
 
             // ## MatchEndEvent
             auto onMatchEndEvent = [
-                this,
-                mainMenu,
-                matchEndMenu,
-                matchManager
+                // this,
+                // mainMenu,
+                // matchEndMenu,
+                // matchManager
             ](const cen::Event& event) {
-                matchManager->Deactivate();
-                matchEndMenu->SetPlayerWon(matchManager->playerScore > matchManager->enemyScore);
-                matchEndMenu->Activate();
-                EnableCursor();
+                
             };
 
             this->eventBus.on(
@@ -93,27 +53,39 @@ class MainScene: public cen::Scene {
                     onMatchEndEvent
                 )
             );
+        }
+};
 
-            // ## HostEvent
-            auto onHostEvent = [
-                this,
-                mainMenu,
-                matchEndMenu,
-                matchManager
-            ](const cen::Event& event) {
-                // DisableCursor();
-                // matchManager->InitMultiplayerMode(true);
-                // PlaySound(this->gameAudio->start);
-                // mainMenu->Deactivate();
-                // matchEndMenu->Deactivate();
-                // matchManager->Reset();
-                // matchManager->Activate();
-            };
+class MatchEndScene: public cen::Scene {
+    public:
+        MatchEndScene(
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
+        ): cen::Scene(
+            "MatchEndScene",
+            screen,
+            camera,
+            renderingEngine,
+            eventBus
+        ) {}
+
+        void Init() override {
+            // # Scene init
+            // ## MatchEndMenu
+            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
 
             this->eventBus.on(
-                HostEvent{},
+                RestartEvent{},
                 std::make_unique<cen::EventListener>(
-                    onHostEvent
+                    [this](const cen::Event& event){
+                        this->eventBus.emit(
+                            cen::SceneChangeRequested{
+                                "MatchScene"
+                            }
+                        );
+                    }
                 )
             );
         }

@@ -65,30 +65,46 @@ int main() {
         nullptr
     );
 
-    eventBus.on(
-        StartEvent{},
-        std::make_unique<cen::EventListener>(
-            [](const cen::Event& event) {
-                std::printf("TOP StartEvent\n");
-            }
-        )
-    );
-
-    // # Scene
-    // MainScene scene = MainScene(
-    //     &gameAudio,
-    //     cen::ScreenResolution{screenWidth, screenHeight},
-    //     &camera,
-    //     &renderingEngine,
-    //     eventBus
+    // eventBus.on(
+    //     StartEvent{},
+    //     std::make_unique<cen::EventListener>(
+    //         [](const cen::Event& event) {
+    //             std::printf("TOP StartEvent\n");
+    //         }
+    //     )
     // );
 
+    // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
     );
 
-    auto scene = sceneManager.AddScene(
+    // ## Main Menu Scene
+    auto mainMenuScene = sceneManager.AddScene(
         std::make_unique<MainMenuScene>(
+            cen::ScreenResolution{screenWidth, screenHeight},
+            &camera,
+            &renderingEngine,
+            &eventBus
+        )
+    );
+
+    sceneManager.ChangeCurrentScene(mainMenuScene->name);
+
+    // ## Match Scene
+    sceneManager.AddScene(
+        std::make_unique<MatchEndScene>(
+            cen::ScreenResolution{screenWidth, screenHeight},
+            &camera,
+            &renderingEngine,
+            &eventBus
+        )
+    );
+
+    // ## Match Scene
+    sceneManager.AddScene(
+        std::make_unique<MatchScene>(
+            &gameAudio,
             cen::ScreenResolution{screenWidth, screenHeight},
             &camera,
             &renderingEngine,
@@ -100,14 +116,14 @@ int main() {
     std::vector<std::thread> threads;
 
     // # Simulation Loop Thread
-    threads.push_back(std::thread(runSimulation, scene));
+    threads.push_back(std::thread(runSimulation, mainMenuScene));
 
     // # Rendering Loop Thread
     runRendering(&renderingEngine);
 
     // # Exit
     // ## Stop signal
-    scene->isAlive.store(false, std::memory_order_release);
+    sceneManager.StopTheWorld();
 
     // ## Join threads after stop signal
     for (auto& thread: threads) {
