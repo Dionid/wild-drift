@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <atomic>
 
 namespace cen {
     struct Event {
@@ -67,36 +68,38 @@ namespace cen {
         public:
             std::shared_ptr<std::vector<Event>> events;
             std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>> listeners;
-            int nextEventListenerId = 0;
+            EventBus* parent;
+            EventBus* root;
+            std::atomic<int> nextEventListenerId = 0;
 
-            EventBus() {
-                this->events = std::make_shared<std::vector<Event>>();
+            EventBus(
+                EventBus* parent
+            ) {
+                this->events = parent != nullptr ? parent->events : std::make_shared<std::vector<Event>>();
+                if (parent) {
+                    this->root = parent->root;
+                } else {
+                    this->root = this;
+                }
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
+                this->parent = parent;
             }
 
             EventBus(const EventBus& other) {
-                this->nextEventListenerId = other.nextEventListenerId;
+                this->parent = other.parent;
+                this->nextEventListenerId = 0;
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
-                for (const auto& [name, listenersVec] : other.listeners) {
-                    for (const auto& listener : listenersVec) {
-                        this->listeners[name].push_back(std::make_unique<EventListener>(listener->OnEvent, listener->id));
-                    }
-                }
             }
 
             EventBus& operator=(const EventBus& other) {
                 if (this == &other) {
                     return *this;
                 }
-                this->nextEventListenerId = other.nextEventListenerId;
+                this->parent = other.parent;
+                this->nextEventListenerId = 0;
                 this->events = other.events;
                 this->listeners = std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>>();
-                for (const auto& [name, listenersVec] : other.listeners) {
-                    for (const auto& listener : listenersVec) {
-                        this->listeners[name].push_back(std::make_unique<EventListener>(listener->OnEvent, listener->id));
-                    }
-                }
                 return *this;
             }
 
@@ -105,7 +108,9 @@ namespace cen {
             }
 
             int nextId() {
-                return ++this->nextEventListenerId;
+                // return ++this->nextEventListenerId;
+
+                return this->root->nextEventListenerId.fetch_add(1);
             }
 
             int on(
@@ -115,6 +120,17 @@ namespace cen {
                 int id = listener->id == 0 ? this->nextId() : listener->id;
                 listener->id = id;
                 this->listeners[event.name].push_back(std::move(listener));
+
+                return id;
+            }
+
+            int onRoot(
+                const Event& event,
+                std::unique_ptr<EventListener> listener
+            ) {
+                int id = listener->id == 0 ? this->nextId() : listener->id;
+                listener->id = id;
+                this->root->listeners[event.name].push_back(std::move(listener));
 
                 return id;
             }
@@ -137,13 +153,34 @@ namespace cen {
                 );
             }
 
-            void flush() {
+            // void flush() {
+            //     for (size_t i = 0; i < this->events->size(); ++i) {
+            //         auto event = this->events->at(i);
+            //         for (const auto& listener : this->listeners[event.name]) {
+            //             listener->OnEvent(event);
+            //         }
+            //     }
+            //     this->events->clear();
+            // }
+
+            void _flush() {
                 for (size_t i = 0; i < this->events->size(); ++i) {
                     auto event = this->events->at(i);
                     for (const auto& listener : this->listeners[event.name]) {
                         listener->OnEvent(event);
                     }
                 }
+            }
+
+            void traverseFlush() {
+                this->_flush();
+                if (this->parent) {
+                    this->parent->traverseFlush();
+                }
+            }
+
+            void flush() {
+                this->traverseFlush();
                 this->events->clear();
             }
     };

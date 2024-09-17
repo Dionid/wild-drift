@@ -25,7 +25,7 @@ namespace cen {
             cen::ScreenResolution screen;
             cen::PlayerInputManager playerInputManager;
             cen::RenderingEngine2D* renderingEngine;
-            EventBus eventBus;
+            cen::EventBus eventBus;
 
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
             std::unique_ptr<cen::NodeStorage> nodeStorage;
@@ -36,16 +36,16 @@ namespace cen {
                 cen::ScreenResolution screen,
                 Camera2D* camera,
                 RenderingEngine2D* renderingEngine,
-                EventBus eventBus,
+                cen::EventBus* eventBus,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
                 std::vector<std::unique_ptr<cen::TopicBase>> topics = std::vector<std::unique_ptr<cen::TopicBase>>(),
                 uint64_t frameTick = 0,
                 uint64_t simulationTick = 0
-            ) {
+            ): eventBus(eventBus) {
                 this->name = name;
-                this->eventBus = eventBus;
+                // this->eventBus = cen::EventBus(eventBus);
                 this->screen = screen;
                 this->camera = camera;
                 this->renderingEngine = renderingEngine;

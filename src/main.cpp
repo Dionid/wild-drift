@@ -61,7 +61,18 @@ int main() {
     cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D();
 
     // # Event Bus
-    cen::EventBus eventBus = cen::EventBus();
+    cen::EventBus eventBus = cen::EventBus(
+        nullptr
+    );
+
+    eventBus.on(
+        StartEvent{},
+        std::make_unique<cen::EventListener>(
+            [](const cen::Event& event) {
+                std::printf("TOP StartEvent\n");
+            }
+        )
+    );
 
     // # Scene
     // MainScene scene = MainScene(
@@ -76,33 +87,14 @@ int main() {
        &eventBus
     );
 
-    eventBus.on(
-        cen::SceneChangeRequested{},
-        std::make_unique<cen::EventListener>(
-            [&sceneManager](const cen::Event& event) {
-                std::printf("SceneChangeRequested\n");
-                auto sceneChangeRequested = static_cast<const cen::SceneChangeRequested&>(event);
-                sceneManager.SetCurrentScene(sceneChangeRequested.name);
-                sceneManager.RunCurrentScene();
-            }
-        )
-    );
-
     auto scene = sceneManager.AddScene(
         std::make_unique<MainMenuScene>(
             cen::ScreenResolution{screenWidth, screenHeight},
             &camera,
             &renderingEngine,
-            eventBus
+            &eventBus
         )
     );
-
-    // MainMenuScene scene = MainMenuScene(
-    //     cen::ScreenResolution{screenWidth, screenHeight},
-    //     &camera,
-    //     &renderingEngine,
-    //     eventBus
-    // );
 
     // # Threads
     std::vector<std::thread> threads;

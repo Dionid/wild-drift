@@ -16,7 +16,7 @@ class MainScene: public cen::Scene {
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
-            cen::EventBus eventBus
+            cen::EventBus* eventBus
         ): cen::Scene(
             "MatchScene",
             screen,
@@ -125,7 +125,7 @@ class MainMenuScene: public cen::Scene {
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
-            cen::EventBus eventBus
+            cen::EventBus* eventBus
         ): cen::Scene(
             "MainMenuScene",
             screen,
