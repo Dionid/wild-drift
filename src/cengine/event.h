@@ -56,17 +56,17 @@ namespace cen {
 
     struct EventListener {
         int id;
-        std::function<void(const Event&)> OnEvent;
+        std::function<void(const Event*)> OnEvent;
 
         EventListener(
-            std::function<void(const Event&)> OnEvent,
+            std::function<void(const Event*)> OnEvent,
             int id = 0
         ): id(id), OnEvent(OnEvent) {}
     };
 
     class EventBus {
         public:
-            std::shared_ptr<std::vector<Event>> events;
+            std::shared_ptr<std::vector<std::unique_ptr<Event>>> events;
             std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>> listeners;
             EventBus* parent;
             EventBus* root;
@@ -75,7 +75,7 @@ namespace cen {
             EventBus(
                 EventBus* parent
             ) {
-                this->events = parent != nullptr ? parent->events : std::make_shared<std::vector<Event>>();
+                this->events = parent != nullptr ? parent->events : std::make_shared<std::vector<std::unique_ptr<Event>>>();
                 if (parent) {
                     this->root = parent->root;
                 } else {
@@ -108,8 +108,6 @@ namespace cen {
             }
 
             int nextId() {
-                // return ++this->nextEventListenerId;
-
                 return this->root->nextEventListenerId.fetch_add(1);
             }
 
@@ -135,8 +133,10 @@ namespace cen {
                 return id;
             }
 
-            void emit(const Event& event) {
-                this->events->push_back(event);
+            void emit(std::unique_ptr<Event> event) {
+                this->events->push_back(
+                    std::move(event)
+                );
             }
 
             void off(const Event& event, int listenerId) {
@@ -153,25 +153,17 @@ namespace cen {
                 );
             }
 
-            // void flush() {
-            //     for (size_t i = 0; i < this->events->size(); ++i) {
-            //         auto event = this->events->at(i);
-            //         for (const auto& listener : this->listeners[event.name]) {
-            //             listener->OnEvent(event);
-            //         }
-            //     }
-            //     this->events->clear();
-            // }
-
+            // TODO: rename
             void _flush() {
                 for (size_t i = 0; i < this->events->size(); ++i) {
-                    auto event = this->events->at(i);
-                    for (const auto& listener : this->listeners[event.name]) {
-                        listener->OnEvent(event);
+                    const auto& event = this->events->at(i);
+                    for (const auto& listener : this->listeners[event->name]) {
+                        listener->OnEvent(event.get());
                     }
                 }
             }
 
+            // TODO: rename
             void traverseFlush() {
                 this->_flush();
                 if (this->parent) {
@@ -179,6 +171,7 @@ namespace cen {
                 }
             }
 
+            // TODO: rename
             void flush() {
                 this->traverseFlush();
                 this->events->clear();

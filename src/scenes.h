@@ -43,7 +43,7 @@ class MatchScene: public cen::Scene {
                 // mainMenu,
                 // matchEndMenu,
                 // matchManager
-            ](const cen::Event& event) {
+            ](const cen::Event* event) {
                 
             };
 
@@ -79,11 +79,11 @@ class MatchEndScene: public cen::Scene {
             this->eventBus.on(
                 RestartEvent{},
                 std::make_unique<cen::EventListener>(
-                    [this](const cen::Event& event){
+                    [this](const cen::Event* event){
                         this->eventBus.emit(
-                            cen::SceneChangeRequested{
+                            std::make_unique<cen::SceneChangeRequested>(
                                 "MatchScene"
-                            }
+                            )
                         );
                     }
                 )
@@ -114,12 +114,12 @@ class MainMenuScene: public cen::Scene {
             // ## StartEvent
             auto onStartEvent = [
                 this
-            ](const cen::Event& event) {
+            ](const cen::Event* event) {
                 std::printf("StartEvent\n");
                 this->eventBus.emit(
-                    cen::SceneChangeRequested{
+                    std::make_unique<cen::SceneChangeRequested>(
                         "MatchScene"
-                    }
+                    )
                 );
             };
 
@@ -134,7 +134,7 @@ class MainMenuScene: public cen::Scene {
             auto onHostEvent = [
                 this,
                 mainMenu
-            ](const cen::Event& event) {
+            ](const cen::Event* event) {
                 std::printf("HostEvent\n");
             };
 
@@ -149,7 +149,7 @@ class MainMenuScene: public cen::Scene {
             auto onJoinEvent = [
                 this,
                 mainMenu
-            ](const cen::Event& event) {
+            ](const cen::Event* event) {
                 std::printf("JoinEvent\n");
             };
 

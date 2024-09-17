@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <atomic>
+#include <functional>
 #include "rendering.h"
 #include "node_storage.h"
 #include "collision.h"
@@ -57,6 +58,7 @@ namespace cen {
             }
 
             virtual void Init() {};
+            virtual void Destroy() {};
 
             void FullInit() {
                 // # Init scene
@@ -187,58 +189,69 @@ namespace cen {
 
     struct SceneChangeRequested: public cen::Event {
         static const std::string type;
-        std::string name;
+        std::string sceneName;
 
         SceneChangeRequested(): cen::Event(SceneChangeRequested::type) {
-            this->name = "";
+            this->sceneName = "";
         }
 
-        SceneChangeRequested(std::string name): cen::Event(SceneChangeRequested::type) {
-            this->name = name;
+        SceneChangeRequested(std::string sceneName): cen::Event(SceneChangeRequested::type) {
+            this->sceneName = sceneName;
         }
+    };
+
+    struct SceneConstructor {
+        std::string sceneName;
+        std::function<std::unique_ptr<Scene>()> create;
     };
 
     class SceneManager {
         public:
-            std::unordered_map<scene_name, std::unique_ptr<Scene>> scenesByName;
-            Scene* currentScene;
+            std::unordered_map<scene_name, SceneConstructor> scenesConstructorsByName;
+            std::unique_ptr<Scene> currentScene;
             EventBus* eventBus;
+            bool currentSceneRunning;
 
             SceneManager(
                 EventBus* eventBus
             ) {
+                this->currentSceneRunning = false;
                 this->eventBus = eventBus;
                 this->currentScene = nullptr;
 
                 this->eventBus->on(
                     SceneChangeRequested{},
                     std::make_unique<EventListener>(
-                        [this](const Event& event) {
-                            std::printf("SceneChangeRequested\n");
-                            auto sceneChangeRequested = static_cast<const SceneChangeRequested&>(event);
-                            this->ChangeCurrentScene(sceneChangeRequested.name);
+                        [this](const Event* event) {
+                            auto sceneChangeRequested = static_cast<const SceneChangeRequested*>(event);
+                            this->ChangeCurrentScene(sceneChangeRequested->sceneName);
                             this->RunCurrentSceneSimulation();
                         }
                     )
                 );
             }
 
-            cen::Scene* AddScene(std::unique_ptr<Scene> scene) {
-                auto scenePtr = scene.get();
-                this->scenesByName[scene->name] = std::move(scene);
-                return scenePtr;
+            void AddSceneConstructor(
+                SceneConstructor sceneConstructor
+            ) {
+                this->scenesConstructorsByName[sceneConstructor.sceneName] = sceneConstructor;
             }
 
             void ChangeCurrentScene(scene_name name) {
                 if (this->currentScene) {
+                    this->StopTheWorld();
+                    // TODO: wait till current scene will stop
                     // ...
+                    this->currentScene->Destroy();
                 }
 
-                this->currentScene = this->scenesByName[name].get();
+                this->currentScene = std::move(this->scenesConstructorsByName[name].create());
             }
 
             void RunCurrentSceneSimulation() {
+                this->currentSceneRunning = true;
                 this->currentScene->RunSimulation();
+                this->currentSceneRunning = false;
             }
 
             void StopTheWorld() {

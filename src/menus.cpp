@@ -35,7 +35,7 @@ void MainMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    this->scene->eventBus.emit(StartEvent());
+                    this->scene->eventBus.emit(std::make_unique<StartEvent>());
                 }
             )
         )
@@ -56,7 +56,7 @@ void MainMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    this->scene->eventBus.emit(HostEvent());
+                    this->scene->eventBus.emit(std::make_unique<HostEvent>());
                 }
             )
         )
@@ -77,7 +77,7 @@ void MainMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    this->scene->eventBus.emit(JoinEvent());
+                    this->scene->eventBus.emit(std::make_unique<JoinEvent>());
                 }
             )
         )
@@ -108,7 +108,7 @@ void MatchEndMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    this->scene->eventBus.emit(RestartEvent());
+                    this->scene->eventBus.emit(std::make_unique<RestartEvent>());
                 }
             )
         )

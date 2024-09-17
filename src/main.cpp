@@ -80,43 +80,61 @@ int main() {
     );
 
     // ## Main Menu Scene
-    auto mainMenuScene = sceneManager.AddScene(
-        std::make_unique<MainMenuScene>(
-            cen::ScreenResolution{screenWidth, screenHeight},
-            &camera,
-            &renderingEngine,
-            &eventBus
-        )
+    sceneManager.AddSceneConstructor(
+        cen::SceneConstructor{
+            "MainMenuScene",
+            [
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MainMenuScene>(
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        }
     );
 
-    sceneManager.ChangeCurrentScene(mainMenuScene->name);
+    sceneManager.ChangeCurrentScene("MainMenuScene");
 
     // ## Match Scene
-    sceneManager.AddScene(
-        std::make_unique<MatchEndScene>(
-            cen::ScreenResolution{screenWidth, screenHeight},
-            &camera,
-            &renderingEngine,
-            &eventBus
-        )
+    sceneManager.AddSceneConstructor(
+        cen::SceneConstructor{
+            "MatchEndScene",
+            [
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchEndScene>(
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        }
     );
 
-    // ## Match Scene
-    sceneManager.AddScene(
-        std::make_unique<MatchScene>(
-            &gameAudio,
-            cen::ScreenResolution{screenWidth, screenHeight},
-            &camera,
-            &renderingEngine,
-            &eventBus
-        )
-    );
+    // // ## Match Scene
+    // sceneManager.AddScene(
+    //     std::make_unique<MatchScene>(
+    //         &gameAudio,
+    //         cen::ScreenResolution{screenWidth, screenHeight},
+    //         &camera,
+    //         &renderingEngine,
+    //         &eventBus
+    //     )
+    // );
 
     // # Threads
     std::vector<std::thread> threads;
 
     // # Simulation Loop Thread
-    threads.push_back(std::thread(runSimulation, mainMenuScene));
+    threads.push_back(std::thread(runSimulation, sceneManager.currentScene.get()));
 
     // # Rendering Loop Thread
     runRendering(&renderingEngine);
