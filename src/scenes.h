@@ -8,11 +8,17 @@
 #ifndef MAIN_SCENE_H
 #define MAIN_SCENE_H
 
+struct CrossSceneStorage {
+    bool isPlayerWon;
+};
+
 class MatchScene: public cen::Scene {
     public:
         SpcAudio* gameAudio;
+        CrossSceneStorage* crossSceneStorage;
 
         MatchScene(
+            CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -25,6 +31,7 @@ class MatchScene: public cen::Scene {
             renderingEngine,
             eventBus
         ) {
+            this->crossSceneStorage = crossSceneStorage;
             this->gameAudio = gameAudio;
         }
 
@@ -41,6 +48,10 @@ class MatchScene: public cen::Scene {
             auto onMatchEndEvent = [
                 this
             ](const cen::Event* event) {
+                auto matchEndEvent = static_cast<const MatchEndEvent*>(event);
+
+                this->crossSceneStorage->isPlayerWon = matchEndEvent->isPlayerWon;
+
                 this->eventBus.Emit(
                     std::make_unique<cen::SceneChangeRequested>(
                         MatchEndMenuSceneName
@@ -49,7 +60,7 @@ class MatchScene: public cen::Scene {
             };
 
             this->eventBus.On(
-                OnMatchEndEvent{},
+                MatchEndEvent{},
                 std::make_unique<cen::EventListener>(
                     onMatchEndEvent
                 )
@@ -59,7 +70,12 @@ class MatchScene: public cen::Scene {
 
 class MatchEndScene: public cen::Scene {
     public:
+        SpcAudio* gameAudio;
+        CrossSceneStorage* crossSceneStorage;
+
         MatchEndScene(
+            CrossSceneStorage* crossSceneStorage,
+            SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
@@ -70,12 +86,26 @@ class MatchEndScene: public cen::Scene {
             camera,
             renderingEngine,
             eventBus
-        ) {}
+        ) {
+            this->crossSceneStorage = crossSceneStorage;
+            this->gameAudio = gameAudio;
+        }
 
         void Init() override {
             EnableCursor();
 
-            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
+            std::cout << crossSceneStorage->isPlayerWon << std::endl;
+
+            auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>(
+                crossSceneStorage->isPlayerWon
+            ));
+
+            // TODO: SoundManager (that will do nothing on server)
+            if (crossSceneStorage->isPlayerWon) {
+                PlaySound(this->gameAudio->win);
+            } else {
+                PlaySound(this->gameAudio->lost);
+            }
 
             this->eventBus.On(
                 RestartEvent{},
@@ -89,14 +119,6 @@ class MatchEndScene: public cen::Scene {
                     }
                 )
             );
-
-            // if (this->playerScore > this->enemyScore) {
-            //     // TODO: SoundManager (that will do nothing on server)
-            //     PlaySound(this->gameAudio->win);
-            // } else {
-            //     // TODO: SoundManager (that will do nothing on server)
-            //     PlaySound(this->gameAudio->lost);
-            // }
         }
 };
 
@@ -116,6 +138,8 @@ class MainMenuScene: public cen::Scene {
         ) {}
 
         void Init() override {
+            EnableCursor();
+
             // ## MainMenu
             MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
 

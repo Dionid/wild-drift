@@ -23,9 +23,13 @@ struct RestartEvent: public cen::Event {
     RestartEvent(): cen::Event(RestartEvent::type) {}
 };
 
-struct OnMatchEndEvent: public cen::Event {
+struct MatchEndEvent: public cen::Event {
     static const std::string type;
-    OnMatchEndEvent(): cen::Event(OnMatchEndEvent::type) {}
+    bool isPlayerWon;
+    MatchEndEvent(): cen::Event(MatchEndEvent::type) {}
+    MatchEndEvent(bool isPlayerWon): cen::Event(MatchEndEvent::type) {
+        this->isPlayerWon = isPlayerWon;
+    }
 };
 
 #endif // CENGINE_EVENTS_H_

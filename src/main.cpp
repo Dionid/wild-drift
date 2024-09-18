@@ -26,7 +26,6 @@ int main() {
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "super pong");
-    EnableCursor();
     SetTargetFPS(FPS);
 
     // # Audio
@@ -70,6 +69,11 @@ int main() {
        &eventBus
     );
 
+    // ## Storage
+    CrossSceneStorage crossSceneStorage = {
+        false
+    };
+
     // ## Main Menu Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
@@ -89,36 +93,19 @@ int main() {
         )
     );
 
-    // ## Match Scene
+    // ## Match End Menu Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
             MatchEndMenuSceneName,
             [
-                &camera,
-                &renderingEngine,
-                &eventBus
-            ](){
-                return std::make_unique<MatchEndScene>(
-                    cen::ScreenResolution{screenWidth, screenHeight},
-                    &camera,
-                    &renderingEngine,
-                    &eventBus
-                );
-            }
-        )
-    );
-
-    // // ## Match Scene
-    sceneManager.AddSceneConstructor(
-        std::make_unique<cen::SceneConstructor>(
-            MatchSceneName,
-            [
+                &crossSceneStorage,
                 &gameAudio,
                 &camera,
                 &renderingEngine,
                 &eventBus
             ](){
-                return std::make_unique<MatchScene>(
+                return std::make_unique<MatchEndScene>(
+                    &crossSceneStorage,
                     &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
@@ -129,23 +116,47 @@ int main() {
         )
     );
 
+    // ## Match Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            MatchSceneName,
+            [
+                &crossSceneStorage,
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchScene>(
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
+
+    // ## Set first scene
     sceneManager.SetFirstScene(MainMenuSceneName);
 
-    // # Threads
-    std::vector<std::thread> threads;
+    // # Game Threads
+    std::vector<std::thread> gameThreads;
 
-    // # Simulation Loop Thread
-    threads.push_back(std::thread(runSimulation, &sceneManager));
+    // ## Simulation Loop
+    gameThreads.push_back(std::thread(runSimulation, &sceneManager));
 
-    // # Rendering Loop Thread
+    // ## Rendering Loop
     runRendering(&renderingEngine);
 
     // # Exit
     // ## Stop signal
     sceneManager.StopTheWorld();
 
-    // ## Join threads after stop signal
-    for (auto& thread: threads) {
+    // ## Join gameThreads after stop signal
+    for (auto& thread: gameThreads) {
         if (thread.joinable()) {
             thread.join();
         }
@@ -157,5 +168,6 @@ int main() {
     // ## Close window
     CloseWindow();
 
+    // ## Success
     return 0;
 }

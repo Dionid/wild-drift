@@ -242,7 +242,9 @@ void MatchManager::FixedUpdate() {
         }
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
-            this->scene->eventBus.Emit(std::make_unique<OnMatchEndEvent>());
+            this->scene->eventBus.Emit(std::make_unique<MatchEndEvent>(
+                this->playerScore >= this->winScore
+            ));
             this->Deactivate();
 
             return;

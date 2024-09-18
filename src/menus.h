@@ -30,8 +30,6 @@ class MatchEndMenu: public cen::Node2D {
             bool playerWon = false
         );
 
-        void SetPlayerWon(bool playerWon);
-
         void Init() override;
 };
 

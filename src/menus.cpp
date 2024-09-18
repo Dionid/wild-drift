@@ -114,24 +114,17 @@ void MatchEndMenu::Init() {
         )
     );
 
-    titleView = this->AddNode(
+    auto text = playerWon ? "YOU WON" : "YOU LOST";
+
+    this->titleView = this->AddNode(
         std::make_unique<cen::TextView>(
             Vector2{
-                this->scene->screen.width / 2.0f - MeasureText("YOU WON", titleFontSize) / 2.0f,
+                this->scene->screen.width / 2.0f - MeasureText(text, titleFontSize) / 2.0f,
                 this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
             },
-            "YOU WON",
+            text,
             titleFontSize,
             WHITE
         )
     );
-}
-
-void MatchEndMenu::SetPlayerWon(bool playerWon) {
-    this->playerWon = playerWon;
-    titleView->text = playerWon ? "YOU WON" : "YOU LOST";
-    titleView->position = Vector2{
-        this->scene->screen.width / 2.0f - MeasureText(titleView->text.c_str(), titleFontSize) / 2.0f,
-        this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
-    };
 }
