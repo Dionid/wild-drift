@@ -11,7 +11,7 @@ struct CrossSceneStorage {
     bool isPlayerWon;
 };
 
-class MatchScene: public cen::Scene {
+class MatchScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
         CrossSceneStorage* crossSceneStorage;
@@ -23,7 +23,7 @@ class MatchScene: public cen::Scene {
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
-        ): cen::Scene(
+        ): cen::LocalScene(
             MatchSceneName,
             screen,
             camera,
@@ -225,7 +225,7 @@ class MatchLockStepScene: public cen::LockStepScene {
         }
 };
 
-class MatchEndScene: public cen::Scene {
+class MatchEndScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
         CrossSceneStorage* crossSceneStorage;
@@ -237,7 +237,7 @@ class MatchEndScene: public cen::Scene {
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
-        ): cen::Scene(
+        ): cen::LocalScene(
             MatchEndMenuSceneName,
             screen,
             camera,
@@ -279,7 +279,7 @@ class MatchEndScene: public cen::Scene {
         }
 };
 
-class MainMenuScene: public cen::Scene {
+class MainMenuScene: public cen::LocalScene {
     public:
         cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
@@ -293,7 +293,7 @@ class MainMenuScene: public cen::Scene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus,
             cen::SceneManager* sceneManager
-        ): cen::Scene(
+        ): cen::LocalScene(
             MainMenuSceneName,
             screen,
             camera,

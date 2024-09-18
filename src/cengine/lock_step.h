@@ -108,6 +108,10 @@ class LockStepNetworkManager {
                         break;
                     }
                 }
+
+                std::cout << "Waiting for players inputs" << std::endl;
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
 
             return playerInputTick;
@@ -156,7 +160,7 @@ class LockStepScene: public Scene {
 
             LockStepNetworkManager lockStepNetworkManager(this->isHost);
 
-            // lockStepNetworkManager.Init();
+            lockStepNetworkManager.Init();
 
             std::chrono::milliseconds accumulatedFixedTime(0);
             auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();

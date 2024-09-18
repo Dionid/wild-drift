@@ -51,7 +51,6 @@ namespace cen {
                 uint64_t simulationTick = 0
             ): eventBus(eventBus) {
                 this->name = name;
-                // this->eventBus = cen::EventBus(eventBus);
                 this->screen = screen;
                 this->camera = camera;
                 this->renderingEngine = renderingEngine;
@@ -67,6 +66,7 @@ namespace cen {
 
             virtual void Init() {};
             virtual void Destroy() {};
+            virtual void RunSimulation() {};
 
             void FullInit() {
                 // # Init scene
@@ -97,8 +97,42 @@ namespace cen {
                 // # Collision
                 this->collisionEngine->NarrowCollisionCheckNaive(this->nodeStorage.get());
             }
+    };
 
-            void RunSimulation() {
+    class LocalScene: public Scene {
+        public:
+
+            LocalScene(
+                scene_name name,
+                cen::ScreenResolution screen,
+                Camera2D* camera,
+                RenderingEngine2D* renderingEngine,
+                cen::EventBus* eventBus,
+                int simulationFrameRate = 60,
+                int simulationFixedFrameRate = 40,
+                int simulationFixedFrameCyclesLimit = 10,
+                cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
+                std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
+                std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
+                uint64_t frameTick = 0,
+                uint64_t simulationTick = 0
+            ): Scene(
+                name,
+                screen,
+                camera,
+                renderingEngine,
+                eventBus,
+                simulationFrameRate,
+                simulationFixedFrameRate,
+                simulationFixedFrameCyclesLimit,
+                playerInputManager,
+                std::move(collisionEngine),
+                std::move(nodeStorage),
+                frameTick,
+                simulationTick
+            ) {}
+
+            void RunSimulation() override {
                 if (!this->isInitialized) {
                     // # Init scene
                     this->FullInit();
