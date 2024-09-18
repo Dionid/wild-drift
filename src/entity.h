@@ -53,6 +53,31 @@ class Player: public Paddle {
         void ApplyFieldBoundaries() override;
 };
 
+// # Opponent
+class Opponent: public Paddle {
+    public:
+        static const uint64_t _tid;
+
+        cen::player_id_t playerId;
+
+        cen::type_id_t TypeId() const override {
+            return Opponent::_tid;
+        }
+
+        Opponent(
+            cen::player_id_t playerId,
+            Vector2 position,
+            cen::Size size,
+            Vector2 velocity,
+            float speed,
+            float maxVelocity
+        );
+
+        void FixedUpdate() override;
+        void Init() override;
+        void ApplyFieldBoundaries() override;
+};
+
 // # Ball
 class Ball: public cen::CharacterBody2D {
     public:

@@ -134,6 +134,59 @@ void Player::FixedUpdate() {
     );
 };
 
+// # Player
+Opponent::Opponent(
+    cen::player_id_t playerId,
+    Vector2 position,
+    cen::Size size,
+    Vector2 velocity = Vector2{},
+    float speed = 5.0f,
+    float maxVelocity = 10.0f
+) : Paddle(position, size, velocity, speed, maxVelocity)
+{ 
+    this->playerId = playerId;
+};
+
+const uint64_t Opponent::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+
+void Opponent::Init() {
+    this->AddNode(
+        std::make_unique<cen::RectangleView>(
+            this->size,
+            WHITE
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Solid,
+            cen::Shape::Rectangle(this->size),
+            (Vector2){ 0.0f, 0.0f }
+        )
+    );
+};
+
+void Opponent::ApplyFieldBoundaries() {
+    if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
+        this->position.x = this->scene->screen.width/2 - this->size.width/2;
+        this->velocity.x = 0;
+    }
+}
+
+// # Opponent Update function
+void Opponent::FixedUpdate() {
+    const auto& playerInput = this->scene->playerInputManager.playerInputs[this->playerId];
+
+    // # Calc velocity
+    auto directionY = playerInput.down - playerInput.up;
+    auto directionX = playerInput.right - playerInput.left;
+
+    this->Move(
+        directionX,
+        directionY
+    );
+};
+
 // # Ball
 Ball::Ball(
     SpcAudio* gameAudio,

@@ -7,6 +7,7 @@
 namespace cen {
 
 struct PlayerInputTick {
+    cen::player_id_t playerId;
     uint64_t tick;
     cen::PlayerInput input;
 };
@@ -25,27 +26,54 @@ static std::vector<std::string> split(const std::string& str, char delimiter) {
 
 struct PlayerInputNetworkMessage {
     cen::player_id_t playerId;
-    PlayerInputTick input;
+    std::vector<PlayerInputTick> inputs;
 
-    PlayerInputNetworkMessage(cen::player_id_t playerId, PlayerInputTick input) {
+    PlayerInputNetworkMessage(cen::player_id_t playerId, std::vector<PlayerInputTick> inputs) {
         this->playerId = playerId;
-        this->input = input;
+        this->inputs = inputs;
     }
 
     std::string Serialize() {
-        return std::to_string(this->playerId) + "|" + std::to_string(this->input.tick) + "|" + std::to_string(this->input.input.down) + "|" + std::to_string(this->input.input.up) + "|" + std::to_string(this->input.input.left) + "|" + std::to_string(this->input.input.right);
+        std::string serializedInputs = "";
+
+        for (int i = 0; i < inputs.size(); i++) {
+            auto input = inputs[i];
+            serializedInputs += std::to_string(input.tick) + ";" + std::to_string(input.input.down) + ";" + std::to_string(input.input.up) + ";" + std::to_string(input.input.left) + ";" + std::to_string(input.input.right);
+
+            if (i < inputs.size() - 1) {
+                serializedInputs += ",";
+            }
+        }
+
+        return std::to_string(this->playerId) + "|" + std::to_string(inputs.size()) + "|" + serializedInputs;
     }
 
     static PlayerInputNetworkMessage Deserialize(std::string message) {
         auto parts = split(message, '|');
-        auto playerId = std::stoi(parts[0]);
-        auto tick = std::stoull(parts[1]);
-        bool down = std::stoi(parts[2]);
-        bool up = std::stoi(parts[3]);
-        bool left = std::stoi(parts[4]);
-        bool right = std::stoi(parts[5]);
+        cen::player_id_t playerId = std::stoll(parts[0]);
+        auto inputsCount = std::stoi(parts[1]);
+        auto inputs = split(parts[2], ',');
 
-        return PlayerInputNetworkMessage(playerId, PlayerInputTick{tick, cen::PlayerInput{down, up, left, right}});
+        std::vector<PlayerInputTick> playerInputTicks;
+
+        for (const auto& input: inputs) {
+            auto inputParts = split(input, ';');
+            auto tick = std::stoull(inputParts[0]);
+            bool down = std::stoi(inputParts[1]);
+            bool up = std::stoi(inputParts[2]);
+            bool left = std::stoi(inputParts[3]);
+            bool right = std::stoi(inputParts[4]);
+
+            playerInputTicks.push_back(
+                PlayerInputTick{
+                    playerId,
+                    tick,
+                    cen::PlayerInput{down, up, left, right}
+                }
+            );
+        }
+
+        return PlayerInputNetworkMessage(playerId, playerInputTicks);
     }
 };
 
@@ -56,6 +84,7 @@ class LockStepNetworkManager {
         UdpTransport* transport;
         cen::player_id_t currentPlayerId;
         std::vector<PlayerInputNetworkMessage> playerInputMessages;
+        std::vector<PlayerInputTick> inputsBuffer;
 
         LockStepNetworkManager(
             NetworkManager* networkManager,
@@ -120,8 +149,11 @@ class LockStepNetworkManager {
             this->transport->Init();
         }
 
-        void SendTickInput(PlayerInputTick playerInputTick) {
-            auto message = PlayerInputNetworkMessage(this->currentPlayerId, playerInputTick).Serialize();
+        void SendTickInput() {
+            auto message = PlayerInputNetworkMessage(
+                this->currentPlayerId,
+                this->inputsBuffer
+            ).Serialize();
             this->transport->SendMessage(message);
         }
 
@@ -129,25 +161,44 @@ class LockStepNetworkManager {
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            auto playerInputTick = PlayerInputTick{tick, currentPlayerInput};
-
-            this->SendTickInput(playerInputTick);
-
-            bool notFound = true;
-
-            while (notFound) {
-                for (const auto& playerInputMessage: this->playerInputMessages) {
-                    if (playerInputMessage.input.tick == tick) {
-                        notFound = false;
-                        return playerInputMessage.input;
-                    }
+            this->inputsBuffer.push_back(
+                PlayerInputTick{
+                    this->currentPlayerId,
+                    tick,
+                    currentPlayerInput
                 }
+            );
+
+            // TODO: Change to ring buffer
+            if (this->inputsBuffer.size() > 30) {
+                this->inputsBuffer.erase(this->inputsBuffer.begin() + 20);
             }
 
-            return PlayerInputTick{};
+            this->SendTickInput();
+
+            int counter = 0;
+
+            while (counter < 100) {
+                for (const auto& playerInputMessage: this->playerInputMessages) {
+                    for (const auto& input: playerInputMessage.inputs) {
+                        if (input.tick == tick) {
+                            return input;
+                        }
+                    }
+                }
+                // counter++;
+                std::this_thread::yield();
+            }
+
+            // auto previousPlayerInput = this->playerInputMessages.end();
+
+            // if (previousPlayerInput != this->playerInputMessages.end()) {
+            //     return *previousPlayerInput;
+            // }
+
+            return PlayerInputTick{0, 0, PlayerInput()};
         }
 };
-
 
 class LockStepScene: public Scene {
     public:
@@ -210,9 +261,13 @@ class LockStepScene: public Scene {
                     IsKeyDown(KEY_D)
                 };
 
-                // # GET ALL INPUTS FROM SERVER
-                auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(this->frameTick, currentPlayerInput);
+                // # Get other player input
+                auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(
+                    this->frameTick,
+                    currentPlayerInput
+                );
 
+                this->playerInputManager.playerInputs[otherPlayerInput.playerId] = otherPlayerInput.input;
                 this->playerInputManager.currentPlayerInput = currentPlayerInput;
 
                 // # Start

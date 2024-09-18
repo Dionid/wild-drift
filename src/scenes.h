@@ -180,9 +180,9 @@ class MatchLockStepScene: public cen::LockStepScene {
             player->zOrder = 1;
 
             // ## Enemy
-            Enemy* enemy = this->nodeStorage->AddNode(
-                std::make_unique<Enemy>(
-                    ball->id,
+            Opponent* enemy = this->nodeStorage->AddNode(
+                std::make_unique<Opponent>(
+                    cen::player_id_t(2),
                     (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
