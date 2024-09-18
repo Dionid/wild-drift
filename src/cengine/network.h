@@ -127,6 +127,8 @@ class UdpTransportServer: public UdpTransport {
                     };
                     break;
                 case ENET_EVENT_TYPE_RECEIVE: {
+                    std::cout << "New message!" << std::endl;
+                
                     std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
 
                     enet_packet_destroy(event.packet);
@@ -138,7 +140,7 @@ class UdpTransportServer: public UdpTransport {
                     };
                 }
                 case ENET_EVENT_TYPE_DISCONNECT:
-                    std::cout << "Disconnected from server!" << std::endl;
+                    std::cout << "Client disconnected from server!" << std::endl;
                     return NetworkMessage{
                         .type = NetworkMessageType::PEER_DISCONNECTED,
                         // .timestamp = ,
@@ -159,39 +161,14 @@ class UdpTransportServer: public UdpTransport {
 
         ENetEvent event;
 
-        while (enet_host_service(host, &event, timeout) > 0) {
-            switch (event.type) {
-                case ENET_EVENT_TYPE_CONNECT:
-                    std::cout << "Client connected!" << std::endl;
-                    result.push_back(NetworkMessage{
-                        .type = NetworkMessageType::PEER_CONNECTED
-                        // .timestamp = ,
-                    });
-                    break;
-                case ENET_EVENT_TYPE_RECEIVE: {
-                    std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
+        while (true) {
+            auto newMessage = this->PollNextMessage(timeout);
 
-                    enet_packet_destroy(event.packet);
-                    
-                    result.push_back(NetworkMessage{
-                        .type = NetworkMessageType::NEW_MESSAGE,
-                        .data = message,
-                        // .timestamp = ,
-                        .peer = event.peer
-                    });
-                }
-                case ENET_EVENT_TYPE_DISCONNECT:
-                    std::cout << "Disconnected from server!" << std::endl;
-                    
-                    result.push_back(NetworkMessage{
-                        .type = NetworkMessageType::PEER_DISCONNECTED,
-                        // .timestamp = ,
-                        .peer = event.peer
-                    });
-                default: {
-                    break;
-                }
+            if (!newMessage.has_value()) {
+                return result;
             }
+
+            result.push_back(newMessage.value());
         }
 
         return result;
@@ -252,6 +229,7 @@ class UdpTransportClient: public UdpTransport {
             std::cout << "Connection to server succeeded." << std::endl;
         } else {
             // TODO: RECONNECT
+            // ...
             std::cerr << "Connection to server failed." << std::endl;
             enet_peer_reset(serverPeer);
             return EXIT_FAILURE;

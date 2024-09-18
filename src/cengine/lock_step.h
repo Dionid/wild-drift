@@ -76,8 +76,10 @@ class LockStepNetworkManager {
 
             for (const auto& message: messages) {
                 if (message.type == NetworkMessageType::NEW_MESSAGE) {
-                    auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
-                    playerInputTicks.push_back(playerInputMessage.input);
+                    this->transport->SendMessage("PING");
+                    // auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
+                    // playerInputTicks.push_back(playerInputMessage.input);
+                    std::cout << "New message: " << message.data << std::endl;
                 }
             }
 

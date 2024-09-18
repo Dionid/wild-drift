@@ -360,7 +360,17 @@ class MainMenuScene: public cen::LocalScene {
                 this,
                 mainMenu
             ](const cen::Event* event) {
-                std::printf("JoinEvent\n");
+                this->sceneManager->ChangeScene(
+                    std::make_unique<MatchLockStepScene>(
+                        false,
+                        this->crossSceneStorage,
+                        this->gameAudio,
+                        this->screen,
+                        this->camera,
+                        this->renderingEngine,
+                        this->eventBus.parent
+                    )
+                );
             };
 
             this->eventBus.On(
