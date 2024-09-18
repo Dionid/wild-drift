@@ -78,15 +78,21 @@ int main() {
         std::make_unique<cen::SceneConstructor>(
             MainMenuSceneName,
             [
+                &crossSceneStorage,
+                &gameAudio,
+                &sceneManager,
                 &camera,
                 &renderingEngine,
                 &eventBus
             ](){
                 return std::make_unique<MainMenuScene>(
+                    &crossSceneStorage,
+                    &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
                     &renderingEngine,
-                    &eventBus
+                    &eventBus,
+                    &sceneManager
                 );
             }
         )

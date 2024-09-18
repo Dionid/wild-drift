@@ -123,18 +123,29 @@ class MatchEndScene: public cen::Scene {
 
 class MainMenuScene: public cen::Scene {
     public:
+        cen::SceneManager* sceneManager;
+        CrossSceneStorage* crossSceneStorage;
+        SpcAudio* gameAudio;
+
         MainMenuScene(
+            CrossSceneStorage* crossSceneStorage,
+            SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
-            cen::EventBus* eventBus
+            cen::EventBus* eventBus,
+            cen::SceneManager* sceneManager
         ): cen::Scene(
             MainMenuSceneName,
             screen,
             camera,
             renderingEngine,
             eventBus
-        ) {}
+        ) {
+            this->sceneManager = sceneManager;
+            this->crossSceneStorage = crossSceneStorage;
+            this->gameAudio = gameAudio;
+        }
 
         void Init() override {
             EnableCursor();
@@ -147,7 +158,6 @@ class MainMenuScene: public cen::Scene {
             auto onStartEvent = [
                 this
             ](const cen::Event* event) {
-                std::printf("StartEvent\n");
                 this->eventBus.Emit(
                     std::make_unique<cen::SceneChangeRequested>(
                         MatchSceneName
@@ -164,10 +174,19 @@ class MainMenuScene: public cen::Scene {
 
             // ## HostEvent
             auto onHostEvent = [
-                this,
-                mainMenu
+                this
             ](const cen::Event* event) {
-                std::printf("HostEvent\n");
+                // this->sceneManager->ChangeScene(MatchSceneName);
+                this->sceneManager->ChangeScene(
+                    std::make_unique<MatchScene>(
+                        this->crossSceneStorage,
+                        this->gameAudio,
+                        this->screen,
+                        this->camera,
+                        this->renderingEngine,
+                        this->eventBus.parent
+                    )
+                );
             };
 
             this->eventBus.On(

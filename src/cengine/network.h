@@ -36,27 +36,35 @@ class UdpTransport {
     uint64_t serverPort;
     ENetAddress address;
     ENetHost* host;
+    ENetPeer* serverPeer;
 
     virtual int Init() = 0;
     virtual std::optional<NetworkMessage> PollNextMessage(enet_uint32 timeout) = 0;
+    virtual std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 timeout) = 0;
 
     UdpTransport(
         uint64_t serverPort,
         bool isServer
     ): isServer(isServer), serverPort(serverPort) {}
 
-    bool SendMessage(std::string message, ENetPeer* peer) {
+    bool SendMessage(std::string message, ENetPeer* peer = nullptr) {
         ENetPacket* packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
-    
-        if (peer == nullptr) {
-            if (!isServer) {
-                std::cerr << "Cannot broadcast message from client" << std::endl;
-                return false;
+
+        if (this->isServer) {
+            if (peer == nullptr) {
+                enet_host_broadcast(host, 0, packet);
+            } else {
+                enet_peer_send(peer, 0, packet);
+                enet_host_flush(host);
             }
-            enet_host_broadcast(host, 0, packet);
         } else {
-            enet_peer_send(peer, 0, packet);
-            enet_host_flush(host);
+            if (peer == nullptr) {
+                enet_peer_send(this->serverPeer, 0, packet);
+                enet_host_flush(host);
+            } else {
+                enet_peer_send(peer, 0, packet);
+                enet_host_flush(host);
+            }
         }
 
         return true;
@@ -145,6 +153,50 @@ class UdpTransportServer: public UdpTransport {
         return std::nullopt;
     }
 
+    // # Get message from host
+    std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 timeout = 0) override {
+        auto result = std::vector<NetworkMessage>{};
+
+        ENetEvent event;
+
+        while (enet_host_service(host, &event, timeout) > 0) {
+            switch (event.type) {
+                case ENET_EVENT_TYPE_CONNECT:
+                    std::cout << "Client connected!" << std::endl;
+                    result.push_back(NetworkMessage{
+                        .type = NetworkMessageType::PEER_CONNECTED
+                        // .timestamp = ,
+                    });
+                    break;
+                case ENET_EVENT_TYPE_RECEIVE: {
+                    std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
+
+                    enet_packet_destroy(event.packet);
+                    
+                    result.push_back(NetworkMessage{
+                        .type = NetworkMessageType::NEW_MESSAGE,
+                        .data = message,
+                        // .timestamp = ,
+                        .peer = event.peer
+                    });
+                }
+                case ENET_EVENT_TYPE_DISCONNECT:
+                    std::cout << "Disconnected from server!" << std::endl;
+                    
+                    result.push_back(NetworkMessage{
+                        .type = NetworkMessageType::PEER_DISCONNECTED,
+                        // .timestamp = ,
+                        .peer = event.peer
+                    });
+                default: {
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
     // # Broadcast message
     void BroadcastMessage(std::string message) {
         this->SendMessage(message, nullptr);
@@ -153,7 +205,6 @@ class UdpTransportServer: public UdpTransport {
 
 class UdpTransportClient: public UdpTransport {
     public:
-    ENetPeer* serverPeer;
 
     ~UdpTransportClient() {
         if (host != NULL) {
@@ -240,6 +291,41 @@ class UdpTransportClient: public UdpTransport {
         }
 
         return std::nullopt;
+    }
+
+    // # Get message from host
+    std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 timeout = 0) {
+        auto result = std::vector<NetworkMessage>{};
+
+        ENetEvent event;
+
+        while (enet_host_service(host, &event, timeout) > 0) {
+            switch (event.type) {
+                case ENET_EVENT_TYPE_RECEIVE: {
+                    // std::string message = (char*)event.packet->data;
+                    std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
+
+                    enet_packet_destroy(event.packet);
+                    result.push_back(NetworkMessage{
+                        .type = NetworkMessageType::NEW_MESSAGE,
+                        .data = message,
+                        // .timestamp = ,
+                        .peer = event.peer
+                    });
+                }
+                case ENET_EVENT_TYPE_DISCONNECT:
+                    std::cout << "Disconnected from server!" << std::endl;
+                    result.push_back(NetworkMessage{
+                        .type = NetworkMessageType::DISCONNECTED_FROM_SERVER
+                        // .timestamp = ,
+                    });
+                default: {
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
 
     // # Send message to server

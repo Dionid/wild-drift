@@ -22,6 +22,10 @@ namespace cen {
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
 
+            std::chrono::milliseconds simulationFrameRate;
+            std::chrono::milliseconds simulationFixedFrameRate;
+            int simulationFixedFrameCyclesLimit;
+
             Camera2D* camera;
             cen::ScreenResolution screen;
             cen::PlayerInputManager playerInputManager;
@@ -37,6 +41,9 @@ namespace cen {
                 Camera2D* camera,
                 RenderingEngine2D* renderingEngine,
                 cen::EventBus* eventBus,
+                int simulationFrameRate = 60,
+                int simulationFixedFrameRate = 40,
+                int simulationFixedFrameCyclesLimit = 10,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
@@ -52,6 +59,10 @@ namespace cen {
                 this->collisionEngine = std::move(collisionEngine);
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;
+
+                this->simulationFrameRate = std::chrono::milliseconds(1000 / simulationFrameRate);
+                this->simulationFixedFrameRate = std::chrono::milliseconds(1000 / simulationFixedFrameRate);
+                this->simulationFixedFrameCyclesLimit = simulationFixedFrameCyclesLimit;
             }
 
             virtual void Init() {};
@@ -93,16 +104,6 @@ namespace cen {
                     this->FullInit();
                 }
 
-                // # Main Loop
-                // TODO: move to members
-                // ## Update
-                const int targetFPS = 60;
-                const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
-
-                // ## Fixed update
-                const int fixedUpdateRate = 40;
-                const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
-                int fixedUpdateCyclesLimit = 10;
                 std::chrono::milliseconds accumulatedFixedTime(0);
                 auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
 
@@ -134,14 +135,14 @@ namespace cen {
                     accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
 
                     int fixedUpdateCycles = 0;
-                    while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
+                    while (accumulatedFixedTime >= simulationFixedFrameRate && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
                         this->fixedSimulationTick++;
 
                         // # Simulation current Tick
                         this->FixedSimulationTick();
 
                         // ## Correct time and cycles
-                        accumulatedFixedTime -= targetFixedUpdateTime;
+                        accumulatedFixedTime -= simulationFixedFrameRate;
                         fixedUpdateCycles++;
                     }
 
@@ -154,7 +155,7 @@ namespace cen {
                     this->eventBus.Flush();
 
                     // # Sync GameState and RendererState
-                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
+                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / simulationFixedFrameRate.count();
 
                     this->renderingEngine->SyncRenderBuffer(
                         this->nodeStorage.get(),
@@ -163,7 +164,7 @@ namespace cen {
 
                     // QUESTION: maybe sleep better? But it overshoots (nearly 3ms)
                     // # End (busy wait)
-                    while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
+                    while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRate) {}
                 }
             }
     };
