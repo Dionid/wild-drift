@@ -12,8 +12,8 @@
 #include "scenes.h"
 #include "step_lock_manager.h"
 
-void runSimulation(cen::Scene* scene) {
-    scene->RunSimulation();
+void runSimulation(cen::SceneManager* sceneManager) {
+    sceneManager->RunSceneSimulation();
 };
 
 void runRendering(cen::RenderingEngine2D* renderingEngine) {
@@ -89,8 +89,6 @@ int main() {
         )
     );
 
-    sceneManager.ChangeCurrentScene("MainMenuScene");
-
     // ## Match Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
@@ -131,11 +129,13 @@ int main() {
         )
     );
 
+    sceneManager.SetFirstScene("MainMenuScene");
+
     // # Threads
     std::vector<std::thread> threads;
 
     // # Simulation Loop Thread
-    // threads.push_back(std::thread(runSimulation, sceneManager));
+    threads.push_back(std::thread(runSimulation, &sceneManager));
 
     // # Rendering Loop Thread
     runRendering(&renderingEngine);

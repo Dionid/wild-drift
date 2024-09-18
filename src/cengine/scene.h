@@ -217,23 +217,23 @@ namespace cen {
                 std::unique_ptr<SceneConstructor>
             > scenesConstructorsByName;
             std::unique_ptr<Scene> currentScene;
+            std::unique_ptr<Scene> nextScene;
             EventBus* eventBus;
-            bool currentSceneRunning;
+            bool isSimulationRunning = false;
 
             SceneManager(
                 EventBus* eventBus
             ) {
-                this->currentSceneRunning = false;
                 this->eventBus = eventBus;
                 this->currentScene = nullptr;
+                this->nextScene = nullptr;
 
                 this->eventBus->on(
                     SceneChangeRequested{},
                     std::make_unique<EventListener>(
                         [this](const Event* event) {
                             auto sceneChangeRequested = static_cast<const SceneChangeRequested*>(event);
-                            this->ChangeCurrentScene(sceneChangeRequested->sceneName);
-                            this->RunCurrentSceneSimulation();
+                            this->ChangeScene(sceneChangeRequested->sceneName);
                         }
                     )
                 );
@@ -245,27 +245,60 @@ namespace cen {
                 this->scenesConstructorsByName[sceneConstructor->sceneName] = std::move(sceneConstructor);
             }
 
-            void ChangeCurrentScene(scene_name name) {
+            void SetFirstScene(scene_name name) {
                 if (this->currentScene) {
-                    this->StopTheWorld();
-                    // TODO: wait till current scene will stop
-                    // ...
-                    this->currentScene->Destroy();
+                    return;
                 }
 
                 const auto& constructor = this->scenesConstructorsByName[name];
-
                 this->currentScene = std::move(constructor->create());
             }
 
-            void RunCurrentSceneSimulation() {
-                this->currentSceneRunning = true;
+            bool ChangeScene(scene_name name) {
+                if (this->currentScene == nullptr) {
+                    return false;
+                }
+
+                const auto& constructor = this->scenesConstructorsByName[name];
+                this->nextScene = std::move(constructor->create());
+                this->StopCurrentSceneSimulation();
+
+                return true;
+            }
+
+            void RunSceneSimulation() {
+                // # Guard
+                if (isSimulationRunning) {
+                    return;
+                }
+                isSimulationRunning = true;
+
+                // # Run simulation
                 this->currentScene->RunSimulation();
-                this->currentSceneRunning = false;
+
+                isSimulationRunning = false;
+
+                // # After it's done
+                this->currentScene->Destroy();
+                if (this->nextScene) {
+                    this->currentScene = std::move(this->nextScene);
+                    this->nextScene = nullptr;
+                    this->RunSceneSimulation();
+                } else {
+                    this->currentScene = nullptr;
+                }
+            }
+
+            void StopCurrentSceneSimulation() {
+                if (this->currentScene) {
+                    this->currentScene->isAlive.store(false, std::memory_order_release);
+                }
             }
 
             void StopTheWorld() {
-                this->currentScene->isAlive.store(false, std::memory_order_release);
+                this->nextScene = nullptr;
+                this->StopCurrentSceneSimulation();
+                // ...
             }
     };
 }
