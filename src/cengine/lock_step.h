@@ -55,6 +55,7 @@ class LockStepNetworkManager {
         NetworkManager* networkManager;
         UdpTransport* transport;
         cen::player_id_t currentPlayerId;
+        std::vector<PlayerInputNetworkMessage> playerInputMessages;
 
         LockStepNetworkManager(
             NetworkManager* networkManager,
@@ -75,6 +76,19 @@ class LockStepNetworkManager {
                     1000,
                     [this](NetworkMessage message) {
                         std::cout << "Message from client: " << message.data << std::endl;
+
+                        if (message.type != NetworkMessageType::NEW_MESSAGE) {
+                            return;
+                        }
+
+                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
+
+                        this->playerInputMessages.push_back(playerInputMessage);
+
+                        // TODO: Change to ring buffer
+                        if (this->playerInputMessages.size() > 100) {
+                            this->playerInputMessages.erase(this->playerInputMessages.begin() + 20);
+                        }
                     }
                 );
             } else {
@@ -86,6 +100,19 @@ class LockStepNetworkManager {
                     1000,
                     [this](NetworkMessage message) {
                         std::cout << "Message from server: " << message.data << std::endl;
+
+                        if (message.type != NetworkMessageType::NEW_MESSAGE) {
+                            return;
+                        }
+
+                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
+
+                        this->playerInputMessages.push_back(playerInputMessage);
+
+                        // TODO: Change to ring buffer
+                        if (this->playerInputMessages.size() > 100) {
+                            this->playerInputMessages.erase(this->playerInputMessages.begin() + 20);
+                        }
                     }
                 );
             }
@@ -106,24 +133,16 @@ class LockStepNetworkManager {
 
             this->SendTickInput(playerInputTick);
 
-            // bool notFound = true;
+            bool notFound = true;
 
-            // while (notFound) {
-            //     auto playerInputTicks = this->GetTickInputs();
-
-            //     for (const auto& playerInputTick: playerInputTicks) {
-            //         if (playerInputTick.tick == tick) {
-            //             notFound = false;
-            //             break;
-            //         }
-            //     }
-
-            //     std::cout << "Waiting for players inputs" << std::endl;
-
-            //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            // }
-
-            // return playerInputTick;
+            while (notFound) {
+                for (const auto& playerInputMessage: this->playerInputMessages) {
+                    if (playerInputMessage.input.tick == tick) {
+                        notFound = false;
+                        return playerInputMessage.input;
+                    }
+                }
+            }
 
             return PlayerInputTick{};
         }
