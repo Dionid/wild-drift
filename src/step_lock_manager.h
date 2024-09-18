@@ -61,58 +61,6 @@ class StepLockNetworkManager {
         StepLockNetworkManager(cen::NetworkManager* networkManager) {
             this->networkManager = networkManager;
         }
-
-        bool InitialSync() {
-            auto startTime = std::chrono::high_resolution_clock::now();
-            auto maxWaitingTime = std::chrono::milliseconds(5000);
-
-            while(true) {
-                if (std::chrono::high_resolution_clock::now() - startTime > maxWaitingTime) {
-                    return false;
-                }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-
-            return true;
-        }
-
-        std::unordered_map<cen::player_id_t, PlayerInputTick> SendAndWait(cen::PlayerInput currentInput) {
-            if (this->currentPlayerId == 0) {
-                return std::unordered_map<cen::player_id_t, PlayerInputTick>{};
-            }
-
-            if (this->playerIds.size() == 0 || this->playerIds.size() == 1) {
-                return std::unordered_map<cen::player_id_t, PlayerInputTick>{};
-            }
-
-            auto currentInputTick = PlayerInputTick{this->currentTick, currentInput};
-
-            // # Send
-            auto message = PlayerInputNetworkMessage(this->currentPlayerId, currentInputTick);
-            this->networkManager->BroadcastMessageToClients(message.Serialize());
-
-            // # Wait
-            std::unordered_map<cen::player_id_t, PlayerInputTick> inputs;
-
-            while (true) {
-                auto messages = this->networkManager->PollNextMessage(5);
-
-                if (messages.size() == 0) {
-                    continue;
-                }
-
-                auto message = PlayerInputNetworkMessage::Deserialize(messages);
-
-                inputs[message.playerId] = message.input;
-
-                if (inputs.size() == this->playerIds.size()) {
-                    break;
-                }
-            }
-
-            return inputs;
-        }
 };
 
 #endif // STEP_LOCK_MANAGER_H
