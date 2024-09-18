@@ -233,6 +233,10 @@ namespace cen {
                     std::make_unique<EventListener>(
                         [this](const Event* event) {
                             auto sceneChangeRequested = static_cast<const SceneChangeRequested*>(event);
+                            if (sceneChangeRequested->sceneName == "") {
+                                // TODO: SEND ERROR
+                                return;
+                            }
                             this->ChangeScene(sceneChangeRequested->sceneName);
                         }
                     )
@@ -260,6 +264,12 @@ namespace cen {
                 }
 
                 const auto& constructor = this->scenesConstructorsByName[name];
+
+                if (constructor == nullptr) {
+                    // TODO: SEND ERROR
+                    return false;
+                }
+
                 this->nextScene = std::move(constructor->create());
                 this->StopCurrentSceneSimulation();
 
@@ -271,6 +281,19 @@ namespace cen {
                 if (isSimulationRunning) {
                     return;
                 }
+
+                // # Try to assign currentScene if none
+                if (this->currentScene == nullptr) {
+                    auto it = scenesConstructorsByName.begin();
+                    if (it == scenesConstructorsByName.end()) {
+                        isSimulationRunning = false;
+                        std::cout << "No scenes to run" << std::endl;
+                        return;
+                    }
+                    const auto& constructor = it->second;
+                    this->currentScene = std::move(constructor->create());
+                }
+
                 isSimulationRunning = true;
 
                 // # Run simulation

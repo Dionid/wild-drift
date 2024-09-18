@@ -28,23 +28,23 @@ class MatchScene: public cen::Scene {
         }
 
         void Init() override {
-            // ## Match
+            DisableCursor();
+            
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio
             ));
 
             PlaySound(this->gameAudio->start);
 
-            DisableCursor();
-
             // ## MatchEndEvent
             auto onMatchEndEvent = [
-                // this,
-                // mainMenu,
-                // matchEndMenu,
-                // matchManager
+                this
             ](const cen::Event* event) {
-                
+                this->eventBus.emit(
+                    std::make_unique<cen::SceneChangeRequested>(
+                        "MatchEndScene"
+                    )
+                );
             };
 
             this->eventBus.on(
@@ -72,6 +72,8 @@ class MatchEndScene: public cen::Scene {
         ) {}
 
         void Init() override {
+            EnableCursor();
+
             // # Scene init
             // ## MatchEndMenu
             auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
