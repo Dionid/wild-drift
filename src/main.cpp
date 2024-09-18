@@ -66,6 +66,9 @@ int main() {
         nullptr
     );
 
+    // # Network Manager
+    cen::NetworkManager networkManager = cen::NetworkManager();
+
     // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
@@ -81,6 +84,7 @@ int main() {
         std::make_unique<cen::SceneConstructor>(
             MainMenuSceneName,
             [
+                &networkManager,
                 &crossSceneStorage,
                 &gameAudio,
                 &sceneManager,
@@ -90,6 +94,7 @@ int main() {
             ](){
                 return std::make_unique<MainMenuScene>(
                     &crossSceneStorage,
+                    &networkManager,
                     &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
@@ -156,12 +161,16 @@ int main() {
     // ## Simulation Loop
     gameThreads.push_back(std::thread(runSimulation, &sceneManager));
 
+    // ## Network Loop
+    gameThreads.push_back(std::thread(runNetwork, &networkManager));
+
     // ## Rendering Loop
     runRendering(&renderingEngine);
 
     // # Exit
     // ## Stop signal
-    sceneManager.StopTheWorld();
+    sceneManager.Stop();
+    networkManager.Stop();
 
     // ## Join gameThreads after stop signal
     for (auto& thread: gameThreads) {

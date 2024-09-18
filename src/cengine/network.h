@@ -33,6 +33,7 @@ struct NetworkMessage {
 class UdpTransport {
     public:
 
+    std::atomic<bool> isRunning = false;
     bool isServer;
     std::string serverHost;
     uint64_t serverPort;
@@ -44,7 +45,6 @@ class UdpTransport {
 
     virtual int Init() = 0;
     virtual std::optional<NetworkMessage> PollNextMessage(enet_uint32 timeout) = 0;
-    virtual std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 timeout) = 0;
 
     UdpTransport(
         std::string serverHost,
@@ -61,6 +61,10 @@ class UdpTransport {
     }
 
     bool SendMessage(std::string message, ENetPeer* peer = nullptr) {
+        if (isRunning.load(std::memory_order_acquire) == false) {
+            return false;
+        }
+
         ENetPacket* packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
 
         if (this->isServer) {
@@ -128,43 +132,70 @@ class UdpTransportServer: public UdpTransport {
 
         std::cout << "Server started on port " << this->serverPort << std::endl;
 
+        this->isRunning.store(true, std::memory_order_release);
+
         return EXIT_SUCCESS;
     }
 
     // # Get message from host
     std::optional<NetworkMessage> PollNextMessage(enet_uint32 customTimeout) override {
+        if (isRunning.load(std::memory_order_acquire) == false) {
+            return std::nullopt;
+        }
+
         ENetEvent event;
 
         enet_uint32 timeout = customTimeout < 0 ? this->pollTimeout : customTimeout;
 
         while (enet_host_service(host, &event, timeout) > 0) {
             switch (event.type) {
-                case ENET_EVENT_TYPE_CONNECT:
+                case ENET_EVENT_TYPE_CONNECT: {
                     std::cout << "Client connected!" << std::endl;
-                    return NetworkMessage{
+                    auto message = NetworkMessage{
                         .type = NetworkMessageType::PEER_CONNECTED
                     };
+
+                    if (this->onMessageReceived != nullptr) {
+                        this->onMessageReceived(message);
+                    }
+
+                    return message;
+
                     break;
+                }
                 case ENET_EVENT_TYPE_RECEIVE: {
                     std::cout << "New message!" << std::endl;
                 
-                    std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
+                    std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
 
                     enet_packet_destroy(event.packet);
-                    return NetworkMessage{
+                    auto message = NetworkMessage{
                         .type = NetworkMessageType::NEW_MESSAGE,
-                        .data = message,
+                        .data = data,
                         // .timestamp = ,
                         .peer = event.peer
                     };
+
+                    if (this->onMessageReceived != nullptr) {
+                        this->onMessageReceived(message);
+                    }
+
+                    return message;
                 }
-                case ENET_EVENT_TYPE_DISCONNECT:
+                case ENET_EVENT_TYPE_DISCONNECT: {
                     std::cout << "Client disconnected from server!" << std::endl;
-                    return NetworkMessage{
+                    auto message = NetworkMessage{
                         .type = NetworkMessageType::PEER_DISCONNECTED,
                         // .timestamp = ,
                         .peer = event.peer
                     };
+
+                    if (this->onMessageReceived != nullptr) {
+                        this->onMessageReceived(message);
+                    }
+
+                    return message;
+                }
                 default: {
                     break;
                 }
@@ -172,27 +203,6 @@ class UdpTransportServer: public UdpTransport {
         }
 
         return std::nullopt;
-    }
-
-    // # Get message from host
-    std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 customTimeout = 0) override {
-        auto result = std::vector<NetworkMessage>{};
-
-        ENetEvent event;
-
-        enet_uint32 timeout = customTimeout < 0 ? this->pollTimeout : customTimeout;
-
-        while (true) {
-            auto newMessage = this->PollNextMessage(timeout);
-
-            if (!newMessage.has_value()) {
-                return result;
-            }
-
-            result.push_back(newMessage.value());
-        }
-
-        return result;
     }
 
     // # Broadcast message
@@ -246,7 +256,8 @@ class UdpTransportClient: public UdpTransport {
             return EXIT_FAILURE;
         }
 
-        enet_address_set_host(&address, "127.0.0.1");
+        std::cout << serverHost << ":" << serverPort << std::endl;
+        enet_address_set_host(&address, this->serverHost.c_str());
         address.port = this->serverPort;
 
         serverPeer = enet_host_connect(host, &address, 2, 0);
@@ -267,11 +278,17 @@ class UdpTransportClient: public UdpTransport {
             return EXIT_FAILURE;
         }
 
+        this->isRunning.store(true, std::memory_order_release);
+
         return EXIT_SUCCESS;
     }
 
     // # Get message from host
     std::optional<NetworkMessage> PollNextMessage(enet_uint32 customTimeout = 0) {
+        if (isRunning.load(std::memory_order_acquire) == false) {
+            return std::nullopt;
+        }
+
         ENetEvent event;
 
         enet_uint32 timeout = customTimeout < 0 ? this->pollTimeout : customTimeout;
@@ -279,23 +296,36 @@ class UdpTransportClient: public UdpTransport {
         while (enet_host_service(host, &event, timeout) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_RECEIVE: {
-                    // std::string message = (char*)event.packet->data;
-                    std::string message = std::string((char*)event.packet->data, event.packet->dataLength);
-
+                    std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
+                    
                     enet_packet_destroy(event.packet);
-                    return NetworkMessage{
+
+                    auto message = NetworkMessage{
                         .type = NetworkMessageType::NEW_MESSAGE,
-                        .data = message,
+                        .data = data,
                         // .timestamp = ,
                         .peer = event.peer
                     };
+
+                    if (this->onMessageReceived != nullptr) {
+                        this->onMessageReceived(message);
+                    }
+
+                    return message;
                 }
-                case ENET_EVENT_TYPE_DISCONNECT:
+                case ENET_EVENT_TYPE_DISCONNECT: {
                     std::cout << "Disconnected from server!" << std::endl;
-                    return NetworkMessage{
+                    auto message = NetworkMessage{
                         .type = NetworkMessageType::DISCONNECTED_FROM_SERVER
                         // .timestamp = ,
                     };
+
+                    if (this->onMessageReceived != nullptr) {
+                        this->onMessageReceived(message);
+                    }
+
+                    return message;
+                }
                 default: {
                     break;
                 }
@@ -303,27 +333,6 @@ class UdpTransportClient: public UdpTransport {
         }
 
         return std::nullopt;
-    }
-
-    // # Get message from host
-    std::vector<NetworkMessage> PollAllNextMessages(enet_uint32 customTimeout = 0) {
-        auto result = std::vector<NetworkMessage>{};
-
-        ENetEvent event;
-
-        enet_uint32 timeout = customTimeout < 0 ? this->pollTimeout : customTimeout;
-
-        while (true) {
-            auto newMessage = this->PollNextMessage(timeout);
-
-            if (!newMessage.has_value()) {
-                return result;
-            }
-
-            result.push_back(newMessage.value());
-        }
-
-        return result;
     }
 
     // # Send message to server
@@ -335,7 +344,7 @@ class UdpTransportClient: public UdpTransport {
 
 class NetworkManager {
     public:
-        std::atomic<bool> isAlive = true;
+        std::atomic<bool> isRunning = true;
         std::unordered_map<std::string, std::unique_ptr<UdpTransport>> transports;
         enet_uint32 defaultPollTimeout;
         std::function<void(NetworkMessage)> onMessageReceived;
@@ -393,10 +402,10 @@ class NetworkManager {
         }
 
         void Run() {
-            while (isAlive.load(std::memory_order_acquire)) {
+            while (isRunning.load(std::memory_order_acquire)) {
                 for (auto& [name, transport]: transports) {
                     auto message = transport->PollNextMessage(0);
-                    if (message.has_value()) {
+                    if (message.has_value() && this->onMessageReceived != nullptr) {
                         this->onMessageReceived(message.value());
                     }
                 }
@@ -407,8 +416,8 @@ class NetworkManager {
             }
         }
 
-        void Destroy() {
-            isAlive.store(false, std::memory_order_release);
+        void Stop() {
+            isRunning.store(false, std::memory_order_release);
         }
 };
 

@@ -350,7 +350,7 @@ namespace cen {
                 }
             }
 
-            void StopTheWorld() {
+            void Stop() {
                 this->nextScene = nullptr;
                 this->StopCurrentSceneSimulation();
                 // ...

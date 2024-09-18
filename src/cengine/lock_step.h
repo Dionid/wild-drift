@@ -52,13 +52,44 @@ struct PlayerInputNetworkMessage {
 class LockStepNetworkManager {
     public:
         bool isHost;
+        NetworkManager* networkManager;
+        UdpTransport* transport;
         cen::player_id_t currentPlayerId;
 
-        LockStepNetworkManager(bool isHost) {
+        LockStepNetworkManager(
+            NetworkManager* networkManager,
+            bool isHost
+        ) {
+            this->networkManager = networkManager;
             this->isHost = isHost;
+            this->transport = nullptr;
         }
 
-        void Init() {}
+        void Init() {
+            if (this->isHost) {
+                this->transport = this->networkManager->CreateAndInitUdpTransportServer(
+                    "lock-step-transport",
+                    "127.0.0.1",
+                    1234,
+                    1000,
+                    [](NetworkMessage message) {
+                        std::cout << "Message from client: " << message.data << std::endl;
+                    }
+                );
+            } else {
+                this->transport = this->networkManager->CreateAndInitUdpTransportClient(
+                    "lock-step-transport",
+                    "127.0.0.1",
+                    1234,
+                    1000,
+                    [](NetworkMessage message) {
+                        std::cout << "Message from server: " << message.data << std::endl;
+                    }
+                );
+            }
+
+            this->transport->Init();
+        }
 
         PlayerInputTick SendAndWaitForPlayersInputs(
             uint64_t tick,
@@ -86,6 +117,8 @@ class LockStepNetworkManager {
             // }
 
             // return playerInputTick;
+
+            return PlayerInputTick{};
         }
 };
 
@@ -93,9 +126,11 @@ class LockStepNetworkManager {
 class LockStepScene: public Scene {
     public:
         bool isHost;
+        NetworkManager* networkManager;
 
         LockStepScene(
             bool isHost,
+            NetworkManager* networkManager,
             scene_name name,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -121,6 +156,7 @@ class LockStepScene: public Scene {
             std::move(nodeStorage)
         ) {
             this->isHost = isHost;
+            this->networkManager = networkManager;
         }
 
         void RunSimulation() {
@@ -129,7 +165,7 @@ class LockStepScene: public Scene {
                 this->FullInit();
             }
 
-            LockStepNetworkManager lockStepNetworkManager(this->isHost);
+            LockStepNetworkManager lockStepNetworkManager(this->networkManager, this->isHost);
             lockStepNetworkManager.Init();
 
             std::chrono::milliseconds accumulatedFixedTime(0);
@@ -149,7 +185,7 @@ class LockStepScene: public Scene {
                 };
 
                 // # GET ALL INPUTS FROM SERVER
-                auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(this->frameTick, currentPlayerInput);
+                // auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(this->frameTick, currentPlayerInput);
 
                 this->playerInputManager.currentPlayerInput = currentPlayerInput;
 

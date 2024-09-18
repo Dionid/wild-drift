@@ -40,49 +40,6 @@ void MatchManager::Init() {
     // # Player
     const float sixthScreen = this->scene->screen.width/6.0f;
 
-    // Player* player = this->AddNode(
-    //     std::make_unique<Player>(
-    //         (Vector2){ sixthScreen, this->scene->screen.height/2.0f },
-    //         (cen::Size){ 40.0f, 120.0f },
-    //         (Vector2){ 0.0f, 0.0f },
-    //         1.5f,
-    //         10.0f
-    //     )
-    // );
-
-    // player->zOrder = 1;
-    // this->playerId = player->id;
-
-    // float ballRadius = 15.0f;
-    // float randomAngle = (this->scene->fixedSimulationTick % 100 / 100.0f) * 2 * PI;
-    // Ball* ball = this->AddNode(
-    //     std::make_unique<Ball>(
-    //         this->gameAudio,
-    //         ballRadius,
-    //         (Vector2){ this->scene->screen.width/2.0f, this->scene->screen.height/2.0f },
-    //         (cen::Size){ ballRadius*2, ballRadius*2 },
-    //         (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
-    //         10.0f
-    //     )
-    // );
-
-    // ball->zOrder = 1;
-    // this->ballId = ball->id;
-
-    // Enemy* enemy = this->AddNode(
-    //     std::make_unique<Enemy>(
-    //         ball->id,
-    //         (Vector2){ this->scene->screen.width - sixthScreen, this->scene->screen.height/2.0f },
-    //         (cen::Size){ 40.0f, 120.0f },
-    //         (Vector2){ 0.0f, 0.0f },
-    //         1.5f,
-    //         10.0f
-    //     )
-    // );
-
-    // enemy->zOrder = 1;
-    // this->enemyId = enemy->id;
-
     // # Goals
     cen::Size goalSize = { 10, (float)this->scene->screen.height - 20 };
 

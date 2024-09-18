@@ -124,6 +124,7 @@ class MatchLockStepScene: public cen::LockStepScene {
 
         MatchLockStepScene(
             bool isHost,
+            cen::NetworkManager* networkManager,
             CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
@@ -132,6 +133,7 @@ class MatchLockStepScene: public cen::LockStepScene {
             cen::EventBus* eventBus
         ): cen::LockStepScene(
             isHost,
+            networkManager,
             MatchSceneName,
             screen,
             camera,
@@ -284,9 +286,11 @@ class MainMenuScene: public cen::LocalScene {
         cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
         SpcAudio* gameAudio;
+        cen::NetworkManager* networkManager;
 
         MainMenuScene(
             CrossSceneStorage* crossSceneStorage,
+            cen::NetworkManager* networkManager,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -300,6 +304,7 @@ class MainMenuScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
+            this->networkManager = networkManager;
             this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
             this->gameAudio = gameAudio;
@@ -338,6 +343,7 @@ class MainMenuScene: public cen::LocalScene {
                 this->sceneManager->ChangeScene(
                     std::make_unique<MatchLockStepScene>(
                         true,
+                        this->networkManager,
                         this->crossSceneStorage,
                         this->gameAudio,
                         this->screen,
@@ -363,6 +369,7 @@ class MainMenuScene: public cen::LocalScene {
                 this->sceneManager->ChangeScene(
                     std::make_unique<MatchLockStepScene>(
                         false,
+                        this->networkManager,
                         this->crossSceneStorage,
                         this->gameAudio,
                         this->screen,

@@ -35,7 +35,7 @@ class MatchManager: public cen::Node2D {
 
         MatchManager(
             SpcAudio* gameAudio,
-            int winScore = 3,
+            int winScore = 100,
             int playerScore = 0,
             int enemyScore = 0
         );
