@@ -67,22 +67,24 @@ class LockStepNetworkManager {
 
         void Init() {
             if (this->isHost) {
+                this->currentPlayerId = 1;
                 this->transport = this->networkManager->CreateAndInitUdpTransportServer(
                     "lock-step-transport",
                     "127.0.0.1",
                     1234,
                     1000,
-                    [](NetworkMessage message) {
+                    [this](NetworkMessage message) {
                         std::cout << "Message from client: " << message.data << std::endl;
                     }
                 );
             } else {
+                this->currentPlayerId = 2;
                 this->transport = this->networkManager->CreateAndInitUdpTransportClient(
                     "lock-step-transport",
                     "127.0.0.1",
                     1234,
                     1000,
-                    [](NetworkMessage message) {
+                    [this](NetworkMessage message) {
                         std::cout << "Message from server: " << message.data << std::endl;
                     }
                 );
@@ -91,13 +93,18 @@ class LockStepNetworkManager {
             this->transport->Init();
         }
 
+        void SendTickInput(PlayerInputTick playerInputTick) {
+            auto message = PlayerInputNetworkMessage(this->currentPlayerId, playerInputTick).Serialize();
+            this->transport->SendMessage(message);
+        }
+
         PlayerInputTick SendAndWaitForPlayersInputs(
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            // auto playerInputTick = PlayerInputTick{tick, currentPlayerInput};
+            auto playerInputTick = PlayerInputTick{tick, currentPlayerInput};
 
-            // this->SendTickInput(playerInputTick);
+            this->SendTickInput(playerInputTick);
 
             // bool notFound = true;
 
@@ -185,7 +192,7 @@ class LockStepScene: public Scene {
                 };
 
                 // # GET ALL INPUTS FROM SERVER
-                // auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(this->frameTick, currentPlayerInput);
+                auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(this->frameTick, currentPlayerInput);
 
                 this->playerInputManager.currentPlayerInput = currentPlayerInput;
 

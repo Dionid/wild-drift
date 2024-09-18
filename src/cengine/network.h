@@ -72,15 +72,12 @@ class UdpTransport {
                 enet_host_broadcast(host, 0, packet);
             } else {
                 enet_peer_send(peer, 0, packet);
-                enet_host_flush(host);
             }
         } else {
             if (peer == nullptr) {
                 enet_peer_send(this->serverPeer, 0, packet);
-                enet_host_flush(host);
             } else {
                 enet_peer_send(peer, 0, packet);
-                enet_host_flush(host);
             }
         }
 
@@ -164,8 +161,6 @@ class UdpTransportServer: public UdpTransport {
                     break;
                 }
                 case ENET_EVENT_TYPE_RECEIVE: {
-                    std::cout << "New message!" << std::endl;
-                
                     std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
 
                     enet_packet_destroy(event.packet);
@@ -256,7 +251,6 @@ class UdpTransportClient: public UdpTransport {
             return EXIT_FAILURE;
         }
 
-        std::cout << serverHost << ":" << serverPort << std::endl;
         enet_address_set_host(&address, this->serverHost.c_str());
         address.port = this->serverPort;
 
@@ -344,12 +338,16 @@ class UdpTransportClient: public UdpTransport {
 
 class NetworkManager {
     public:
+        int messageReceivedRate;
         std::atomic<bool> isRunning = true;
         std::unordered_map<std::string, std::unique_ptr<UdpTransport>> transports;
         enet_uint32 defaultPollTimeout;
         std::function<void(NetworkMessage)> onMessageReceived;
 
-        NetworkManager(enet_uint32 defaultPollTimeout = 0) {
+        NetworkManager(
+            int messageReceivedRate = 60,
+            enet_uint32 defaultPollTimeout = 0
+        ) {
             if (enet_initialize() != 0) {
                 std::cerr << "An error occurred while initializing ENet." << std::endl;
                 return;
@@ -402,7 +400,11 @@ class NetworkManager {
         }
 
         void Run() {
+            auto messageReceivedRate = std::chrono::milliseconds(1000 / this->messageReceivedRate);
+
             while (isRunning.load(std::memory_order_acquire)) {
+                auto frameStart = std::chrono::high_resolution_clock::now();
+                
                 for (auto& [name, transport]: transports) {
                     auto message = transport->PollNextMessage(0);
                     if (message.has_value() && this->onMessageReceived != nullptr) {
@@ -413,6 +415,8 @@ class NetworkManager {
                 if (transports.size() == 0) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
+
+                while (std::chrono::high_resolution_clock::now() - frameStart <= messageReceivedRate) {}
             }
         }
 
