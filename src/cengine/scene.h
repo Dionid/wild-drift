@@ -203,11 +203,19 @@ namespace cen {
     struct SceneConstructor {
         std::string sceneName;
         std::function<std::unique_ptr<Scene>()> create;
+
+        SceneConstructor(
+            std::string sceneName,
+            std::function<std::unique_ptr<Scene>()> create
+        ): sceneName(sceneName), create(create) {}
     };
 
     class SceneManager {
         public:
-            std::unordered_map<scene_name, SceneConstructor> scenesConstructorsByName;
+            std::unordered_map<
+                scene_name,
+                std::unique_ptr<SceneConstructor>
+            > scenesConstructorsByName;
             std::unique_ptr<Scene> currentScene;
             EventBus* eventBus;
             bool currentSceneRunning;
@@ -232,9 +240,9 @@ namespace cen {
             }
 
             void AddSceneConstructor(
-                SceneConstructor sceneConstructor
+                std::unique_ptr<SceneConstructor> sceneConstructor
             ) {
-                this->scenesConstructorsByName[sceneConstructor.sceneName] = sceneConstructor;
+                this->scenesConstructorsByName[sceneConstructor->sceneName] = std::move(sceneConstructor);
             }
 
             void ChangeCurrentScene(scene_name name) {
@@ -245,7 +253,9 @@ namespace cen {
                     this->currentScene->Destroy();
                 }
 
-                this->currentScene = std::move(this->scenesConstructorsByName[name].create());
+                const auto& constructor = this->scenesConstructorsByName[name];
+
+                this->currentScene = std::move(constructor->create());
             }
 
             void RunCurrentSceneSimulation() {

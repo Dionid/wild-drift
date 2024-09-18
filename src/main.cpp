@@ -65,15 +65,6 @@ int main() {
         nullptr
     );
 
-    // eventBus.on(
-    //     StartEvent{},
-    //     std::make_unique<cen::EventListener>(
-    //         [](const cen::Event& event) {
-    //             std::printf("TOP StartEvent\n");
-    //         }
-    //     )
-    // );
-
     // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
@@ -81,7 +72,7 @@ int main() {
 
     // ## Main Menu Scene
     sceneManager.AddSceneConstructor(
-        cen::SceneConstructor{
+        std::make_unique<cen::SceneConstructor>(
             "MainMenuScene",
             [
                 &camera,
@@ -95,14 +86,14 @@ int main() {
                     &eventBus
                 );
             }
-        }
+        )
     );
 
     sceneManager.ChangeCurrentScene("MainMenuScene");
 
     // ## Match Scene
     sceneManager.AddSceneConstructor(
-        cen::SceneConstructor{
+        std::make_unique<cen::SceneConstructor>(
             "MatchEndScene",
             [
                 &camera,
@@ -116,25 +107,35 @@ int main() {
                     &eventBus
                 );
             }
-        }
+        )
     );
 
     // // ## Match Scene
-    // sceneManager.AddScene(
-    //     std::make_unique<MatchScene>(
-    //         &gameAudio,
-    //         cen::ScreenResolution{screenWidth, screenHeight},
-    //         &camera,
-    //         &renderingEngine,
-    //         &eventBus
-    //     )
-    // );
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            "MatchScene",
+            [
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchScene>(
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
 
     // # Threads
     std::vector<std::thread> threads;
 
     // # Simulation Loop Thread
-    threads.push_back(std::thread(runSimulation, sceneManager.currentScene.get()));
+    // threads.push_back(std::thread(runSimulation, sceneManager));
 
     // # Rendering Loop Thread
     runRendering(&renderingEngine);
