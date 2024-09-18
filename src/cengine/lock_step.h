@@ -119,6 +119,35 @@ class LockStepScene: public Scene {
     public:
         bool isHost;
 
+        LockStepScene(
+            bool isHost,
+            scene_name name,
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus,
+            int simulationFrameRate = 60,
+            int simulationFixedFrameRate = 40,
+            int simulationFixedFrameCyclesLimit = 10,
+            cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
+            std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
+            std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>()
+        ): Scene(
+            name,
+            screen,
+            camera,
+            renderingEngine,
+            eventBus,
+            simulationFrameRate,
+            simulationFixedFrameRate,
+            simulationFixedFrameCyclesLimit,
+            playerInputManager,
+            std::move(collisionEngine),
+            std::move(nodeStorage)
+        ) {
+            this->isHost = isHost;
+        }
+
         void RunSimulation() {
             if (!this->isInitialized) {
                 // # Init scene
@@ -126,6 +155,8 @@ class LockStepScene: public Scene {
             }
 
             LockStepNetworkManager lockStepNetworkManager(this->isHost);
+
+            // lockStepNetworkManager.Init();
 
             std::chrono::milliseconds accumulatedFixedTime(0);
             auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();

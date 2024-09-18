@@ -36,10 +36,168 @@ class MatchScene: public cen::Scene {
 
         void Init() override {
             DisableCursor();
+
+            // # Entities
+            const float sixthScreen = screen.width/6.0f;
             
+            // ## Ball
+            float ballRadius = 15.0f;
+            float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
+            Ball* ball = this->nodeStorage->AddNode(
+                std::make_unique<Ball>(
+                    this->gameAudio,
+                    ballRadius,
+                    (Vector2){ screen.width/2.0f, screen.height/2.0f },
+                    (cen::Size){ ballRadius*2, ballRadius*2 },
+                    (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    10.0f
+                )
+            );
+
+            ball->zOrder = 1;
+
+            // ## Player
+            Player* player = this->nodeStorage->AddNode(
+                std::make_unique<Player>(
+                    (Vector2){ sixthScreen, screen.height/2.0f },
+                    (cen::Size){ 40.0f, 120.0f },
+                    (Vector2){ 0.0f, 0.0f },
+                    1.5f,
+                    10.0f
+                )
+            );
+
+            player->zOrder = 1;
+
+            // ## Enemy
+            Enemy* enemy = this->nodeStorage->AddNode(
+                std::make_unique<Enemy>(
+                    ball->id,
+                    (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
+                    (cen::Size){ 40.0f, 120.0f },
+                    (Vector2){ 0.0f, 0.0f },
+                    1.5f,
+                    10.0f
+                )
+            );
+
+            enemy->zOrder = 1;
+
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio
             ));
+
+            matchManager->ballId = ball->id;
+            matchManager->playerId = player->id;
+            matchManager->enemyId = enemy->id;
+
+            PlaySound(this->gameAudio->start);
+
+            // ## MatchEndEvent
+            auto onMatchEndEvent = [
+                this
+            ](const cen::Event* event) {
+                auto matchEndEvent = static_cast<const MatchEndEvent*>(event);
+
+                this->crossSceneStorage->isPlayerWon = matchEndEvent->isPlayerWon;
+
+                this->eventBus.Emit(
+                    std::make_unique<cen::SceneChangeRequested>(
+                        MatchEndMenuSceneName
+                    )
+                );
+            };
+
+            this->eventBus.On(
+                MatchEndEvent{},
+                std::make_unique<cen::EventListener>(
+                    onMatchEndEvent
+                )
+            );
+        }
+};
+
+class MatchLockStepScene: public cen::LockStepScene {
+    public:
+        SpcAudio* gameAudio;
+        CrossSceneStorage* crossSceneStorage;
+
+        MatchLockStepScene(
+            bool isHost,
+            CrossSceneStorage* crossSceneStorage,
+            SpcAudio* gameAudio,
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
+        ): cen::LockStepScene(
+            isHost,
+            MatchSceneName,
+            screen,
+            camera,
+            renderingEngine,
+            eventBus
+        ) {
+            this->crossSceneStorage = crossSceneStorage;
+            this->gameAudio = gameAudio;
+        }
+
+        void Init() override {
+            DisableCursor();
+
+            // # Entities
+            const float sixthScreen = screen.width/6.0f;
+
+            // ## Ball
+            float ballRadius = 15.0f;
+            float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
+            Ball* ball = this->nodeStorage->AddNode(
+                std::make_unique<Ball>(
+                    this->gameAudio,
+                    ballRadius,
+                    (Vector2){ screen.width/2.0f, screen.height/2.0f },
+                    (cen::Size){ ballRadius*2, ballRadius*2 },
+                    (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    10.0f
+                )
+            );
+
+            ball->zOrder = 1;
+
+            // ## Player
+            Player* player = this->nodeStorage->AddNode(
+                std::make_unique<Player>(
+                    (Vector2){ sixthScreen, screen.height/2.0f },
+                    (cen::Size){ 40.0f, 120.0f },
+                    (Vector2){ 0.0f, 0.0f },
+                    1.5f,
+                    10.0f
+                )
+            );
+
+            player->zOrder = 1;
+
+            // ## Enemy
+            Enemy* enemy = this->nodeStorage->AddNode(
+                std::make_unique<Enemy>(
+                    ball->id,
+                    (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
+                    (cen::Size){ 40.0f, 120.0f },
+                    (Vector2){ 0.0f, 0.0f },
+                    1.5f,
+                    10.0f
+                )
+            );
+
+            enemy->zOrder = 1;
+
+            MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
+                this->gameAudio
+            ));
+
+            matchManager->ballId = ball->id;
+            matchManager->playerId = player->id;
+            matchManager->enemyId = enemy->id;
 
             PlaySound(this->gameAudio->start);
 
@@ -178,7 +336,8 @@ class MainMenuScene: public cen::Scene {
             ](const cen::Event* event) {
                 // this->sceneManager->ChangeScene(MatchSceneName);
                 this->sceneManager->ChangeScene(
-                    std::make_unique<MatchScene>(
+                    std::make_unique<MatchLockStepScene>(
+                        true,
                         this->crossSceneStorage,
                         this->gameAudio,
                         this->screen,

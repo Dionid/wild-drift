@@ -8,7 +8,6 @@
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
-#include "game_tick.h"
 #include "scenes.h"
 
 void runSimulation(cen::SceneManager* sceneManager) {

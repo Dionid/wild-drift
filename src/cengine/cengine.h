@@ -16,6 +16,6 @@
 #include "character_body_node_2d.h"
 #include "debug.h"
 #include "network.h"
-#include "tick.h"
+#include "lock_step.h"
 
 #endif // CENGINE_H_
