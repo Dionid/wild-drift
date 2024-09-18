@@ -30,7 +30,6 @@ namespace cen {
 
             std::unique_ptr<cen::CollisionEngine> collisionEngine;
             std::unique_ptr<cen::NodeStorage> nodeStorage;
-            std::vector<std::unique_ptr<cen::TopicBase>> topics;
 
             Scene(
                 scene_name name,
@@ -41,7 +40,6 @@ namespace cen {
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
-                std::vector<std::unique_ptr<cen::TopicBase>> topics = std::vector<std::unique_ptr<cen::TopicBase>>(),
                 uint64_t frameTick = 0,
                 uint64_t simulationTick = 0
             ): eventBus(eventBus) {
@@ -54,7 +52,6 @@ namespace cen {
                 this->collisionEngine = std::move(collisionEngine);
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;
-                this->topics = std::move(topics);
             }
 
             virtual void Init() {};
@@ -73,19 +70,6 @@ namespace cen {
                 this->nodeStorage->Init();
 
                 this->isInitialized = true;
-            }
-
-            template <typename T>
-            cen::Topic<T>* AddTopic(std::unique_ptr<cen::Topic<T>> topic) {
-                static_assert(std::is_base_of<cen::TopicBase, cen::Topic<T>>::value, "T must inherit from TopicBase");
-
-                auto topicPtr = topic.get();
-
-                this->topics.push_back(
-                    std::move(topic)
-                );
-
-                return topicPtr;
             }
 
             void FixedSimulationTick() {
@@ -110,6 +94,7 @@ namespace cen {
                 }
 
                 // # Main Loop
+                // TODO: move to members
                 // ## Update
                 const int targetFPS = 60;
                 const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
@@ -166,10 +151,6 @@ namespace cen {
                     }
 
                     // # Flush events
-                    for (const auto& topic: this->topics) {
-                        topic->flush();
-                    }
-
                     this->eventBus.Flush();
 
                     // # Sync GameState and RendererState
