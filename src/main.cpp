@@ -11,7 +11,11 @@
 #include "scenes.h"
 
 void runSimulation(cen::SceneManager* sceneManager) {
-    sceneManager->RunSceneSimulation();
+    sceneManager->Run();
+};
+
+void runNetwork(cen::NetworkManager* networkManager) {
+    networkManager->Run();
 };
 
 void runRendering(cen::RenderingEngine2D* renderingEngine) {

@@ -53,70 +53,39 @@ class LockStepNetworkManager {
     public:
         bool isHost;
         cen::player_id_t currentPlayerId;
-        std::vector<cen::player_id_t> playerIds;
-        std::unique_ptr<UdpTransport> transport;
 
         LockStepNetworkManager(bool isHost) {
             this->isHost = isHost;
         }
 
-        void Init() {
-            if (this->isHost) {
-                this->transport = std::make_unique<UdpTransportServer>(1234);
-            } else {
-                this->transport = std::make_unique<UdpTransportClient>(1234);
-            }
-
-            this->transport->Init();
-        }
-
-        std::vector<PlayerInputTick> GetTickInputs() {
-            auto messages = this->transport->PollAllNextMessages(0);
-            auto playerInputTicks = std::vector<PlayerInputTick>{};
-
-            for (const auto& message: messages) {
-                if (message.type == NetworkMessageType::NEW_MESSAGE) {
-                    this->transport->SendMessage("PING");
-                    // auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
-                    // playerInputTicks.push_back(playerInputMessage.input);
-                    std::cout << "New message: " << message.data << std::endl;
-                }
-            }
-
-            return playerInputTicks;
-        }
-
-        void SendTickInput(PlayerInputTick playerInputTick) {
-            auto message = PlayerInputNetworkMessage(this->currentPlayerId, playerInputTick).Serialize();
-            this->transport->SendMessage(message);
-        }
+        void Init() {}
 
         PlayerInputTick SendAndWaitForPlayersInputs(
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            auto playerInputTick = PlayerInputTick{tick, currentPlayerInput};
+            // auto playerInputTick = PlayerInputTick{tick, currentPlayerInput};
 
-            this->SendTickInput(playerInputTick);
+            // this->SendTickInput(playerInputTick);
 
-            bool notFound = true;
+            // bool notFound = true;
 
-            while (notFound) {
-                auto playerInputTicks = this->GetTickInputs();
+            // while (notFound) {
+            //     auto playerInputTicks = this->GetTickInputs();
 
-                for (const auto& playerInputTick: playerInputTicks) {
-                    if (playerInputTick.tick == tick) {
-                        notFound = false;
-                        break;
-                    }
-                }
+            //     for (const auto& playerInputTick: playerInputTicks) {
+            //         if (playerInputTick.tick == tick) {
+            //             notFound = false;
+            //             break;
+            //         }
+            //     }
 
-                std::cout << "Waiting for players inputs" << std::endl;
+            //     std::cout << "Waiting for players inputs" << std::endl;
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            }
+            //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            // }
 
-            return playerInputTick;
+            // return playerInputTick;
         }
 };
 
@@ -161,7 +130,6 @@ class LockStepScene: public Scene {
             }
 
             LockStepNetworkManager lockStepNetworkManager(this->isHost);
-
             lockStepNetworkManager.Init();
 
             std::chrono::milliseconds accumulatedFixedTime(0);

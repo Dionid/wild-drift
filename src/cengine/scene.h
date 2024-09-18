@@ -308,7 +308,7 @@ namespace cen {
                 return true;
             }
 
-            void RunSceneSimulation() {
+            void Run() {
                 // # Guard
                 if (isSimulationRunning) {
                     return;
@@ -338,7 +338,7 @@ namespace cen {
                 if (this->nextScene) {
                     this->currentScene = std::move(this->nextScene);
                     this->nextScene = nullptr;
-                    this->RunSceneSimulation();
+                    this->Run();
                 } else {
                     this->currentScene = nullptr;
                 }

@@ -8,6 +8,7 @@
     1. Event bus Thread safety
 1. Errors
 1. Logger
+1. EventBus is now flushing only while scene is working
 1. New features
     1. Capsule Collider
     1. AssetsLoader threads
@@ -79,10 +80,4 @@
 
 ## LockStep
 
-1. LockStepManager
-    1. Create NetworkManager
-1. Network thread
-    1. Loop till new messages
-    1. Call OnMessage
-1. Game Simulation thread
-    1. Take new messages from 
+1. Network thread call OnMessage()
