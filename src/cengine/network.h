@@ -6,6 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <optional>
+#include <thread>
 #include "enet/enet.h"
 #include "node_storage.h"
 
@@ -31,7 +32,6 @@ struct NetworkMessage {
 class UdpTransport {
     public:
 
-    std::atomic<bool> isAlive = true;
     bool isServer;
     uint64_t serverPort;
     ENetAddress address;
@@ -46,7 +46,8 @@ class UdpTransport {
     ): isServer(isServer), serverPort(serverPort) {}
 
     bool SendMessage(std::string message, ENetPeer* peer) {
-        ENetPacket *packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
+        ENetPacket* packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
+    
         if (peer == nullptr) {
             if (!isServer) {
                 std::cerr << "Cannot broadcast message from client" << std::endl;
@@ -302,6 +303,10 @@ class NetworkManager {
                                 break;
                         }
                     }
+                }
+
+                if (transports.size() == 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             }
         }
