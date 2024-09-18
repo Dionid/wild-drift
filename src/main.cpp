@@ -73,7 +73,7 @@ int main() {
     // ## Main Menu Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
-            "MainMenuScene",
+            MainMenuSceneName,
             [
                 &camera,
                 &renderingEngine,
@@ -92,7 +92,7 @@ int main() {
     // ## Match Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
-            "MatchEndScene",
+            MatchEndMenuSceneName,
             [
                 &camera,
                 &renderingEngine,
@@ -111,7 +111,7 @@ int main() {
     // // ## Match Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
-            "MatchScene",
+            MatchSceneName,
             [
                 &gameAudio,
                 &camera,
@@ -129,7 +129,7 @@ int main() {
         )
     );
 
-    sceneManager.SetFirstScene("MainMenuScene");
+    sceneManager.SetFirstScene(MainMenuSceneName);
 
     // # Threads
     std::vector<std::thread> threads;

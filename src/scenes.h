@@ -1,4 +1,5 @@
 #include "cengine/cengine.h"
+#include "globals.h"
 #include "menus.h"
 #include "match.h"
 #include "step_lock_manager.h"
@@ -18,7 +19,7 @@ class MatchScene: public cen::Scene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::Scene(
-            "MatchScene",
+            MatchSceneName,
             screen,
             camera,
             renderingEngine,
@@ -40,14 +41,14 @@ class MatchScene: public cen::Scene {
             auto onMatchEndEvent = [
                 this
             ](const cen::Event* event) {
-                this->eventBus.emit(
+                this->eventBus.Emit(
                     std::make_unique<cen::SceneChangeRequested>(
-                        "MatchEndScene"
+                        MatchEndMenuSceneName
                     )
                 );
             };
 
-            this->eventBus.on(
+            this->eventBus.On(
                 OnMatchEndEvent{},
                 std::make_unique<cen::EventListener>(
                     onMatchEndEvent
@@ -64,7 +65,7 @@ class MatchEndScene: public cen::Scene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::Scene(
-            "MatchEndScene",
+            MatchEndMenuSceneName,
             screen,
             camera,
             renderingEngine,
@@ -74,22 +75,28 @@ class MatchEndScene: public cen::Scene {
         void Init() override {
             EnableCursor();
 
-            // # Scene init
-            // ## MatchEndMenu
             auto matchEndMenu = this->nodeStorage->AddNode(std::make_unique<MatchEndMenu>());
 
-            this->eventBus.on(
+            this->eventBus.On(
                 RestartEvent{},
                 std::make_unique<cen::EventListener>(
                     [this](const cen::Event* event){
-                        this->eventBus.emit(
+                        this->eventBus.Emit(
                             std::make_unique<cen::SceneChangeRequested>(
-                                "MatchScene"
+                                MatchSceneName
                             )
                         );
                     }
                 )
             );
+
+            // if (this->playerScore > this->enemyScore) {
+            //     // TODO: SoundManager (that will do nothing on server)
+            //     PlaySound(this->gameAudio->win);
+            // } else {
+            //     // TODO: SoundManager (that will do nothing on server)
+            //     PlaySound(this->gameAudio->lost);
+            // }
         }
 };
 
@@ -101,7 +108,7 @@ class MainMenuScene: public cen::Scene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::Scene(
-            "MainMenuScene",
+            MainMenuSceneName,
             screen,
             camera,
             renderingEngine,
@@ -118,14 +125,14 @@ class MainMenuScene: public cen::Scene {
                 this
             ](const cen::Event* event) {
                 std::printf("StartEvent\n");
-                this->eventBus.emit(
+                this->eventBus.Emit(
                     std::make_unique<cen::SceneChangeRequested>(
-                        "MatchScene"
+                        MatchSceneName
                     )
                 );
             };
 
-            this->eventBus.on(
+            this->eventBus.On(
                 StartEvent{},
                 std::make_unique<cen::EventListener>(
                     onStartEvent
@@ -140,7 +147,7 @@ class MainMenuScene: public cen::Scene {
                 std::printf("HostEvent\n");
             };
 
-            this->eventBus.on(
+            this->eventBus.On(
                 HostEvent{},
                 std::make_unique<cen::EventListener>(
                     onHostEvent
@@ -155,7 +162,7 @@ class MainMenuScene: public cen::Scene {
                 std::printf("JoinEvent\n");
             };
 
-            this->eventBus.on(
+            this->eventBus.On(
                 JoinEvent{},
                 std::make_unique<cen::EventListener>(
                     onJoinEvent

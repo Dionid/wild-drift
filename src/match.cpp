@@ -242,14 +242,8 @@ void MatchManager::FixedUpdate() {
         }
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
-            this->scene->eventBus.emit(std::make_unique<OnMatchEndEvent>());
-            if (this->playerScore > this->enemyScore) {
-                // TODO: SoundManager (that will do nothing on server)
-                PlaySound(this->gameAudio->win);
-            } else {
-                // TODO: SoundManager (that will do nothing on server)
-                PlaySound(this->gameAudio->lost);
-            }
+            this->scene->eventBus.Emit(std::make_unique<OnMatchEndEvent>());
+            this->Deactivate();
 
             return;
         }

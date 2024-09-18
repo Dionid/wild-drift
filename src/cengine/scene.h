@@ -170,7 +170,7 @@ namespace cen {
                         topic->flush();
                     }
 
-                    this->eventBus.flush();
+                    this->eventBus.Flush();
 
                     // # Sync GameState and RendererState
                     auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
@@ -228,7 +228,7 @@ namespace cen {
                 this->currentScene = nullptr;
                 this->nextScene = nullptr;
 
-                this->eventBus->on(
+                this->eventBus->On(
                     SceneChangeRequested{},
                     std::make_unique<EventListener>(
                         [this](const Event* event) {
