@@ -10,7 +10,6 @@
 #include "menus.h"
 #include "game_tick.h"
 #include "scenes.h"
-#include "step_lock_manager.h"
 
 void runSimulation(cen::SceneManager* sceneManager) {
     sceneManager->RunSceneSimulation();

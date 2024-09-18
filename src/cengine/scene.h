@@ -276,6 +276,22 @@ namespace cen {
                 return true;
             }
 
+            bool ChangeScene(std::unique_ptr<Scene> scene) {
+                if (this->currentScene == nullptr) {
+                    return false;
+                }
+
+                if (scene == nullptr) {
+                    // TODO: SEND ERROR
+                    return false;
+                }
+
+                this->nextScene = std::move(scene);
+                this->StopCurrentSceneSimulation();
+
+                return true;
+            }
+
             void RunSceneSimulation() {
                 // # Guard
                 if (isSimulationRunning) {

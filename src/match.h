@@ -5,7 +5,6 @@
 #include "cengine/cengine.h"
 #include "entity.h"
 #include "audio.h"
-#include "step_lock_manager.h"
 
 class LaunchBallTimer: public cen::Timer {
     public:

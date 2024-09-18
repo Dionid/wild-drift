@@ -2,7 +2,6 @@
 #include "globals.h"
 #include "menus.h"
 #include "match.h"
-#include "step_lock_manager.h"
 #include "events.h"
 
 #ifndef MAIN_SCENE_H

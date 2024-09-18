@@ -51,14 +51,14 @@ struct PlayerInputNetworkMessage {
     }
 };
 
-class StepLockNetworkManager {
+class LockStepNetworkManager {
     public:
         uint64_t currentTick = 0;
         cen::player_id_t currentPlayerId;
         cen::NetworkManager* networkManager;
         std::vector<cen::player_id_t> playerIds;
 
-        StepLockNetworkManager(cen::NetworkManager* networkManager) {
+        LockStepNetworkManager(cen::NetworkManager* networkManager) {
             this->networkManager = networkManager;
         }
 };
