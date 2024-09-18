@@ -22,16 +22,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(raylib)
 
-# Adding Raygui
-set(RAYGUI_VERSION 4.0)
-FetchContent_Declare(
-    raygui
-    URL https://github.com/raysan5/raygui/archive/refs/tags/${RAYGUI_VERSION}.tar.gz
-    FIND_PACKAGE_ARGS ${RAYGUI_VERSION}
-)
-
-FetchContent_MakeAvailable(raygui)
-
 # Adding ENet
 FetchContent_Declare(
   enet
