@@ -123,8 +123,7 @@ class MatchLockStepScene: public cen::LockStepScene {
         CrossSceneStorage* crossSceneStorage;
 
         MatchLockStepScene(
-            bool isHost,
-            cen::NetworkManager* networkManager,
+            cen::UdpTransport* udpTransport,
             CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
@@ -132,8 +131,7 @@ class MatchLockStepScene: public cen::LockStepScene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::LockStepScene(
-            isHost,
-            networkManager,
+            udpTransport,
             MatchSceneName,
             screen,
             camera,
@@ -341,8 +339,7 @@ class ServerLobbyScene: public cen::LocalScene {
             auto serverTransport = this->networkManager->CreateAndInitUdpTransportServer(
                 "server",
                 1234,
-                0,
-                nullptr
+                0
             );
 
             cen::MultiplayerNetworkManager multiplayerNetworkManager(
@@ -385,8 +382,7 @@ class ClientLobbyScene: public cen::LocalScene {
                 "server",
                 "127.0.0.1",
                 1234,
-                0,
-                nullptr
+                0
             );
 
             cen::MultiplayerNetworkManager multiplayerNetworkManager(

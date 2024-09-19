@@ -110,10 +110,12 @@ class MultiplayerNetworkManager {
 
         bool SendMessage(
             MultiplayerNetworkMessage message,
+            ENetPacketFlag flags = ENET_PACKET_FLAG_RELIABLE,
             ENetPeer* peer = nullptr
         ) {
             return this->udpTransport->SendMessage(
                 message.Serialize(),
+                flags,
                 peer
             );
         }

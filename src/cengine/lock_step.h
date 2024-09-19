@@ -117,8 +117,6 @@ class LockStepNetworkManager {
         bool isStepLockActivated = false;
         std::atomic<bool> isRunning = false;
 
-        bool isHost;
-        NetworkManager* networkManager;
         UdpTransport* transport;
 
         cen::player_id_t currentPlayerId;
@@ -130,12 +128,9 @@ class LockStepNetworkManager {
         std::vector<PlayerInputNetworkMessage> receivedInputMessages;
 
         LockStepNetworkManager(
-            NetworkManager* networkManager,
-            bool isHost
+            UdpTransport* transport
         ) {
-            this->networkManager = networkManager;
-            this->isHost = isHost;
-            this->transport = nullptr;
+            this->transport = transport;
         }
 
         void ActivateStepLock() {
@@ -143,58 +138,25 @@ class LockStepNetworkManager {
         }
 
         void Init() {
-            if (this->isHost) {
-                this->currentPlayerId = 1;
-                this->transport = this->networkManager->CreateAndInitUdpTransportServer(
-                    "lock-step-transport",
-                    1234,
-                    1000,
-                    [this](ReceivedNetworkMessage message) {
-                        std::cout << "Message from client" << std::endl;
+            this->transport->AddOnMessageReceivedListener(
+                [this](ReceivedNetworkMessage message) {
+                    std::cout << "Message from server" << std::endl;
 
-                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
-                            return;
-                        }
-
-                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
-
-                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
-                        this->receivedInputMessages.push_back(playerInputMessage);
-
-                        // TODO: Change to ring buffer
-                        if (this->receivedInputMessages.size() > 100) {
-                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
-                        }
+                    if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
+                        return;
                     }
-                );
-            } else {
-                this->currentPlayerId = 2;
-                this->transport = this->networkManager->CreateAndInitUdpTransportClient(
-                    "lock-step-transport",
-                    "127.0.0.1",
-                    1234,
-                    1000,
-                    [this](ReceivedNetworkMessage message) {
-                        std::cout << "Message from server" << std::endl;
 
-                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
-                            return;
-                        }
+                    auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
 
-                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
+                    std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
+                    this->receivedInputMessages.push_back(playerInputMessage);
 
-                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
-                        this->receivedInputMessages.push_back(playerInputMessage);
-
-                        // TODO: Change to ring buffer
-                        if (this->receivedInputMessages.size() > 100) {
-                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
-                        }
+                    // TODO: Change to ring buffer
+                    if (this->receivedInputMessages.size() > 100) {
+                        this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
                     }
-                );
-            }
-
-            this->transport->Init();
+                }
+            );
 
             this->isRunning.store(true, std::memory_order_release);
         }
@@ -254,13 +216,10 @@ class LockStepNetworkManager {
 
 class LockStepScene: public Scene {
     public:
-        bool isHost;
-        NetworkManager* networkManager;
         std::unique_ptr<LockStepNetworkManager> lockStepNetworkManager;
 
         LockStepScene(
-            bool isHost,
-            NetworkManager* networkManager,
+            cen::UdpTransport* udpTransport,
             scene_name name,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -285,9 +244,9 @@ class LockStepScene: public Scene {
             std::move(collisionEngine),
             std::move(nodeStorage)
         ) {
-            this->isHost = isHost;
-            this->networkManager = networkManager;
-            this->lockStepNetworkManager = std::make_unique<LockStepNetworkManager>(networkManager, isHost);
+            this->lockStepNetworkManager = std::make_unique<LockStepNetworkManager>(
+                udpTransport
+            );
         }
 
         virtual void Stop() {
