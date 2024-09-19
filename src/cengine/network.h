@@ -31,6 +31,16 @@ struct ReceivedNetworkMessage {
     std::vector<uint8_t> content;
 };
 
+struct OnMessageReceivedListener {
+    std::function<void(ReceivedNetworkMessage)> onMessageReceived;
+    int id;
+
+    OnMessageReceivedListener(
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived,
+        int id = 0
+    ): onMessageReceived(onMessageReceived), id(id) {}
+};
+
 class UdpTransport {
     public:
 
@@ -49,7 +59,8 @@ class UdpTransport {
 
     // # On message received
     enet_uint32 defaultPollTimeout;
-    std::function<void(ReceivedNetworkMessage)> onMessageReceived;
+    std::atomic<int> nextListenerId = 0;
+    std::vector<std::unique_ptr<OnMessageReceivedListener>> onMessageReceivedListeners;
 
     UdpTransport(
         uint64_t serverPort = 1234,
@@ -65,6 +76,10 @@ class UdpTransport {
         if (host != NULL) {
             enet_host_destroy(host);
         }
+    }
+
+    int nextId() {
+        return this->nextListenerId.fetch_add(1);
     }
 
     int InitAsServer(
@@ -150,8 +165,8 @@ class UdpTransport {
         if (enet_host_service(host, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             std::cout << "Connection to server succeeded." << std::endl;
 
-            if (this->onMessageReceived != nullptr) {
-                this->onMessageReceived(ReceivedNetworkMessage{
+            for (const auto& listener: this->onMessageReceivedListeners) {
+                listener->onMessageReceived(ReceivedNetworkMessage{
                     .type = ReceivedNetworkMessageType::CONNECTED_TO_SERVER
                 });
             }
@@ -211,10 +226,28 @@ class UdpTransport {
         return true;
     }
 
-    void AddOnMessageReceivedListener(
-        std::function<void(ReceivedNetworkMessage)> onMessageReceived
+    int OnMessageReceived(
+        std::unique_ptr<OnMessageReceivedListener> listener
     ) {
-        // ...
+        std::lock_guard<std::mutex> lock(busy);
+        int id = listener->id == 0 ? this->nextId() : listener->id;
+        listener->id = id;
+        this->onMessageReceivedListeners.push_back(std::move(listener));
+        return listener->id;
+    }
+
+    void OffMessageReceived(int id) {
+        std::lock_guard<std::mutex> lock(busy);
+        this->onMessageReceivedListeners.erase(
+            std::remove_if(
+                this->onMessageReceivedListeners.begin(),
+                this->onMessageReceivedListeners.end(),
+                [id](const std::unique_ptr<OnMessageReceivedListener>& listener) {
+                    return listener->id == id;
+                }
+            ),
+            this->onMessageReceivedListeners.end()
+        );
     }
 
      // # Get message from host
@@ -246,8 +279,8 @@ class UdpTransport {
                         };
                     }
 
-                    if (this->onMessageReceived != nullptr) {
-                        this->onMessageReceived(message);
+                    for (const auto& listener: this->onMessageReceivedListeners) {
+                        listener->onMessageReceived(message);
                     }
 
                     return message;
@@ -265,8 +298,8 @@ class UdpTransport {
                         // .timestamp = 
                     };
 
-                    if (this->onMessageReceived != nullptr) {
-                        this->onMessageReceived(message);
+                    for (const auto& listener: this->onMessageReceivedListeners) {
+                        listener->onMessageReceived(message);
                     }
 
                     return message;
@@ -287,8 +320,8 @@ class UdpTransport {
                         };
                     }
 
-                    if (this->onMessageReceived != nullptr) {
-                        this->onMessageReceived(message);
+                    for (const auto& listener: this->onMessageReceivedListeners) {
+                        listener->onMessageReceived(message);
                     }
 
                     return message;

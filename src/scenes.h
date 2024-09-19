@@ -24,7 +24,7 @@ class MatchScene: public cen::LocalScene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::LocalScene(
-            MatchSceneName,
+            LocalMatchSceneName,
             screen,
             camera,
             renderingEngine,
@@ -132,7 +132,7 @@ class MatchLockStepScene: public cen::LockStepScene {
             cen::EventBus* eventBus
         ): cen::LockStepScene(
             udpTransport,
-            MatchSceneName,
+            LocalMatchSceneName,
             screen,
             camera,
             renderingEngine,
@@ -270,7 +270,7 @@ class MatchEndScene: public cen::LocalScene {
                     [this](const cen::Event* event){
                         this->eventBus.Emit(
                             std::make_unique<cen::SceneChangeRequested>(
-                                MatchSceneName
+                                LocalMatchSceneName
                             )
                         );
                     }

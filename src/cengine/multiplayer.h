@@ -92,20 +92,24 @@ class MultiplayerNetworkManager {
         ) {
             this->udpTransport = udpTransport;
             this->onMessageReceived = onMessageReceived;
-            this->udpTransport->onMessageReceived = [this](ReceivedNetworkMessage message) {
-                if (this->onMessageReceived != nullptr) {
-                    auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
+            this->udpTransport->OnMessageReceived(
+                std::make_unique<cen::OnMessageReceivedListener>(
+                    [this](ReceivedNetworkMessage message) {
+                        if (this->onMessageReceived != nullptr) {
+                            auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
 
-                    if (!mm.has_value()) {
-                        return;
+                            if (!mm.has_value()) {
+                                return;
+                            }
+
+                            this->onMessageReceived(ReceivedMultiplayerNetworkMessage{
+                                .message = mm.value(),
+                                .origin = message
+                            });
+                        }
                     }
-
-                    this->onMessageReceived(ReceivedMultiplayerNetworkMessage{
-                        .message = mm.value(),
-                        .origin = message
-                    });
-                }
-            };
+                )
+            );
         }
 
         bool SendMessage(

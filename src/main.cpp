@@ -135,10 +135,10 @@ int main() {
         )
     );
 
-    // ## Match Scene
+    // ## Local Match Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
-            MatchSceneName,
+            LocalMatchSceneName,
             [
                 &crossSceneStorage,
                 &gameAudio,

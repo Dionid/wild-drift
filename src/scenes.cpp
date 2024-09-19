@@ -3,6 +3,8 @@
 void MainMenuScene::Init() {
     EnableCursor();
 
+    this->udpTransport->Deinit();
+
     // ## MainMenu
     MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
 
@@ -13,7 +15,7 @@ void MainMenuScene::Init() {
     ](const cen::Event* event) {
         this->eventBus.Emit(
             std::make_unique<cen::SceneChangeRequested>(
-                MatchSceneName
+                LocalMatchSceneName
             )
         );
     };

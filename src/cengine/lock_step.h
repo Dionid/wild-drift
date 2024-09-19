@@ -138,24 +138,28 @@ class LockStepNetworkManager {
         }
 
         void Init() {
-            this->transport->AddOnMessageReceivedListener(
-                [this](ReceivedNetworkMessage message) {
-                    std::cout << "Message from server" << std::endl;
+            this->transport->OnMessageReceived(
+                std::make_unique<cen::OnMessageReceivedListener>(
+                    [
+                        this
+                    ](ReceivedNetworkMessage message) {
+                        std::cout << "Message from server" << std::endl;
 
-                    if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
-                        return;
+                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
+                            return;
+                        }
+
+                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
+
+                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
+                        this->receivedInputMessages.push_back(playerInputMessage);
+
+                        // TODO: Change to ring buffer
+                        if (this->receivedInputMessages.size() > 100) {
+                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
+                        }
                     }
-
-                    auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
-
-                    std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
-                    this->receivedInputMessages.push_back(playerInputMessage);
-
-                    // TODO: Change to ring buffer
-                    if (this->receivedInputMessages.size() > 100) {
-                        this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
-                    }
-                }
+                )
             );
 
             this->isRunning.store(true, std::memory_order_release);

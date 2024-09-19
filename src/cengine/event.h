@@ -45,6 +45,10 @@ namespace cen {
                 }
             }
 
+            int nextId() {
+                return this->root->nextEventListenerId.fetch_add(1);
+            }
+
         public:
             std::shared_ptr<std::vector<std::unique_ptr<Event>>> events;
             std::unordered_map<std::string, std::vector<std::unique_ptr<EventListener>>> listeners;
@@ -85,10 +89,6 @@ namespace cen {
 
             ~EventBus() {
                 this->listeners.clear();
-            }
-
-            int nextId() {
-                return this->root->nextEventListenerId.fetch_add(1);
             }
 
             int On(
