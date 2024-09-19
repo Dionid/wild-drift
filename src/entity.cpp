@@ -167,8 +167,8 @@ void Opponent::Init() {
 };
 
 void Opponent::ApplyFieldBoundaries() {
-    if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
-        this->position.x = this->scene->screen.width/2 - this->size.width/2;
+    if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
+        this->position.x = this->scene->screen.width/2 + this->size.width/2;
         this->velocity.x = 0;
     }
 }
@@ -177,9 +177,13 @@ void Opponent::ApplyFieldBoundaries() {
 void Opponent::FixedUpdate() {
     const auto& playerInput = this->scene->playerInputManager.playerInputs[this->playerId];
 
+    // TODO: think about this
+    auto directionY = playerInput.up - playerInput.down;
+    auto directionX = playerInput.left - playerInput.right;
+
     // # Calc velocity
-    auto directionY = playerInput.down - playerInput.up;
-    auto directionX = playerInput.right - playerInput.left;
+    // auto directionY = playerInput.down - playerInput.up;
+    // auto directionX = playerInput.right - playerInput.left;
 
     this->Move(
         directionX,

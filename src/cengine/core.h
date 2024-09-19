@@ -11,7 +11,7 @@ namespace cen {
 
 // # Id Types
 typedef uint64_t node_id_t;
-typedef node_id_t player_id_t;
+typedef uint64_t player_id_t;
 
 // # Math
 constexpr Vector2 Vector2Up {0, -1};

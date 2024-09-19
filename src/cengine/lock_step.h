@@ -6,12 +6,6 @@
 
 namespace cen {
 
-struct PlayerInputTick {
-    cen::player_id_t playerId;
-    uint64_t tick;
-    cen::PlayerInput input;
-};
-
 static std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::stringstream ss(str);
@@ -23,6 +17,12 @@ static std::vector<std::string> split(const std::string& str, char delimiter) {
     
     return tokens;
 }
+
+struct PlayerInputTick {
+    cen::player_id_t playerId;
+    uint64_t tick;
+    cen::PlayerInput input;
+};
 
 struct PlayerInputNetworkMessage {
     cen::player_id_t playerId;
@@ -68,7 +68,7 @@ struct PlayerInputNetworkMessage {
                 PlayerInputTick{
                     playerId,
                     tick,
-                    cen::PlayerInput{down, up, left, right}
+                    cen::PlayerInput{up, down, left, right}
                 }
             );
         }
@@ -79,12 +79,18 @@ struct PlayerInputNetworkMessage {
 
 class LockStepNetworkManager {
     public:
+        bool isStepLockActivated = false;
+
         bool isHost;
         NetworkManager* networkManager;
         UdpTransport* transport;
+
         cen::player_id_t currentPlayerId;
-        std::vector<PlayerInputNetworkMessage> playerInputMessages;
-        std::vector<PlayerInputTick> inputsBuffer;
+        std::vector<PlayerInputTick> localInputsBuffer;
+
+        std::vector<cen::player_id_t> connectedPlayers;
+
+        std::vector<PlayerInputNetworkMessage> receivedInputMessages;
 
         LockStepNetworkManager(
             NetworkManager* networkManager,
@@ -93,6 +99,10 @@ class LockStepNetworkManager {
             this->networkManager = networkManager;
             this->isHost = isHost;
             this->transport = nullptr;
+        }
+
+        void ActivateStepLock() {
+            this->isStepLockActivated = true;
         }
 
         void Init() {
@@ -112,11 +122,11 @@ class LockStepNetworkManager {
 
                         auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
 
-                        this->playerInputMessages.push_back(playerInputMessage);
+                        this->receivedInputMessages.push_back(playerInputMessage);
 
                         // TODO: Change to ring buffer
-                        if (this->playerInputMessages.size() > 100) {
-                            this->playerInputMessages.erase(this->playerInputMessages.begin() + 20);
+                        if (this->receivedInputMessages.size() > 100) {
+                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
                         }
                     }
                 );
@@ -136,11 +146,11 @@ class LockStepNetworkManager {
 
                         auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
 
-                        this->playerInputMessages.push_back(playerInputMessage);
+                        this->receivedInputMessages.push_back(playerInputMessage);
 
                         // TODO: Change to ring buffer
-                        if (this->playerInputMessages.size() > 100) {
-                            this->playerInputMessages.erase(this->playerInputMessages.begin() + 20);
+                        if (this->receivedInputMessages.size() > 100) {
+                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
                         }
                     }
                 );
@@ -152,7 +162,7 @@ class LockStepNetworkManager {
         void SendTickInput() {
             auto message = PlayerInputNetworkMessage(
                 this->currentPlayerId,
-                this->inputsBuffer
+                this->localInputsBuffer
             ).Serialize();
             this->transport->SendMessage(message);
         }
@@ -161,7 +171,11 @@ class LockStepNetworkManager {
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            this->inputsBuffer.push_back(
+            if (!this->isStepLockActivated) {
+                return PlayerInputTick{0, 0, PlayerInput()};
+            }
+
+            this->localInputsBuffer.push_back(
                 PlayerInputTick{
                     this->currentPlayerId,
                     tick,
@@ -170,16 +184,14 @@ class LockStepNetworkManager {
             );
 
             // TODO: Change to ring buffer
-            if (this->inputsBuffer.size() > 30) {
-                this->inputsBuffer.erase(this->inputsBuffer.begin() + 20);
+            if (this->localInputsBuffer.size() > 30) {
+                this->localInputsBuffer.erase(this->localInputsBuffer.begin() + 20);
             }
 
             this->SendTickInput();
 
-            int counter = 0;
-
-            while (counter < 100) {
-                for (const auto& playerInputMessage: this->playerInputMessages) {
+            while (true) {
+                for (const auto& playerInputMessage: this->receivedInputMessages) {
                     for (const auto& input: playerInputMessage.inputs) {
                         if (input.tick == tick) {
                             return input;
@@ -190,12 +202,6 @@ class LockStepNetworkManager {
                 std::this_thread::yield();
             }
 
-            // auto previousPlayerInput = this->playerInputMessages.end();
-
-            // if (previousPlayerInput != this->playerInputMessages.end()) {
-            //     return *previousPlayerInput;
-            // }
-
             return PlayerInputTick{0, 0, PlayerInput()};
         }
 };
@@ -204,6 +210,7 @@ class LockStepScene: public Scene {
     public:
         bool isHost;
         NetworkManager* networkManager;
+        std::unique_ptr<LockStepNetworkManager> lockStepNetworkManager;
 
         LockStepScene(
             bool isHost,
@@ -234,16 +241,16 @@ class LockStepScene: public Scene {
         ) {
             this->isHost = isHost;
             this->networkManager = networkManager;
+            this->lockStepNetworkManager = std::make_unique<LockStepNetworkManager>(networkManager, isHost);
         }
 
         void RunSimulation() {
+            this->lockStepNetworkManager->Init();
+
             if (!this->isInitialized) {
                 // # Init scene
                 this->FullInit();
             }
-
-            LockStepNetworkManager lockStepNetworkManager(this->networkManager, this->isHost);
-            lockStepNetworkManager.Init();
 
             std::chrono::milliseconds accumulatedFixedTime(0);
             auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
@@ -260,15 +267,15 @@ class LockStepScene: public Scene {
                     IsKeyDown(KEY_A),
                     IsKeyDown(KEY_D)
                 };
+                this->playerInputManager.currentPlayerInput = currentPlayerInput;
 
                 // # Get other player input
-                auto otherPlayerInput = lockStepNetworkManager.SendAndWaitForPlayersInputs(
+                auto otherPlayerInput = this->lockStepNetworkManager->SendAndWaitForPlayersInputs(
                     this->frameTick,
                     currentPlayerInput
                 );
 
                 this->playerInputManager.playerInputs[otherPlayerInput.playerId] = otherPlayerInput.input;
-                this->playerInputManager.currentPlayerInput = currentPlayerInput;
 
                 // # Start
                 auto frameStart = std::chrono::high_resolution_clock::now();
@@ -310,8 +317,7 @@ class LockStepScene: public Scene {
                     alpha
                 );
 
-                // QUESTION: maybe sleep better? But it overshoots (nearly 3ms)
-                // # End (busy wait)
+                // # Wait till next frame
                 while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRate) {}
             }
         }

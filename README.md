@@ -81,4 +81,16 @@
 
 ## LockStep
 
-1. Network thread call OnMessage()
+1. Show waiting screen
+1. Wait till players joined match
+1. Get player id from host
+1. Agree on starting tick
+1. Countdown
+1. Start match
+    1. Create Players nodes and assign correct playerIds
+
+
+<!-- 1. Network thread call LockStepManager.OnMessage()
+1. LockStepManager.OnMessage() push into the players buffer
+1. ...
+1. In the end of the match players must agree on the result -->
