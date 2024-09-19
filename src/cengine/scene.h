@@ -66,7 +66,11 @@ namespace cen {
 
             virtual void Init() {};
             virtual void Run() {};
-            virtual void Stop() {
+            virtual void BeforeStop() {};
+            virtual void AfterStop() {};
+            
+            void Stop() {
+                this->BeforeStop();
                 this->isAlive.store(false, std::memory_order_release);
             };
 

@@ -316,6 +316,7 @@ class ServerLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
         cen::UdpTransport* udpTransport;
+        int listenerId;
 
         ServerLobbyScene(
             cen::UdpTransport* udpTransport,
@@ -335,16 +336,21 @@ class ServerLobbyScene: public cen::LocalScene {
             this->gameAudio = gameAudio;
         }
 
-        void Init() {
+        void BeforeStop() override {
+            this->udpTransport->OffMessageReceived(this->listenerId);
+        }
+
+        void Init() override {
             this->udpTransport->InitAsServer(
                 1234
             );
 
-            cen::MultiplayerNetworkManager multiplayerNetworkManager(
-                this->udpTransport,
-                [](cen::ReceivedMultiplayerNetworkMessage message){
-                    std::cout << "Received client message" << static_cast<int>(message.message.type) << std::endl;
-                }
+            this->listenerId = this->udpTransport->OnMessageReceived(
+                std::make_unique<cen::OnMessageReceivedListener>(
+                    [this](cen::ReceivedNetworkMessage message){
+                        std::cout << "Received client message" << static_cast<int>(message.type) << std::endl;
+                    }
+                )
             );
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
@@ -356,6 +362,7 @@ class ClientLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
         cen::UdpTransport* udpTransport;
+        int listenerId;
 
         ClientLobbyScene(
             cen::UdpTransport* udpTransport,
@@ -375,17 +382,22 @@ class ClientLobbyScene: public cen::LocalScene {
             this->gameAudio = gameAudio;
         }
 
-        void Init() {
+        void BeforeStop() override {
+            this->udpTransport->OffMessageReceived(this->listenerId);
+        }
+
+        void Init() override {
             this->udpTransport->InitAsClient(
                 "127.0.0.1",
                 1234
             );
 
-            cen::MultiplayerNetworkManager multiplayerNetworkManager(
-                this->udpTransport,
-                [](cen::ReceivedMultiplayerNetworkMessage message){
-                    std::cout << "Received server message" << static_cast<int>(message.message.type) << std::endl;
-                }
+            this->listenerId = this->udpTransport->OnMessageReceived(
+                std::make_unique<cen::OnMessageReceivedListener>(
+                    [this](cen::ReceivedNetworkMessage message){
+                        std::cout << "Received server message" << static_cast<int>(message.type) << std::endl;
+                    }
+                )
             );
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());

@@ -233,7 +233,7 @@ class UdpTransport {
         int id = listener->id == 0 ? this->nextId() : listener->id;
         listener->id = id;
         this->onMessageReceivedListeners.push_back(std::move(listener));
-        return listener->id;
+        return id;
     }
 
     void OffMessageReceived(int id) {
@@ -333,6 +333,28 @@ class UdpTransport {
         }
 
         return std::nullopt;
+    }
+};
+
+struct WrappedOnMessageReceivedListener {
+    UdpTransport* transport;
+    int listenerId;
+
+    WrappedOnMessageReceivedListener(
+        UdpTransport* transport,
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived,
+        int id = 0
+    ): transport(transport) {
+        this->listenerId = transport->OnMessageReceived(
+            std::make_unique<OnMessageReceivedListener>(
+                onMessageReceived,
+                id
+            )
+        );
+    }
+
+    ~WrappedOnMessageReceivedListener() {
+        transport->OffMessageReceived(listenerId);
     }
 };
 
