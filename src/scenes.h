@@ -341,16 +341,16 @@ class ServerLobbyScene: public cen::LocalScene {
         }
 
         void Init() override {
-            this->udpTransport->InitAsServer(
-                1234
-            );
-
             this->listenerId = this->udpTransport->OnMessageReceived(
                 std::make_unique<cen::OnMessageReceivedListener>(
                     [this](cen::ReceivedNetworkMessage message){
-                        std::cout << "Received client message" << static_cast<int>(message.type) << std::endl;
+                        std::cout << "Received client message " << static_cast<int>(message.type) << std::endl;
                     }
                 )
+            );
+
+            this->udpTransport->InitAsServer(
+                1234
             );
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
@@ -387,17 +387,17 @@ class ClientLobbyScene: public cen::LocalScene {
         }
 
         void Init() override {
-            this->udpTransport->InitAsClient(
-                "127.0.0.1",
-                1234
-            );
-
             this->listenerId = this->udpTransport->OnMessageReceived(
                 std::make_unique<cen::OnMessageReceivedListener>(
                     [this](cen::ReceivedNetworkMessage message){
-                        std::cout << "Received server message" << static_cast<int>(message.type) << std::endl;
+                        std::cout << "Received server message: " << static_cast<int>(message.type) << std::endl;
                     }
                 )
+            );
+
+            this->udpTransport->InitAsClient(
+                "127.0.0.1",
+                1234
             );
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());

@@ -188,9 +188,18 @@ class UdpTransport {
         std::lock_guard<std::mutex> lock(busy);
 
         this->isRunning.store(false, std::memory_order_release);
+
         if (host != NULL) {
+            enet_host_flush(host);
+            if (serverPeer != NULL) {
+                enet_peer_reset(serverPeer);
+            }
             enet_host_destroy(host);
+            host = NULL;
+            serverPeer = NULL;
         }
+
+        this->address = ENetAddress{};
     }
 
     bool SendMessage(
