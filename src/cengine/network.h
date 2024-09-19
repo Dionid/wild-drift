@@ -1,6 +1,3 @@
-#ifndef CEN_MULTIPLAYER_H
-#define CEN_MULTIPLAYER_H
-
 #include <map>
 #include <vector>
 #include <iostream>
@@ -11,9 +8,12 @@
 #include "enet/enet.h"
 #include "node_storage.h"
 
+#ifndef CEN_NETWORK_H
+#define CEN_NETWORK_H
+
 namespace cen {
 
-enum class NetworkMessageType {
+enum class ReceivedNetworkMessageType {
     CONNECTED_TO_SERVER,
     DISCONNECTED_FROM_SERVER,
 
@@ -23,11 +23,12 @@ enum class NetworkMessageType {
     NEW_MESSAGE
 };
 
-struct NetworkMessage {
-    NetworkMessageType type;
-    std::string data;
-    uint64_t timestamp;
+struct ReceivedNetworkMessage {
+    ReceivedNetworkMessageType type;
+    uint64_t arrivalTimestamp;
     ENetPeer* peer;
+
+    std::vector<uint8_t> content;
 };
 
 class UdpTransport {
@@ -41,17 +42,17 @@ class UdpTransport {
     ENetHost* host;
     ENetPeer* serverPeer;
     enet_uint32 pollTimeout;
-    std::function<void(NetworkMessage)> onMessageReceived;
+    std::function<void(ReceivedNetworkMessage)> onMessageReceived;
 
     virtual int Init() = 0;
-    virtual std::optional<NetworkMessage> PollNextMessage(enet_uint32 timeout) = 0;
+    virtual std::optional<ReceivedNetworkMessage> PollNextMessage(enet_uint32 timeout) = 0;
 
     UdpTransport(
         std::string serverHost,
         uint64_t serverPort,
         bool isServer,
         enet_uint32 pollTimeout,
-        std::function<void(NetworkMessage)> onMessageReceived
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived
     ) {
         this->serverHost = serverHost;
         this->serverPort = serverPort;
@@ -60,12 +61,18 @@ class UdpTransport {
         this->onMessageReceived = onMessageReceived;
     }
 
-    bool SendMessage(std::string message, ENetPeer* peer = nullptr) {
+    bool SendMessage(std::vector<uint8_t> message, ENetPeer* peer = nullptr) {
         if (isRunning.load(std::memory_order_acquire) == false) {
             return false;
         }
 
-        ENetPacket* packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
+        // ENetPacket* packet = enet_packet_create(message.c_str(), message.length() + 1, ENET_PACKET_FLAG_RELIABLE);
+
+        ENetPacket* packet = enet_packet_create(
+            message.data(),
+            message.size(),
+            ENET_PACKET_FLAG_RELIABLE
+        );
 
         if (this->isServer) {
             if (peer == nullptr) {
@@ -98,7 +105,7 @@ class UdpTransportServer: public UdpTransport {
         std::string serverHost,
         uint64_t serverPort,
         enet_uint32 pollTimeout,
-        std::function<void(NetworkMessage)> onMessageReceived
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived
     ): UdpTransport(serverHost, serverPort, true, pollTimeout, onMessageReceived) {}
 
     int Init() override {
@@ -135,7 +142,7 @@ class UdpTransportServer: public UdpTransport {
     }
 
     // # Get message from host
-    std::optional<NetworkMessage> PollNextMessage(enet_uint32 customTimeout) override {
+    std::optional<ReceivedNetworkMessage> PollNextMessage(enet_uint32 customTimeout) override {
         if (isRunning.load(std::memory_order_acquire) == false) {
             return std::nullopt;
         }
@@ -148,8 +155,8 @@ class UdpTransportServer: public UdpTransport {
             switch (event.type) {
                 case ENET_EVENT_TYPE_CONNECT: {
                     std::cout << "Client connected!" << std::endl;
-                    auto message = NetworkMessage{
-                        .type = NetworkMessageType::PEER_CONNECTED
+                    auto message = ReceivedNetworkMessage{
+                        .type = ReceivedNetworkMessageType::PEER_CONNECTED
                     };
 
                     if (this->onMessageReceived != nullptr) {
@@ -161,12 +168,14 @@ class UdpTransportServer: public UdpTransport {
                     break;
                 }
                 case ENET_EVENT_TYPE_RECEIVE: {
-                    std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
+                    // std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
+
+                    std::vector<uint8_t> data(event.packet->data, event.packet->data + event.packet->dataLength);
 
                     enet_packet_destroy(event.packet);
-                    auto message = NetworkMessage{
-                        .type = NetworkMessageType::NEW_MESSAGE,
-                        .data = data,
+                    auto message = ReceivedNetworkMessage{
+                        .type = ReceivedNetworkMessageType::NEW_MESSAGE,
+                        .content = data,
                         // .timestamp = ,
                         .peer = event.peer
                     };
@@ -179,8 +188,8 @@ class UdpTransportServer: public UdpTransport {
                 }
                 case ENET_EVENT_TYPE_DISCONNECT: {
                     std::cout << "Client disconnected from server!" << std::endl;
-                    auto message = NetworkMessage{
-                        .type = NetworkMessageType::PEER_DISCONNECTED,
+                    auto message = ReceivedNetworkMessage{
+                        .type = ReceivedNetworkMessageType::PEER_DISCONNECTED,
                         // .timestamp = ,
                         .peer = event.peer
                     };
@@ -201,7 +210,7 @@ class UdpTransportServer: public UdpTransport {
     }
 
     // # Broadcast message
-    void BroadcastMessage(std::string message) {
+    void BroadcastMessage(std::vector<uint8_t> message) {
         this->SendMessage(message, nullptr);
     }
 };
@@ -219,7 +228,7 @@ class UdpTransportClient: public UdpTransport {
         std::string serverHost,
         uint64_t serverPort,
         enet_uint32 pollTimeout,
-        std::function<void(NetworkMessage)> onMessageReceived
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived
     ): UdpTransport(
         serverHost,
         serverPort,
@@ -264,6 +273,12 @@ class UdpTransportClient: public UdpTransport {
 
         if (enet_host_service(host, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             std::cout << "Connection to server succeeded." << std::endl;
+
+            if (this->onMessageReceived != nullptr) {
+                this->onMessageReceived(ReceivedNetworkMessage{
+                    .type = ReceivedNetworkMessageType::CONNECTED_TO_SERVER
+                });
+            }
         } else {
             // TODO: RECONNECT
             // ...
@@ -278,7 +293,7 @@ class UdpTransportClient: public UdpTransport {
     }
 
     // # Get message from host
-    std::optional<NetworkMessage> PollNextMessage(enet_uint32 customTimeout = 0) {
+    std::optional<ReceivedNetworkMessage> PollNextMessage(enet_uint32 customTimeout = 0) {
         if (isRunning.load(std::memory_order_acquire) == false) {
             return std::nullopt;
         }
@@ -290,13 +305,13 @@ class UdpTransportClient: public UdpTransport {
         while (enet_host_service(host, &event, timeout) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_RECEIVE: {
-                    std::string data = std::string((char*)event.packet->data, event.packet->dataLength);
+                    std::vector<uint8_t> data(event.packet->data, event.packet->data + event.packet->dataLength);
                     
                     enet_packet_destroy(event.packet);
 
-                    auto message = NetworkMessage{
-                        .type = NetworkMessageType::NEW_MESSAGE,
-                        .data = data,
+                    auto message = ReceivedNetworkMessage{
+                        .type = ReceivedNetworkMessageType::NEW_MESSAGE,
+                        .content = data,
                         // .timestamp = ,
                         .peer = event.peer
                     };
@@ -309,8 +324,8 @@ class UdpTransportClient: public UdpTransport {
                 }
                 case ENET_EVENT_TYPE_DISCONNECT: {
                     std::cout << "Disconnected from server!" << std::endl;
-                    auto message = NetworkMessage{
-                        .type = NetworkMessageType::DISCONNECTED_FROM_SERVER
+                    auto message = ReceivedNetworkMessage{
+                        .type = ReceivedNetworkMessageType::DISCONNECTED_FROM_SERVER
                         // .timestamp = ,
                     };
 
@@ -330,7 +345,7 @@ class UdpTransportClient: public UdpTransport {
     }
 
     // # Send message to server
-    void SendMessageToServer(std::string message) {
+    void SendMessageToServer(std::vector<uint8_t> message) {
         this->SendMessage(message, serverPeer);
     }
 };
@@ -338,11 +353,11 @@ class UdpTransportClient: public UdpTransport {
 
 class NetworkManager {
     public:
-        int messageReceivedRate;
+        std::chrono::milliseconds messageReceivedRate;
         std::atomic<bool> isRunning = true;
         std::unordered_map<std::string, std::unique_ptr<UdpTransport>> transports;
         enet_uint32 defaultPollTimeout;
-        std::function<void(NetworkMessage)> onMessageReceived;
+        std::function<void(ReceivedNetworkMessage)> onMessageReceived;
 
         NetworkManager(
             int messageReceivedRate = 60,
@@ -352,6 +367,7 @@ class NetworkManager {
                 std::cerr << "An error occurred while initializing ENet." << std::endl;
                 return;
             }
+            this->messageReceivedRate = std::chrono::milliseconds(1000 / messageReceivedRate);
             this->defaultPollTimeout = defaultPollTimeout;
         }
 
@@ -364,7 +380,7 @@ class NetworkManager {
             std::string serverHost,
             uint64_t serverPort,
             enet_uint32 pollTimeout,
-            std::function<void(NetworkMessage)> onMessageReceived
+            std::function<void(ReceivedNetworkMessage)> onMessageReceived
         ) {
             auto udpClient = std::make_unique<UdpTransportClient>(
                 serverHost,
@@ -384,7 +400,7 @@ class NetworkManager {
             std::string serverHost,
             uint64_t serverPort,
             enet_uint32 pollTimeout,
-            std::function<void(NetworkMessage)> onMessageReceived
+            std::function<void(ReceivedNetworkMessage)> onMessageReceived
         ) {
             auto udpServer = std::make_unique<UdpTransportServer>(
                 serverHost,
@@ -400,8 +416,6 @@ class NetworkManager {
         }
 
         void Run() {
-            auto messageReceivedRate = std::chrono::milliseconds(1000 / this->messageReceivedRate);
-
             while (isRunning.load(std::memory_order_acquire)) {
                 auto frameStart = std::chrono::high_resolution_clock::now();
                 
@@ -427,4 +441,4 @@ class NetworkManager {
 
 }
 
-#endif // CEN_MULTIPLAYER_H
+#endif // CEN_NETWORK_H

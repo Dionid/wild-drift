@@ -93,6 +93,24 @@ struct PlayerInput {
             this->left == other.left &&
             this->right == other.right;
     }
+
+    std::vector<uint8_t> Serialize() const {
+        std::vector<uint8_t> buffer;
+
+        buffer.push_back(this->up);
+        buffer.push_back(this->down);
+        buffer.push_back(this->left);
+        buffer.push_back(this->right);
+
+        return buffer;
+    }
+
+    void Serialize(std::vector<uint8_t>& buffer) const {
+        buffer.push_back(this->up);
+        buffer.push_back(this->down);
+        buffer.push_back(this->left);
+        buffer.push_back(this->right);
+    }
 };
 
 class PlayerInputManager {

@@ -6,18 +6,6 @@
 
 namespace cen {
 
-static std::vector<std::string> split(const std::string& str, char delimiter) {
-    std::vector<std::string> tokens;
-    std::stringstream ss(str);
-    std::string token;
-    
-    while (std::getline(ss, token, delimiter)) {
-        tokens.push_back(token);
-    }
-    
-    return tokens;
-}
-
 struct PlayerInputTick {
     cen::player_id_t playerId;
     uint64_t tick;
@@ -28,52 +16,97 @@ struct PlayerInputNetworkMessage {
     cen::player_id_t playerId;
     std::vector<PlayerInputTick> inputs;
 
+    PlayerInputNetworkMessage() {}
+
     PlayerInputNetworkMessage(cen::player_id_t playerId, std::vector<PlayerInputTick> inputs) {
         this->playerId = playerId;
         this->inputs = inputs;
     }
 
-    std::string Serialize() {
-        std::string serializedInputs = "";
+    std::vector<uint8_t> Serialize() {
+        std::vector<uint8_t> buffer;
 
-        for (int i = 0; i < inputs.size(); i++) {
-            auto input = inputs[i];
-            serializedInputs += std::to_string(input.tick) + ";" + std::to_string(input.input.down) + ";" + std::to_string(input.input.up) + ";" + std::to_string(input.input.left) + ";" + std::to_string(input.input.right);
+        // Serialize playerId
+        cen::player_id_t playerIdCopy = this->playerId;
+        uint8_t* playerIdPtr = reinterpret_cast<uint8_t*>(&playerIdCopy);
+        buffer.insert(buffer.end(), playerIdPtr, playerIdPtr + sizeof(cen::player_id_t));
 
-            if (i < inputs.size() - 1) {
-                serializedInputs += ",";
-            }
+        // Serialize the length of the inputs vector
+        uint32_t inputsLength = static_cast<uint32_t>(this->inputs.size());
+        uint8_t* inputsLengthPtr = reinterpret_cast<uint8_t*>(&inputsLength);
+        buffer.insert(buffer.end(), inputsLengthPtr, inputsLengthPtr + sizeof(uint32_t));
+
+        // Serialize the inputs themselves
+        for (const auto& input: this->inputs) {
+            // Serialize playerId
+            cen::player_id_t inputPlayerIdCopy = input.playerId;
+            uint8_t* inputPlayerIdPtr = reinterpret_cast<uint8_t*>(&inputPlayerIdCopy);
+            buffer.insert(buffer.end(), inputPlayerIdPtr, inputPlayerIdPtr + sizeof(cen::player_id_t));
+
+            // Serialize tick
+            uint64_t inputTickCopy = input.tick;
+            uint8_t* inputTickPtr = reinterpret_cast<uint8_t*>(&inputTickCopy);
+            buffer.insert(buffer.end(), inputTickPtr, inputTickPtr + sizeof(uint64_t));
+
+            // Serialize PlayerInput
+            // std::vector<uint8_t> inputPlayerInputSerialized = input.input.Serialize();
+            // buffer.insert(buffer.end(), inputPlayerInputSerialized.begin(), inputPlayerInputSerialized.end());
+
+            input.input.Serialize(buffer);
         }
 
-        return std::to_string(this->playerId) + "|" + std::to_string(inputs.size()) + "|" + serializedInputs;
+        return buffer;
     }
 
-    static PlayerInputNetworkMessage Deserialize(std::string message) {
-        auto parts = split(message, '|');
-        cen::player_id_t playerId = std::stoll(parts[0]);
-        auto inputsCount = std::stoi(parts[1]);
-        auto inputs = split(parts[2], ',');
+    static PlayerInputNetworkMessage Deserialize(std::vector<uint8_t> message) {
+        PlayerInputNetworkMessage playerInputMessage;
 
-        std::vector<PlayerInputTick> playerInputTicks;
+        size_t offset = 0;
 
-        for (const auto& input: inputs) {
-            auto inputParts = split(input, ';');
-            auto tick = std::stoull(inputParts[0]);
-            bool down = std::stoi(inputParts[1]);
-            bool up = std::stoi(inputParts[2]);
-            bool left = std::stoi(inputParts[3]);
-            bool right = std::stoi(inputParts[4]);
+        // Deserialize playerId
+        if (message.size() < sizeof(cen::player_id_t)) {
+            throw std::runtime_error("Insufficient data to deserialize playerId");
+        }
+        std::memcpy(&playerInputMessage.playerId, message.data() + offset, sizeof(cen::player_id_t));
+        offset += sizeof(cen::player_id_t);
 
-            playerInputTicks.push_back(
-                PlayerInputTick{
-                    playerId,
-                    tick,
-                    cen::PlayerInput{up, down, left, right}
-                }
-            );
+        // Deserialize the length of the inputs vector
+        if (message.size() < offset + sizeof(uint32_t)) {
+            throw std::runtime_error("Insufficient data to deserialize inputs length");
+        }
+        uint32_t inputsLength = 0;
+        std::memcpy(&inputsLength, message.data() + offset, sizeof(uint32_t));
+        offset += sizeof(uint32_t);
+
+        // Deserialize the inputs themselves
+        for (uint32_t i = 0; i < inputsLength; i++) {
+            PlayerInputTick input;
+
+            // Deserialize playerId
+            if (message.size() < offset + sizeof(cen::player_id_t)) {
+                throw std::runtime_error("Insufficient data to deserialize input playerId");
+            }
+            std::memcpy(&input.playerId, message.data() + offset, sizeof(cen::player_id_t));
+            offset += sizeof(cen::player_id_t);
+
+            // Deserialize tick
+            if (message.size() < offset + sizeof(uint64_t)) {
+                throw std::runtime_error("Insufficient data to deserialize input tick");
+            }
+            std::memcpy(&input.tick, message.data() + offset, sizeof(uint64_t));
+            offset += sizeof(uint64_t);
+
+            // Deserialize PlayerInput
+            if (message.size() < offset + sizeof(cen::PlayerInput)) {
+                throw std::runtime_error("Insufficient data to deserialize input PlayerInput");
+            }
+            std::memcpy(&input.input, message.data() + offset, sizeof(cen::PlayerInput));
+            offset += sizeof(cen::PlayerInput);
+
+            playerInputMessage.inputs.push_back(input);
         }
 
-        return PlayerInputNetworkMessage(playerId, playerInputTicks);
+        return playerInputMessage;
     }
 };
 
@@ -113,14 +146,14 @@ class LockStepNetworkManager {
                     "127.0.0.1",
                     1234,
                     1000,
-                    [this](NetworkMessage message) {
-                        std::cout << "Message from client: " << message.data << std::endl;
+                    [this](ReceivedNetworkMessage message) {
+                        std::cout << "Message from client" << std::endl;
 
-                        if (message.type != NetworkMessageType::NEW_MESSAGE) {
+                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
                             return;
                         }
 
-                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
+                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
 
                         this->receivedInputMessages.push_back(playerInputMessage);
 
@@ -137,14 +170,14 @@ class LockStepNetworkManager {
                     "127.0.0.1",
                     1234,
                     1000,
-                    [this](NetworkMessage message) {
-                        std::cout << "Message from server: " << message.data << std::endl;
+                    [this](ReceivedNetworkMessage message) {
+                        std::cout << "Message from server" << std::endl;
 
-                        if (message.type != NetworkMessageType::NEW_MESSAGE) {
+                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
                             return;
                         }
 
-                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.data);
+                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
 
                         this->receivedInputMessages.push_back(playerInputMessage);
 
@@ -171,9 +204,9 @@ class LockStepNetworkManager {
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            if (!this->isStepLockActivated) {
-                return PlayerInputTick{0, 0, PlayerInput()};
-            }
+            // if (!this->isStepLockActivated) {
+            //     return PlayerInputTick{0, 0, PlayerInput()};
+            // }
 
             this->localInputsBuffer.push_back(
                 PlayerInputTick{
