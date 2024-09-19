@@ -169,8 +169,10 @@ int main() {
 
     // # Exit
     // ## Stop signal
-    sceneManager.Stop();
     networkManager.Stop();
+    std::cout << "Stopping NetworkManager" << std::endl;
+    sceneManager.Stop();
+    std::cout << "Stopping SceneManager" << std::endl;
 
     // ## Join gameThreads after stop signal
     for (auto& thread: gameThreads) {

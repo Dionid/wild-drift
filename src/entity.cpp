@@ -225,18 +225,14 @@ void Ball::Init() {
 }
 
 void Ball::OnCollisionStarted(cen::Collision collision) {
-    if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
-        return;
-    }
-
-    SetSoundPitch(this->gameAudio->hit, GetRandomValue(80, 120) / 100.0f);
-    PlaySound(this->gameAudio->hit);
-
     auto other = dynamic_cast<Paddle*>(collision.other);
 
     if (other == nullptr) {
         return;
     }
+
+    SetSoundPitch(this->gameAudio->hit, GetRandomValue(80, 120) / 100.0f);
+    PlaySound(this->gameAudio->hit);
 
     // # Resolve velocity
     // ## Calculate velocity separation

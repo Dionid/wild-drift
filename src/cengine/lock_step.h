@@ -1,4 +1,5 @@
 #include <mutex>
+#include <atomic>
 #include "scene.h"
 #include "network.h"
 
@@ -114,6 +115,7 @@ struct PlayerInputNetworkMessage {
 class LockStepNetworkManager {
     public:
         bool isStepLockActivated = false;
+        std::atomic<bool> isRunning = false;
 
         bool isHost;
         NetworkManager* networkManager;
@@ -194,6 +196,8 @@ class LockStepNetworkManager {
             }
 
             this->transport->Init();
+
+            this->isRunning.store(true, std::memory_order_release);
         }
 
         void SendTickInput() {
@@ -227,7 +231,9 @@ class LockStepNetworkManager {
 
             this->SendTickInput();
 
-            while (true) {
+            while (
+                this->isRunning.load(std::memory_order_acquire)
+            ) {
                 std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
                 for (const auto& playerInputMessage: this->receivedInputMessages) {
                     for (const auto& input: playerInputMessage.inputs) {
@@ -240,6 +246,10 @@ class LockStepNetworkManager {
             }
 
             return PlayerInputTick{0, 0, PlayerInput()};
+        }
+
+        void Stop() {
+            this->isRunning.store(false, std::memory_order_release);
         }
 };
 
@@ -281,7 +291,12 @@ class LockStepScene: public Scene {
             this->lockStepNetworkManager = std::make_unique<LockStepNetworkManager>(networkManager, isHost);
         }
 
-        void RunSimulation() {
+        virtual void Stop() {
+            this->lockStepNetworkManager->Stop();
+            Scene::Stop();
+        }
+
+        void Run() {
             this->lockStepNetworkManager->Init();
 
             if (!this->isInitialized) {

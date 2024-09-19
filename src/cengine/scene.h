@@ -65,8 +65,10 @@ namespace cen {
             }
 
             virtual void Init() {};
-            virtual void Destroy() {};
-            virtual void RunSimulation() {};
+            virtual void Run() {};
+            virtual void Stop() {
+                this->isAlive.store(false, std::memory_order_release);
+            };
 
             void FullInit() {
                 // # Init scene
@@ -132,7 +134,7 @@ namespace cen {
                 simulationTick
             ) {}
 
-            void RunSimulation() override {
+            void Run() override {
                 if (!this->isInitialized) {
                     // # Init scene
                     this->FullInit();
@@ -329,12 +331,13 @@ namespace cen {
                 isSimulationRunning = true;
 
                 // # Run simulation
-                this->currentScene->RunSimulation();
+                this->currentScene->Run();
 
+                // # After scene stops
                 isSimulationRunning = false;
 
                 // # After it's done
-                this->currentScene->Destroy();
+                this->currentScene->Stop();
                 if (this->nextScene) {
                     this->currentScene = std::move(this->nextScene);
                     this->nextScene = nullptr;
@@ -346,14 +349,13 @@ namespace cen {
 
             void StopCurrentSceneSimulation() {
                 if (this->currentScene) {
-                    this->currentScene->isAlive.store(false, std::memory_order_release);
+                    this->currentScene->Stop();
                 }
             }
 
             void Stop() {
                 this->nextScene = nullptr;
                 this->StopCurrentSceneSimulation();
-                // ...
             }
     };
 }
