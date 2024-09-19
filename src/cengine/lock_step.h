@@ -1,3 +1,4 @@
+#include <mutex>
 #include "scene.h"
 #include "network.h"
 
@@ -123,6 +124,7 @@ class LockStepNetworkManager {
 
         std::vector<cen::player_id_t> connectedPlayers;
 
+        std::mutex receivedInputMessagesMutex;
         std::vector<PlayerInputNetworkMessage> receivedInputMessages;
 
         LockStepNetworkManager(
@@ -155,6 +157,7 @@ class LockStepNetworkManager {
 
                         auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
 
+                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
                         this->receivedInputMessages.push_back(playerInputMessage);
 
                         // TODO: Change to ring buffer
@@ -179,6 +182,7 @@ class LockStepNetworkManager {
 
                         auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
 
+                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
                         this->receivedInputMessages.push_back(playerInputMessage);
 
                         // TODO: Change to ring buffer
@@ -224,6 +228,7 @@ class LockStepNetworkManager {
             this->SendTickInput();
 
             while (true) {
+                std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
                 for (const auto& playerInputMessage: this->receivedInputMessages) {
                     for (const auto& input: playerInputMessage.inputs) {
                         if (input.tick == tick) {
@@ -231,7 +236,6 @@ class LockStepNetworkManager {
                         }
                     }
                 }
-                // counter++;
                 std::this_thread::yield();
             }
 

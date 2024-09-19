@@ -178,7 +178,7 @@ void Opponent::FixedUpdate() {
     const auto& playerInput = this->scene->playerInputManager.playerInputs[this->playerId];
 
     // TODO: think about this
-    auto directionY = playerInput.up - playerInput.down;
+    auto directionY = playerInput.down - playerInput.up;
     auto directionX = playerInput.left - playerInput.right;
 
     // # Calc velocity
