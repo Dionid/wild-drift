@@ -81,6 +81,9 @@
 
 ## LockStep
 
+
+1. Only when I clicked on "Host" / "Join" I must create transport
+
 1. Show waiting screen
 1. Wait till players joined match
 1. Get player id from host

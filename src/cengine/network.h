@@ -61,6 +61,12 @@ class UdpTransport {
         this->onMessageReceived = onMessageReceived;
     }
 
+    ~UdpTransport() {
+        if (host != NULL) {
+            enet_host_destroy(host);
+        }
+    }
+
     bool SendMessage(std::vector<uint8_t> message, ENetPeer* peer = nullptr) {
         if (isRunning.load(std::memory_order_acquire) == false) {
             return false;
@@ -95,18 +101,11 @@ class UdpTransport {
 class UdpTransportServer: public UdpTransport {
     public:
 
-    ~UdpTransportServer() {
-        if (host != NULL) {
-            enet_host_destroy(host);
-        }
-    }
-
     UdpTransportServer(
-        std::string serverHost,
         uint64_t serverPort,
         enet_uint32 pollTimeout,
         std::function<void(ReceivedNetworkMessage)> onMessageReceived
-    ): UdpTransport(serverHost, serverPort, true, pollTimeout, onMessageReceived) {}
+    ): UdpTransport("", serverPort, true, pollTimeout, onMessageReceived) {}
 
     int Init() override {
         if (host != NULL) {
@@ -217,12 +216,6 @@ class UdpTransportServer: public UdpTransport {
 
 class UdpTransportClient: public UdpTransport {
     public:
-
-    ~UdpTransportClient() {
-        if (host != NULL) {
-            enet_host_destroy(host);
-        }
-    }
 
     UdpTransportClient(
         std::string serverHost,
@@ -382,6 +375,12 @@ class NetworkManager {
             enet_uint32 pollTimeout,
             std::function<void(ReceivedNetworkMessage)> onMessageReceived
         ) {
+            if (this->transports[name] != nullptr) {
+                auto client = dynamic_cast<UdpTransportClient*>(this->transports[name].get());
+                
+                return client;
+            }
+
             auto udpClient = std::make_unique<UdpTransportClient>(
                 serverHost,
                 serverPort,
@@ -397,13 +396,17 @@ class NetworkManager {
 
         UdpTransportServer* CreateAndInitUdpTransportServer(
             std::string name,
-            std::string serverHost,
             uint64_t serverPort,
             enet_uint32 pollTimeout,
             std::function<void(ReceivedNetworkMessage)> onMessageReceived
         ) {
+            if (this->transports[name] != nullptr) {
+                auto server = dynamic_cast<UdpTransportServer*>(this->transports[name].get());
+                
+                return server;
+            }
+
             auto udpServer = std::make_unique<UdpTransportServer>(
-                serverHost,
                 serverPort,
                 pollTimeout < 0 ? this->defaultPollTimeout : pollTimeout,
                 onMessageReceived
@@ -413,6 +416,10 @@ class NetworkManager {
             auto udpServerPtr = udpServer.get();
             this->transports[name] = std::move(udpServer);
             return udpServerPtr;
+        }
+
+        void DeleteTransport(std::string name) {
+            this->transports.erase(name);
         }
 
         void Run() {

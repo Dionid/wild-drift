@@ -147,7 +147,6 @@ class LockStepNetworkManager {
                 this->currentPlayerId = 1;
                 this->transport = this->networkManager->CreateAndInitUdpTransportServer(
                     "lock-step-transport",
-                    "127.0.0.1",
                     1234,
                     1000,
                     [this](ReceivedNetworkMessage message) {
@@ -212,9 +211,9 @@ class LockStepNetworkManager {
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            // if (!this->isStepLockActivated) {
-            //     return PlayerInputTick{0, 0, PlayerInput()};
-            // }
+            if (!this->isStepLockActivated) {
+                return PlayerInputTick{0, 0, PlayerInput()};
+            }
 
             this->localInputsBuffer.push_back(
                 PlayerInputTick{

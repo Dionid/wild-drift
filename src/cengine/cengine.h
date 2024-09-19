@@ -16,6 +16,7 @@
 #include "character_body_node_2d.h"
 #include "debug.h"
 #include "network.h"
+#include "multiplayer.h"
 #include "lock_step.h"
 
 #endif // CENGINE_H_

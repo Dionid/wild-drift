@@ -1,6 +1,7 @@
 #include "cengine/cengine.h"
 #include "menus.h"
 #include "events.h"
+#include "globals.h"
 
 MainMenu::MainMenu(): cen::Node2D(Vector2{}) {}
 
@@ -125,6 +126,103 @@ void MatchEndMenu::Init() {
             text,
             titleFontSize,
             WHITE
+        )
+    );
+}
+
+// # Server Lobby Menu
+
+ServerLobbyMenu::ServerLobbyMenu(): cen::Node2D(Vector2{}) {}
+
+void ServerLobbyMenu::Init() {
+    auto yStart = this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f;
+    auto btnStart = yStart + 100.0f;
+
+    auto title = "Waiting...";
+
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                yStart
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Btn>(
+            "Cancel",
+            btnFontSize,
+            Vector2{
+                this->scene->screen.width / 2.0f,
+                btnStart
+            },
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(
+                        std::make_unique<cen::SceneChangeRequested>(
+                            MainMenuSceneName
+                        )
+                    );
+                }
+            )
+        )
+    );
+}
+
+
+// # Server Lobby Menu
+
+ClientLobbyMenu::ClientLobbyMenu(): cen::Node2D(Vector2{}) {}
+
+void ClientLobbyMenu::Init() {
+    auto yStart = this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f;
+    auto btnStart = yStart + 100.0f;
+
+    auto title = "Searching...";
+
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                yStart
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Btn>(
+            "Cancel",
+            btnFontSize,
+            Vector2{
+                this->scene->screen.width / 2.0f,
+                btnStart
+            },
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(
+                        std::make_unique<cen::SceneChangeRequested>(
+                            MainMenuSceneName
+                        )
+                    );
+                }
+            )
         )
     );
 }

@@ -310,82 +310,93 @@ class MainMenuScene: public cen::LocalScene {
             this->gameAudio = gameAudio;
         }
 
-        void Init() override {
-            EnableCursor();
+        void Init() override;
+};
 
-            // ## MainMenu
-            MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
+// # ServerLobbyScene
+class ServerLobbyScene: public cen::LocalScene {
+    public:
+        SpcAudio* gameAudio;
+        cen::NetworkManager* networkManager;
 
-            // # Events
-            // ## StartEvent
-            auto onStartEvent = [
-                this
-            ](const cen::Event* event) {
-                this->eventBus.Emit(
-                    std::make_unique<cen::SceneChangeRequested>(
-                        MatchSceneName
-                    )
-                );
-            };
+        ServerLobbyScene(
+            cen::NetworkManager* networkManager,
+            SpcAudio* gameAudio,
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
+        ): cen::LocalScene(
+            ServerLobbySceneName,
+            screen,
+            camera,
+            renderingEngine,
+            eventBus
+        ) {
+            this->networkManager = networkManager;
+            this->gameAudio = gameAudio;
+        }
 
-            this->eventBus.On(
-                StartEvent{},
-                std::make_unique<cen::EventListener>(
-                    onStartEvent
-                )
+        void Init() {
+            auto serverTransport = this->networkManager->CreateAndInitUdpTransportServer(
+                "server",
+                1234,
+                0,
+                nullptr
             );
 
-            // ## HostEvent
-            auto onHostEvent = [
-                this
-            ](const cen::Event* event) {
-                // this->sceneManager->ChangeScene(MatchSceneName);
-                this->sceneManager->ChangeScene(
-                    std::make_unique<MatchLockStepScene>(
-                        true,
-                        this->networkManager,
-                        this->crossSceneStorage,
-                        this->gameAudio,
-                        this->screen,
-                        this->camera,
-                        this->renderingEngine,
-                        this->eventBus.parent
-                    )
-                );
-            };
-
-            this->eventBus.On(
-                HostEvent{},
-                std::make_unique<cen::EventListener>(
-                    onHostEvent
-                )
+            cen::MultiplayerNetworkManager multiplayerNetworkManager(
+                serverTransport,
+                [](cen::ReceivedMultiplayerNetworkMessage message){
+                    std::cout << "Received client message" << static_cast<int>(message.message.type) << std::endl;
+                }
             );
 
-            // ## JoinEvent
-            auto onJoinEvent = [
-                this,
-                mainMenu
-            ](const cen::Event* event) {
-                this->sceneManager->ChangeScene(
-                    std::make_unique<MatchLockStepScene>(
-                        false,
-                        this->networkManager,
-                        this->crossSceneStorage,
-                        this->gameAudio,
-                        this->screen,
-                        this->camera,
-                        this->renderingEngine,
-                        this->eventBus.parent
-                    )
-                );
-            };
+            this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
+        }
+};
 
-            this->eventBus.On(
-                JoinEvent{},
-                std::make_unique<cen::EventListener>(
-                    onJoinEvent
-                )
+// # ClientLobbyScene
+class ClientLobbyScene: public cen::LocalScene {
+    public:
+        SpcAudio* gameAudio;
+        cen::NetworkManager* networkManager;
+
+        ClientLobbyScene(
+            cen::NetworkManager* networkManager,
+            SpcAudio* gameAudio,
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
+        ): cen::LocalScene(
+            ServerLobbySceneName,
+            screen,
+            camera,
+            renderingEngine,
+            eventBus
+        ) {
+            this->networkManager = networkManager;
+            this->gameAudio = gameAudio;
+        }
+
+        void Init() {
+            auto serverTransport = this->networkManager->CreateAndInitUdpTransportClient(
+                "server",
+                "127.0.0.1",
+                1234,
+                0,
+                nullptr
             );
+
+            cen::MultiplayerNetworkManager multiplayerNetworkManager(
+                serverTransport,
+                [](cen::ReceivedMultiplayerNetworkMessage message){
+                    std::cout << "Received server message" << static_cast<int>(message.message.type) << std::endl;
+                }
+            );
+
+            this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
         }
 };
 
