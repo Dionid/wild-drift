@@ -26,30 +26,12 @@ void MainMenuScene::Init() {
     );
 
     // ## HostEvent
-    // auto onHostEvent = [
-    //     this
-    // ](const cen::Event* event) {
-    //     // this->sceneManager->ChangeScene(MatchSceneName);
-    //     this->sceneManager->ChangeScene(
-    //         std::make_unique<MatchLockStepScene>(
-    //             true,
-    //             this->networkManager,
-    //             this->crossSceneStorage,
-    //             this->gameAudio,
-    //             this->screen,
-    //             this->camera,
-    //             this->renderingEngine,
-    //             this->eventBus.parent
-    //         )
-    //     );
-    // };
-
     auto onHostEvent = [
         this
     ](const cen::Event* event) {
         this->sceneManager->ChangeScene(
             std::make_unique<ServerLobbyScene>(
-                this->networkManager,
+                this->udpTransport,
                 this->gameAudio,
                 this->screen,
                 this->camera,
@@ -67,29 +49,12 @@ void MainMenuScene::Init() {
     );
 
     // ## JoinEvent
-    // auto onJoinEvent = [
-    //     this
-    // ](const cen::Event* event) {
-    //     this->sceneManager->ChangeScene(
-    //         std::make_unique<MatchLockStepScene>(
-    //             false,
-    //             this->networkManager,
-    //             this->crossSceneStorage,
-    //             this->gameAudio,
-    //             this->screen,
-    //             this->camera,
-    //             this->renderingEngine,
-    //             this->eventBus.parent
-    //         )
-    //     );
-    // };
-
     auto onJoinEvent = [
         this
     ](const cen::Event* event) {
         this->sceneManager->ChangeScene(
             std::make_unique<ClientLobbyScene>(
-                this->networkManager,
+                this->udpTransport,
                 this->gameAudio,
                 this->screen,
                 this->camera,

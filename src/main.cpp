@@ -69,6 +69,12 @@ int main() {
     // # Network Manager
     cen::NetworkManager networkManager = cen::NetworkManager();
 
+    // # Main Udp Transport
+    cen::UdpTransport* mainTransport = networkManager.AddTransport(
+        "main",
+        std::make_unique<cen::UdpTransport>()
+    );
+
     // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
@@ -84,7 +90,7 @@ int main() {
         std::make_unique<cen::SceneConstructor>(
             MainMenuSceneName,
             [
-                &networkManager,
+                mainTransport,
                 &crossSceneStorage,
                 &gameAudio,
                 &sceneManager,
@@ -93,14 +99,14 @@ int main() {
                 &eventBus
             ](){
                 return std::make_unique<MainMenuScene>(
+                    mainTransport,
+                    &sceneManager,
                     &crossSceneStorage,
-                    &networkManager,
                     &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
                     &renderingEngine,
-                    &eventBus,
-                    &sceneManager
+                    &eventBus
                 );
             }
         )
@@ -155,16 +161,16 @@ int main() {
     // ## Set first scene
     sceneManager.SetFirstScene(MainMenuSceneName);
 
-    // # Game Threads
+    // # Threads
     std::vector<std::thread> gameThreads;
 
-    // ## Simulation Loop
+    // ## Simulation thread
     gameThreads.push_back(std::thread(runSimulation, &sceneManager));
 
-    // ## Network Loop
+    // ## Network thread
     gameThreads.push_back(std::thread(runNetwork, &networkManager));
 
-    // ## Rendering Loop
+    // ## Rendering (main thread)
     runRendering(&renderingEngine);
 
     // # Exit

@@ -284,17 +284,17 @@ class MainMenuScene: public cen::LocalScene {
         cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
         SpcAudio* gameAudio;
-        cen::NetworkManager* networkManager;
+        cen::UdpTransport* udpTransport;
 
         MainMenuScene(
+            cen::UdpTransport* udpTransport,
+            cen::SceneManager* sceneManager,
             CrossSceneStorage* crossSceneStorage,
-            cen::NetworkManager* networkManager,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
-            cen::EventBus* eventBus,
-            cen::SceneManager* sceneManager
+            cen::EventBus* eventBus
         ): cen::LocalScene(
             MainMenuSceneName,
             screen,
@@ -302,7 +302,7 @@ class MainMenuScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->networkManager = networkManager;
+            this->udpTransport = udpTransport;
             this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
             this->gameAudio = gameAudio;
@@ -315,10 +315,10 @@ class MainMenuScene: public cen::LocalScene {
 class ServerLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
-        cen::NetworkManager* networkManager;
+        cen::UdpTransport* udpTransport;
 
         ServerLobbyScene(
-            cen::NetworkManager* networkManager,
+            cen::UdpTransport* udpTransport,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -331,19 +331,17 @@ class ServerLobbyScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->networkManager = networkManager;
+            this->udpTransport = udpTransport;
             this->gameAudio = gameAudio;
         }
 
         void Init() {
-            auto serverTransport = this->networkManager->CreateAndInitUdpTransportServer(
-                "server",
-                1234,
-                0
+            this->udpTransport->InitAsServer(
+                1234
             );
 
             cen::MultiplayerNetworkManager multiplayerNetworkManager(
-                serverTransport,
+                this->udpTransport,
                 [](cen::ReceivedMultiplayerNetworkMessage message){
                     std::cout << "Received client message" << static_cast<int>(message.message.type) << std::endl;
                 }
@@ -357,10 +355,10 @@ class ServerLobbyScene: public cen::LocalScene {
 class ClientLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
-        cen::NetworkManager* networkManager;
+        cen::UdpTransport* udpTransport;
 
         ClientLobbyScene(
-            cen::NetworkManager* networkManager,
+            cen::UdpTransport* udpTransport,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -373,20 +371,18 @@ class ClientLobbyScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->networkManager = networkManager;
+            this->udpTransport = udpTransport;
             this->gameAudio = gameAudio;
         }
 
         void Init() {
-            auto serverTransport = this->networkManager->CreateAndInitUdpTransportClient(
-                "server",
+            this->udpTransport->InitAsClient(
                 "127.0.0.1",
-                1234,
-                0
+                1234
             );
 
             cen::MultiplayerNetworkManager multiplayerNetworkManager(
-                serverTransport,
+                this->udpTransport,
                 [](cen::ReceivedMultiplayerNetworkMessage message){
                     std::cout << "Received server message" << static_cast<int>(message.message.type) << std::endl;
                 }

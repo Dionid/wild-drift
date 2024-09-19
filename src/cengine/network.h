@@ -106,6 +106,7 @@ class UdpTransport {
     }
 
     int InitAsClient(
+        std::string customServerHost = "127.0.0.1",
         uint64_t customServerPort = 0
     ) {
         if (host != NULL) {
@@ -132,7 +133,10 @@ class UdpTransport {
             return EXIT_FAILURE;
         }
 
-        enet_address_set_host(&address, this->serverHost.c_str());
+        enet_address_set_host(
+            &address,
+            customServerHost != "" ? customServerHost.c_str() : this->serverHost.c_str()
+        );
         address.port = customServerPort > 0 ? customServerPort : this->serverPort;
 
         serverPeer = enet_host_connect(host, &address, 2, 0);
@@ -322,6 +326,15 @@ class NetworkManager {
 
         ~NetworkManager() {
             enet_deinitialize();
+        }
+
+        UdpTransport* AddTransport(
+            std::string name,
+            std::unique_ptr<UdpTransport> transport
+        ) {
+            auto transportPtr = transport.get();
+            this->transports[name] = std::move(transport);
+            return transportPtr;
         }
 
         UdpTransport* CreateAndInitUdpTransportClient(
