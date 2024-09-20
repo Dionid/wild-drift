@@ -20,17 +20,16 @@ const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 // TODO: Move constants to props
 void Paddle::ApplyFriction() {
-    // TODO: RETURN AFTER DEBUGGING
-    // this->velocity.y *= .80f;
-    // this->velocity.x *= .80f;
+    this->velocity.y *= .80f;
+    this->velocity.x *= .80f;
 
-    // if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
-    //     this->velocity.x = 0;
-    // }
+    if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
+        this->velocity.x = 0;
+    }
 
-    // if (this->velocity.y < 0.01 && this->velocity.y > -0.01) {
-    //     this->velocity.y = 0;
-    // }
+    if (this->velocity.y < 0.01 && this->velocity.y > -0.01) {
+        this->velocity.y = 0;
+    }
 }
 
 // TODO: Move constants to props
@@ -64,18 +63,17 @@ void Paddle::Move(
         this->speed
     );
 
+    this->velocity.y = newSpeed.y;
+    this->velocity.x = newSpeed.x;
+
     // TODO: RETURN AFTER DEBUGGING
     // this->velocity.y += newSpeed.y;
     // this->velocity.x += newSpeed.x;
     // if (Vector2Length(this->velocity) > this->maxVelocity) {
     //     this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     // }
-
-    this->velocity.y = newSpeed.y;
-    this->velocity.x = newSpeed.x;
-
-    // # Friction
-    this->ApplyFriction();
+    // // # Friction
+    // this->ApplyFriction();
 
     // # Field boundaries
     this->ApplyFieldBoundaries();

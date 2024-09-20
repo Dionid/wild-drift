@@ -86,14 +86,13 @@ void MatchManager::Init() {
         )
     );
 
-    // TODO: RETURN AFTER DEBUGGING
-    // // # Timer
-    // this->launchBallTimer = this->AddNode(
-    //     std::make_unique<LaunchBallTimer>(
-    //         this->ballId,
-    //         30
-    //     )
-    // );
+    // # Timer
+    this->launchBallTimer = this->AddNode(
+        std::make_unique<LaunchBallTimer>(
+            this->ballId,
+            30
+        )
+    );
 
     // # GUI
     auto screenWidthQuoter = this->scene->screen.width / 2 / 2;

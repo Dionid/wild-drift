@@ -37,7 +37,6 @@ class MatchScene: public cen::LocalScene {
         }
 
         void Init() override {
-            // TODO: RETURN AFTER DEBUGGING
             // DisableCursor();
 
             // # Entities
@@ -153,7 +152,6 @@ class MatchLockStepScene: public cen::LockStepScene {
         }
 
         void Init() override {
-            // TODO: RETURN AFTER DEBUGGING
             // DisableCursor();
 
             bool isHost = this->lockStepNetworkManager->transport->udpTransport->isServer;
