@@ -44,14 +44,15 @@ class MatchScene: public cen::LocalScene {
             
             // ## Ball
             float ballRadius = 15.0f;
-            float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
+            // float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
             Ball* ball = this->nodeStorage->AddNode(
                 std::make_unique<Ball>(
                     this->gameAudio,
                     ballRadius,
                     (Vector2){ screen.width/2.0f, screen.height/2.0f },
                     (cen::Size){ ballRadius*2, ballRadius*2 },
-                    (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    // (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    (Vector2){ 0, 0 },
                     10.0f
                 )
             );
@@ -156,14 +157,16 @@ class MatchLockStepScene: public cen::LockStepScene {
 
             // ## Ball
             float ballRadius = 15.0f;
-            float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
+
+            // float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
             Ball* ball = this->nodeStorage->AddNode(
                 std::make_unique<Ball>(
                     this->gameAudio,
                     ballRadius,
                     (Vector2){ screen.width/2.0f, screen.height/2.0f },
                     (cen::Size){ ballRadius*2, ballRadius*2 },
-                    (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    // (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
+                    (Vector2){ 0, 0 },
                     10.0f
                 )
             );
@@ -183,9 +186,10 @@ class MatchLockStepScene: public cen::LockStepScene {
 
             player->zOrder = 1;
 
-            // ## Enemy
+            // ## Opponent
             Opponent* opponent = this->nodeStorage->AddNode(
                 std::make_unique<Opponent>(
+                    // TODO: Change this
                     this->lockStepNetworkManager->connectedPlayers[0],
                     (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },

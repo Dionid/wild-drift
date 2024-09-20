@@ -17,6 +17,8 @@ void LaunchBallTimer::OnTimerEnd() {
         return;
     }
 
+    std::cout << "LaunchBallTimer::OnTimerEnd: " << this->scene->fixedSimulationTick << std::endl;
+
     float randomAngle = (this->scene->fixedSimulationTick % 100 / 100.0f) * 2 * PI;
     ball->velocity.x = cos(randomAngle) * 5;
     ball->velocity.y = sin(randomAngle) * 5;

@@ -60,21 +60,25 @@ struct PlayerInputNetworkMessage {
         return buffer;
     }
 
-    static PlayerInputNetworkMessage Deserialize(std::vector<uint8_t> message) {
+    static std::optional<PlayerInputNetworkMessage> Deserialize(std::vector<uint8_t> message) {
         PlayerInputNetworkMessage playerInputMessage;
 
         size_t offset = 0;
 
         // Deserialize playerId
         if (message.size() < sizeof(cen::player_id_t)) {
-            throw std::runtime_error("Insufficient data to deserialize playerId");
+            // throw std::runtime_error("Insufficient data to deserialize playerId");
+
+            return std::nullopt;
         }
         std::memcpy(&playerInputMessage.playerId, message.data() + offset, sizeof(cen::player_id_t));
         offset += sizeof(cen::player_id_t);
 
         // Deserialize the length of the inputs vector
         if (message.size() < offset + sizeof(uint32_t)) {
-            throw std::runtime_error("Insufficient data to deserialize inputs length");
+            // throw std::runtime_error("Insufficient data to deserialize inputs length");
+
+            return std::nullopt;
         }
         uint32_t inputsLength = 0;
         std::memcpy(&inputsLength, message.data() + offset, sizeof(uint32_t));
@@ -86,21 +90,27 @@ struct PlayerInputNetworkMessage {
 
             // Deserialize playerId
             if (message.size() < offset + sizeof(cen::player_id_t)) {
-                throw std::runtime_error("Insufficient data to deserialize input playerId");
+                // throw std::runtime_error("Insufficient data to deserialize input playerId");
+
+                return std::nullopt;
             }
             std::memcpy(&input.playerId, message.data() + offset, sizeof(cen::player_id_t));
             offset += sizeof(cen::player_id_t);
 
             // Deserialize tick
             if (message.size() < offset + sizeof(uint64_t)) {
-                throw std::runtime_error("Insufficient data to deserialize input tick");
+                // throw std::runtime_error("Insufficient data to deserialize input tick");
+
+                return std::nullopt;
             }
             std::memcpy(&input.tick, message.data() + offset, sizeof(uint64_t));
             offset += sizeof(uint64_t);
 
             // Deserialize PlayerInput
             if (message.size() < offset + sizeof(cen::PlayerInput)) {
-                throw std::runtime_error("Insufficient data to deserialize input PlayerInput");
+                // throw std::runtime_error("Insufficient data to deserialize input PlayerInput");
+
+                return std::nullopt;
             }
             std::memcpy(&input.input, message.data() + offset, sizeof(cen::PlayerInput));
             offset += sizeof(cen::PlayerInput);
@@ -118,7 +128,7 @@ struct PlayerInputNetworkMessage {
         };   
     }
 
-    static PlayerInputNetworkMessage FromMultiplayerNetworkMessage(const MultiplayerNetworkMessage& message) {
+    static std::optional<PlayerInputNetworkMessage> FromMultiplayerNetworkMessage(const MultiplayerNetworkMessage& message) {
         return PlayerInputNetworkMessage::Deserialize(message.content);
     }
 };
@@ -166,7 +176,11 @@ class LockStepNetworkManager {
 
                         auto playerInputMessage = PlayerInputNetworkMessage::FromMultiplayerNetworkMessage(message.message);
 
-                        this->receivedInputMessages.push_back(playerInputMessage);
+                        if (!playerInputMessage.has_value()) {
+                            return;
+                        }
+
+                        this->receivedInputMessages.push_back(playerInputMessage.value());
 
                         // TODO: Change to ring buffer
                         if (this->receivedInputMessages.size() > 100) {

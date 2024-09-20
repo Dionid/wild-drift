@@ -177,13 +177,8 @@ void Opponent::ApplyFieldBoundaries() {
 void Opponent::FixedUpdate() {
     const auto& playerInput = this->scene->playerInputManager.playerInputs[this->playerId];
 
-    // TODO: think about this
     auto directionY = playerInput.down - playerInput.up;
     auto directionX = playerInput.left - playerInput.right;
-
-    // # Calc velocity
-    // auto directionY = playerInput.down - playerInput.up;
-    // auto directionX = playerInput.right - playerInput.left;
 
     this->Move(
         directionX,
