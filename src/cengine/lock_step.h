@@ -210,10 +210,12 @@ class LockStepNetworkManager {
             );
         }
 
-        PlayerInputTick SendAndWaitForPlayersInputs(
+        std::unordered_map<cen::player_id_t, PlayerInputTick> SendAndWaitForPlayersInputs(
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
+            auto result = std::unordered_map<cen::player_id_t, PlayerInputTick>{};
+
             this->localInputsBuffer.push_back(
                 PlayerInputTick{
                     this->currentPlayerId,
@@ -228,8 +230,11 @@ class LockStepNetworkManager {
 
             this->SendTickInput();
 
+            bool done = false;
+
             while (
-                this->isRunning.load(std::memory_order_acquire)
+                this->isRunning.load(std::memory_order_acquire) &&
+                !done
             ) {
                 std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
 
@@ -241,12 +246,22 @@ class LockStepNetworkManager {
 
                 for (const auto& input: lastMessage.inputs) {
                     if (input.tick == tick) {
-                        return input;
+                        result[input.playerId] = input;
+                        if (result.size() == this->connectedPlayers.size()) {
+                            done = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            return PlayerInputTick{0, 0, PlayerInput()};
+            result[this->currentPlayerId] = PlayerInputTick{
+                this->currentPlayerId,
+                tick,
+                currentPlayerInput
+            };
+
+            return result;
         }
 
         void Stop() {
@@ -320,26 +335,25 @@ class LockStepScene: public Scene {
                     IsKeyDown(KEY_A),
                     IsKeyDown(KEY_D)
                 };
-                this->playerInputManager.currentPlayerInput = currentPlayerInput;
-                this->playerInputManager.playerInputs[
-                    this->lockStepNetworkManager->currentPlayerId
-                ] = currentPlayerInput;
 
                 // # Get other player input
-                auto otherPlayerInput = this->lockStepNetworkManager->SendAndWaitForPlayersInputs(
+                auto playersInputs = this->lockStepNetworkManager->SendAndWaitForPlayersInputs(
                     this->frameTick,
                     currentPlayerInput
                 );
+
+                for (const auto& [playerId, input]: playersInputs) {
+                    if (playerId == this->lockStepNetworkManager->currentPlayerId) {
+                        this->playerInputManager.currentPlayerInput = input.input;
+                    }
+                    this->playerInputManager.playerInputs[playerId] = input.input;
+                }
 
                 auto inputArrivalTime = std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - frameStart
                 ).count();
 
                 std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
-
-                this->playerInputManager.playerInputs[
-                    otherPlayerInput.playerId
-                ] = otherPlayerInput.input;
 
                 // # Init new nodes
                 this->nodeStorage->InitNewNodes();
