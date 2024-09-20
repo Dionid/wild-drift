@@ -107,7 +107,6 @@ class MultiplayerNetworkTransport {
         }
 
         ~MultiplayerNetworkTransport() {
-            std::cout << "MultiplayerNetworkTransport destructor" << std::endl;
             for (const auto& listenerId: this->listenersIds) {
                 this->udpTransport->OffMessageReceived(listenerId);
             }
@@ -195,7 +194,7 @@ class MultiplayerNetworkTransport {
             this->udpTransport->OffMessageReceived(id);
         }
 
-        void SendMessage(
+        bool SendMessage(
             MultiplayerNetworkMessage message,
             ENetPacketFlag flags = ENET_PACKET_FLAG_RELIABLE,
             ENetPeer* peer = nullptr

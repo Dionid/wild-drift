@@ -330,7 +330,7 @@ namespace cen {
                     auto it = scenesConstructorsByName.begin();
                     if (it == scenesConstructorsByName.end()) {
                         isSimulationRunning = false;
-                        std::cout << "No scenes to run" << std::endl;
+                        std::cerr << "No scenes to run" << std::endl;
                         return;
                     }
                     const auto& constructor = it->second;

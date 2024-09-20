@@ -180,12 +180,6 @@ class UdpTransport {
 
         if (enet_host_service(host, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
             std::cout << "Connection to server succeeded." << std::endl;
-
-            for (const auto& listener: this->onMessageReceivedListeners) {
-                listener->trigger(ReceivedNetworkMessage{
-                    .type = ReceivedNetworkMessageType::CONNECTED_TO_SERVER
-                });
-            }
         } else {
             // TODO: RECONNECT
             // ...
@@ -196,6 +190,12 @@ class UdpTransport {
 
         this->isServer = false;
         this->isRunning.store(true, std::memory_order_release);
+
+        for (const auto& listener: this->onMessageReceivedListeners) {
+            listener->trigger(ReceivedNetworkMessage{
+                .type = ReceivedNetworkMessageType::CONNECTED_TO_SERVER
+            });
+        }
 
         return EXIT_SUCCESS;
     }
@@ -216,16 +216,14 @@ class UdpTransport {
         this->address = ENetAddress{};
     }
 
-    void SendMessage(
+    bool SendMessage(
         std::vector<uint8_t> message,
         ENetPacketFlag flags = ENET_PACKET_FLAG_RELIABLE,
         ENetPeer* peer = nullptr
     ) {
         if (isRunning.load(std::memory_order_acquire) == false) {
-            return;
+            return false;
         }
-
-        std::cout << "Added to pending" << std::endl;
 
         this->pendingMessages.push_back(
             PendingNetworkMessage(
@@ -234,6 +232,8 @@ class UdpTransport {
                 peer
             )
         );
+
+        return true;
     }
 
     void SendPendingMessages() {
@@ -242,8 +242,6 @@ class UdpTransport {
         }
 
         for (const auto& message: this->pendingMessages) {
-            std::cout << "Sending" << std::endl;
-
             ENetPacket* packet = enet_packet_create(
                 message.content.data(),
                 message.content.size(),

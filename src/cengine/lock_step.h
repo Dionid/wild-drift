@@ -143,8 +143,6 @@ class LockStepNetworkManager {
                     [
                         this
                     ](ReceivedNetworkMessage message) {
-                        std::cout << "Message from server" << std::endl;
-
                         if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
                             return;
                         }
