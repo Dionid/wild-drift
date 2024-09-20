@@ -5,6 +5,8 @@
 1. Multiplayer
     1. Thread results
     1. On disconnect
+    1. Remove coping of network messages
+    1. Check Float Precision
 1. Managers as Actors?
 1. Signals to send stopping messages down the tree
 1. Event bus Thread safety

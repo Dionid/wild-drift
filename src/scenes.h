@@ -75,8 +75,8 @@ class MatchScene: public cen::LocalScene {
             player->zOrder = 1;
 
             // ## Enemy
-            Enemy* enemy = this->nodeStorage->AddNode(
-                std::make_unique<Enemy>(
+            AiOpponent* enemy = this->nodeStorage->AddNode(
+                std::make_unique<AiOpponent>(
                     ball->id,
                     (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },

@@ -126,8 +126,7 @@ void MatchManager::Init() {
 void MatchManager::ResetEntities() {
     auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
     auto player = this->scene->nodeStorage->GetById<Player>(this->playerId);
-    // TODO: Change to <Player>
-    auto enemy = this->scene->nodeStorage->GetById<Enemy>(this->enemyId);
+    auto enemy = this->scene->nodeStorage->GetById<Player>(this->enemyId);
 
     if (ball == nullptr || player == nullptr || enemy == nullptr) {
         return;

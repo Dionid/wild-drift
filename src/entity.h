@@ -38,6 +38,9 @@ class Player: public Paddle {
         cen::player_id_t playerId;
         bool leftSide;
 
+        int directionY;
+        int directionX;
+
         cen::type_id_t TypeId() const override {
             return Player::_tid;
         }
@@ -52,6 +55,7 @@ class Player: public Paddle {
             float maxVelocity
         );
 
+        void Update() override;
         void FixedUpdate() override;
         void Init() override;
         void ApplyFieldBoundaries() override;
@@ -85,19 +89,18 @@ class Ball: public cen::CharacterBody2D {
         void OnCollisionStarted(cen::Collision c) override;
 };
 
-// # Enemy
-
-class Enemy: public Paddle {
+// # AiOpponent
+class AiOpponent: public Player {
     public:
         cen::node_id_t ballId;
 
         static const uint64_t _tid;
 
         cen::type_id_t TypeId() const override {
-            return Enemy::_tid;
+            return AiOpponent::_tid;
         }
 
-        Enemy(
+        AiOpponent(
             cen::node_id_t ballId,
             Vector2 position,
             cen::Size size,
@@ -106,9 +109,7 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
-        void Init() override;
-        void FixedUpdate() override;
-        void ApplyFieldBoundaries() override;
+        void Update() override;
 };
 
 // # Goal

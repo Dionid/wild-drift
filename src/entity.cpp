@@ -18,7 +18,6 @@ Paddle::Paddle(
 
 const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-// TODO: Move constants to props
 void Paddle::ApplyFriction() {
     this->velocity.y *= .80f;
     this->velocity.x *= .80f;
@@ -32,7 +31,6 @@ void Paddle::ApplyFriction() {
     }
 }
 
-// TODO: Move constants to props
 void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     if (this->position.x - this->size.width/2 < 0) {
         this->position.x = this->size.width/2;
@@ -63,10 +61,6 @@ void Paddle::Move(
         this->speed
     );
 
-    // this->velocity.y = newSpeed.y;
-    // this->velocity.x = newSpeed.x;
-
-    // TODO: RETURN AFTER DEBUGGING
     this->velocity.y += newSpeed.y;
     this->velocity.x += newSpeed.x;
     if (Vector2Length(this->velocity) > this->maxVelocity) {
@@ -135,21 +129,23 @@ void Player::ApplyFieldBoundaries() {
 
 // # Player Update function
 void Player::FixedUpdate() {
-    const auto& currentPlayerInput = this->scene->playerInputManager.playerInputs[this->playerId];
-
-    // # Calc velocity
-    auto directionY = currentPlayerInput.down - currentPlayerInput.up;
-    auto directionX = currentPlayerInput.right - currentPlayerInput.left;
-
-    if (directionX != 0 || directionY != 0) {
-        std::cout << "Movement frame: " << this->scene->frameTick << " " << this->scene->fixedSimulationTick << std::endl;
-    }
-
     this->Move(
         directionX,
         directionY
     );
 };
+
+void Player::Update() {
+    const auto& currentPlayerInput = this->scene->playerInputManager.playerInputs[this->playerId];
+
+    directionY = currentPlayerInput.down - currentPlayerInput.up;
+    directionX = currentPlayerInput.right - currentPlayerInput.left;
+
+    // REMOVE: Debug
+    // if (directionX != 0 || directionY != 0) {
+    //     std::cout << "Movement frame: " << this->scene->frameTick << " " << this->scene->fixedSimulationTick << std::endl;
+    // }
+}
 
 // # Ball
 Ball::Ball(
@@ -251,49 +247,23 @@ void Ball::FixedUpdate() {
 
 // # Enemy
 
-const uint64_t Enemy::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+const uint64_t AiOpponent::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-Enemy::Enemy(
+AiOpponent::AiOpponent(
     cen::node_id_t ballId,
     Vector2 position,
     cen::Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
-) : Paddle(position, size, velocity, speed, maxVelocity)
+) : Player(false, -1, position, size, velocity, speed, maxVelocity)
 {
     this->ballId = ballId;
 };
 
-void Enemy::Init() {
-    this->AddNode(
-        std::make_unique<cen::RectangleView>(
-            this->size,
-            WHITE
-        )
-    );
-    this->AddNode(
-        std::make_unique<cen::Collider>(
-            cen::ColliderType::Solid,
-            cen::Shape::Rectangle(this->size),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
-}
-
-void Enemy::ApplyFieldBoundaries() {
-    if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
-        this->position.x = this->scene->screen.width/2 + this->size.width/2;
-        this->velocity.x = 0;
-    }
-}
-
-void Enemy::FixedUpdate() {
+void AiOpponent::Update() {
     auto worldWidth = this->scene->screen.width;
     auto worldHeight = this->scene->screen.height;
-
-    float directionX = 0;
-    float directionY = 0;
 
     auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
 
@@ -316,15 +286,9 @@ void Enemy::FixedUpdate() {
             directionX = 1;
         }
     }
-
-    this->Move(
-        directionX,
-        directionY
-    );
 }
 
 // # Goal
-
 const uint64_t Goal::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 Goal::Goal(
