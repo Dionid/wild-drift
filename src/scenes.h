@@ -185,9 +185,7 @@ class MatchLockStepScene: public cen::LockStepScene {
                     isHost ? leftSidePosition : rightSidePosition,
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
-                    // TODO: RETURN AFTER DEBUGGING
-                    // 1.5f,
-                    5.0f,
+                    1.5f,
                     10.0f
                 )
             );
@@ -203,9 +201,7 @@ class MatchLockStepScene: public cen::LockStepScene {
                     !isHost ? leftSidePosition : rightSidePosition,
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
-                    // TODO: RETURN AFTER DEBUGGING
-                    // 1.5f,
-                    5.0f,
+                    1.5f,
                     10.0f
                 )
             );

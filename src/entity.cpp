@@ -63,17 +63,17 @@ void Paddle::Move(
         this->speed
     );
 
-    this->velocity.y = newSpeed.y;
-    this->velocity.x = newSpeed.x;
+    // this->velocity.y = newSpeed.y;
+    // this->velocity.x = newSpeed.x;
 
     // TODO: RETURN AFTER DEBUGGING
-    // this->velocity.y += newSpeed.y;
-    // this->velocity.x += newSpeed.x;
-    // if (Vector2Length(this->velocity) > this->maxVelocity) {
-    //     this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    // }
-    // // # Friction
-    // this->ApplyFriction();
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    }
+    // # Friction
+    this->ApplyFriction();
 
     // # Field boundaries
     this->ApplyFieldBoundaries();
