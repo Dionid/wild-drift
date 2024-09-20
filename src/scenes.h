@@ -37,7 +37,8 @@ class MatchScene: public cen::LocalScene {
         }
 
         void Init() override {
-            DisableCursor();
+            // TODO: RETURN AFTER DEBUGGING
+            // DisableCursor();
 
             // # Entities
             const float sixthScreen = screen.width/6.0f;
@@ -152,7 +153,8 @@ class MatchLockStepScene: public cen::LockStepScene {
         }
 
         void Init() override {
-            DisableCursor();
+            // TODO: RETURN AFTER DEBUGGING
+            // DisableCursor();
 
             bool isHost = this->lockStepNetworkManager->transport->udpTransport->isServer;
             Vector2 leftSidePosition = (Vector2){ screen.width/6.0f, screen.height/2.0f };
@@ -185,7 +187,9 @@ class MatchLockStepScene: public cen::LockStepScene {
                     isHost ? leftSidePosition : rightSidePosition,
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
-                    1.5f,
+                    // TODO: RETURN AFTER DEBUGGING
+                    // 1.5f,
+                    5.0f,
                     10.0f
                 )
             );
@@ -201,7 +205,9 @@ class MatchLockStepScene: public cen::LockStepScene {
                     !isHost ? leftSidePosition : rightSidePosition,
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
-                    1.5f,
+                    // TODO: RETURN AFTER DEBUGGING
+                    // 1.5f,
+                    5.0f,
                     10.0f
                 )
             );

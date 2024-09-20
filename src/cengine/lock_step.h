@@ -304,12 +304,16 @@ class LockStepScene: public Scene {
                 this->FullInit();
             }
 
-            std::chrono::milliseconds accumulatedFixedTime(0);
-            auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
+            float fixedTickEveryFrameTicks = this->simulationFrameRate / this->simulationFixedFrameRate;
+            int lastFixedFrameTick = this->frameTick;
+            int accumulatedFixedFrame = 0;
 
             while (
                 this->isAlive.load(std::memory_order_acquire)
             ) {
+                // # Start
+                auto frameStart = std::chrono::high_resolution_clock::now();
+
                 // # Frame Tick
                 this->frameTick++;
 
@@ -335,27 +339,23 @@ class LockStepScene: public Scene {
                     otherPlayerInput.playerId
                 ] = otherPlayerInput.input;
 
-                // # Start
-                auto frameStart = std::chrono::high_resolution_clock::now();
-
                 // # Init new nodes
                 this->nodeStorage->InitNewNodes();
 
                 // # Fixed update
-                auto now = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
-                lastFixedFrameTime = now;
-                accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
+                int fixedFrameDuration = this->frameTick - lastFixedFrameTick;
+                lastFixedFrameTick = this->frameTick;
+                accumulatedFixedFrame += fixedFrameDuration;
 
                 int fixedUpdateCycles = 0;
-                while (accumulatedFixedTime >= simulationFixedFrameRate && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
+                while (accumulatedFixedFrame >= fixedTickEveryFrameTicks && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
                     this->fixedSimulationTick++;
 
                     // # Simulation current Tick
                     this->FixedSimulationTick();
 
                     // ## Correct time and cycles
-                    accumulatedFixedTime -= simulationFixedFrameRate;
+                    accumulatedFixedFrame -= fixedTickEveryFrameTicks;
                     fixedUpdateCycles++;
                 }
 
@@ -368,7 +368,7 @@ class LockStepScene: public Scene {
                 this->eventBus.Flush();
 
                 // # Sync GameState and RendererState
-                auto alpha = static_cast<double>(accumulatedFixedTime.count()) / simulationFixedFrameRate.count();
+                auto alpha = static_cast<double>(accumulatedFixedFrame) / fixedTickEveryFrameTicks;
 
                 this->renderingEngine->SyncRenderBuffer(
                     this->nodeStorage.get(),
@@ -376,7 +376,7 @@ class LockStepScene: public Scene {
                 );
 
                 // # Wait till next frame
-                while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRate) {}
+                while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRateInMs) {}
             }
         }
 };

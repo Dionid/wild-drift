@@ -96,7 +96,6 @@
     1. Create Players nodes and assign correct playerIds
 
 
-<!-- 1. Network thread call LockStepManager.OnMessage()
-1. LockStepManager.OnMessage() push into the players buffer
-1. ...
-1. In the end of the match players must agree on the result -->
+----
+
+1. Move FrameStart

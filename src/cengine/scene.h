@@ -22,8 +22,10 @@ namespace cen {
             u_int64_t frameTick;
             u_int64_t fixedSimulationTick;
 
-            std::chrono::milliseconds simulationFrameRate;
-            std::chrono::milliseconds simulationFixedFrameRate;
+            int simulationFrameRate;
+            std::chrono::milliseconds simulationFrameRateInMs;
+            int simulationFixedFrameRate;
+            std::chrono::milliseconds simulationFixedFrameRateInMs;
             int simulationFixedFrameCyclesLimit;
 
             Camera2D* camera;
@@ -59,8 +61,11 @@ namespace cen {
                 this->nodeStorage = std::move(nodeStorage);
                 this->nodeStorage->scene = this;
 
-                this->simulationFrameRate = std::chrono::milliseconds(1000 / simulationFrameRate);
-                this->simulationFixedFrameRate = std::chrono::milliseconds(1000 / simulationFixedFrameRate);
+                this->simulationFrameRate = simulationFrameRate;
+                this->simulationFixedFrameRate = simulationFixedFrameRate;
+
+                this->simulationFrameRateInMs = std::chrono::milliseconds(1000 / simulationFrameRate);
+                this->simulationFixedFrameRateInMs = std::chrono::milliseconds(1000 / simulationFixedFrameRate);
                 this->simulationFixedFrameCyclesLimit = simulationFixedFrameCyclesLimit;
             }
 
@@ -180,14 +185,14 @@ namespace cen {
                     accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
 
                     int fixedUpdateCycles = 0;
-                    while (accumulatedFixedTime >= simulationFixedFrameRate && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
+                    while (accumulatedFixedTime >= simulationFixedFrameRateInMs && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
                         this->fixedSimulationTick++;
 
                         // # Simulation current Tick
                         this->FixedSimulationTick();
 
                         // ## Correct time and cycles
-                        accumulatedFixedTime -= simulationFixedFrameRate;
+                        accumulatedFixedTime -= simulationFixedFrameRateInMs;
                         fixedUpdateCycles++;
                     }
 
@@ -200,7 +205,7 @@ namespace cen {
                     this->eventBus.Flush();
 
                     // # Sync GameState and RendererState
-                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / simulationFixedFrameRate.count();
+                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / simulationFixedFrameRateInMs.count();
 
                     this->renderingEngine->SyncRenderBuffer(
                         this->nodeStorage.get(),
@@ -209,7 +214,7 @@ namespace cen {
 
                     // QUESTION: maybe sleep better? But it overshoots (nearly 3ms)
                     // # End (busy wait)
-                    while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRate) {}
+                    while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRateInMs) {}
                 }
             }
     };

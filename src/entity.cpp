@@ -20,16 +20,17 @@ const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 // TODO: Move constants to props
 void Paddle::ApplyFriction() {
-    this->velocity.y *= .80f;
-    this->velocity.x *= .80f;
+    // TODO: RETURN AFTER DEBUGGING
+    // this->velocity.y *= .80f;
+    // this->velocity.x *= .80f;
 
-    if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
-        this->velocity.x = 0;
-    }
+    // if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
+    //     this->velocity.x = 0;
+    // }
 
-    if (this->velocity.y < 0.01 && this->velocity.y > -0.01) {
-        this->velocity.y = 0;
-    }
+    // if (this->velocity.y < 0.01 && this->velocity.y > -0.01) {
+    //     this->velocity.y = 0;
+    // }
 }
 
 // TODO: Move constants to props
@@ -63,12 +64,15 @@ void Paddle::Move(
         this->speed
     );
 
-    this->velocity.y += newSpeed.y;
-    this->velocity.x += newSpeed.x;
+    // TODO: RETURN AFTER DEBUGGING
+    // this->velocity.y += newSpeed.y;
+    // this->velocity.x += newSpeed.x;
+    // if (Vector2Length(this->velocity) > this->maxVelocity) {
+    //     this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    // }
 
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
+    this->velocity.y = newSpeed.y;
+    this->velocity.x = newSpeed.x;
 
     // # Friction
     this->ApplyFriction();
@@ -138,6 +142,10 @@ void Player::FixedUpdate() {
     // # Calc velocity
     auto directionY = currentPlayerInput.down - currentPlayerInput.up;
     auto directionX = currentPlayerInput.right - currentPlayerInput.left;
+
+    if (directionX != 0 || directionY != 0) {
+        std::cout << "Movement frame: " << this->scene->frameTick << " " << this->scene->fixedSimulationTick << std::endl;
+    }
 
     this->Move(
         directionX,
