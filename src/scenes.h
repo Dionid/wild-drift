@@ -308,6 +308,14 @@ class MainMenuScene: public cen::LocalScene {
             this->gameAudio = gameAudio;
         }
 
+        ~MainMenuScene() {
+            std::cout << "MainMenuScene destructor" << std::endl;
+        }
+
+        void BeforeStop() override {
+            std::cout << "BeforeStop" << std::endl;
+        }
+
         void Init() override;
 };
 
@@ -338,23 +346,20 @@ class ServerLobbyScene: public cen::LocalScene {
             this->multiplayerNetworkTransport = std::make_unique<cen::MultiplayerNetworkTransport>(udpTransport);
         }
 
-        void BeforeStop() override {
-            // this->udpTransport->OffMessageReceived(this->listenerId);
-        }
+        void BeforeStop() override {}
 
         void Init() override {
-            // this->listenerId = this->udpTransport->OnMessageReceived(
-            //     std::make_unique<cen::OnMessageReceivedListener>(
-            //         [this](cen::ReceivedNetworkMessage message){
-            //             std::cout << "Received client message " << static_cast<int>(message.type) << std::endl;
-            //         }
-            //     )
-            // );
-
             multiplayerNetworkTransport->OnMessageReceived(
                 cen::OnMultiplayerMessageReceivedListener(
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
                         std::cout << "Received client message " << static_cast<int>(message.message.type) << std::endl;
+
+                        // this->multiplayerNetworkTransport->SendMessage(
+                        //     cen::MultiplayerNetworkMessage{
+                        //         .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS,
+                        //         .content = {}
+                        //     }
+                        // );
                     }
                 )
             );
@@ -394,9 +399,11 @@ class ClientLobbyScene: public cen::LocalScene {
             this->multiplayerNetworkTransport = std::make_unique<cen::MultiplayerNetworkTransport>(udpTransport);
         }
 
-        void BeforeStop() override {
-            // this->udpTransport->OffMessageReceived(this->listenerId);
+        ~ClientLobbyScene() {
+            std::cout << "ClientLobbyScene destructor" << std::endl;
         }
+
+        void BeforeStop() override {}
 
         void Init() override {
             // this->listenerId = this->udpTransport->OnMessageReceived(
@@ -411,6 +418,19 @@ class ClientLobbyScene: public cen::LocalScene {
                 cen::OnMultiplayerMessageReceivedListener(
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
                         std::cout << "Received server message: " << static_cast<int>(message.message.type) << std::endl;
+
+                        if (message.message.type != cen::MultiplayerNetworkMessageType::CONNECTED_TO_SERVER) {
+                            return;
+                        }
+                        
+                        // this->multiplayerNetworkTransport->SendMessage(
+                        //     cen::MultiplayerNetworkMessage{
+                        //         .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST,
+                        //         .content = {}
+                        //     }
+                        // );
+
+                        // std::cout << "Sent player join request" << std::endl;
                     }
                 )
             );

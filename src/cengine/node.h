@@ -63,6 +63,8 @@ class Node: public cen::WithType {
             this->parent = parent;
         }
 
+        virtual ~Node() {}
+
         void Deactivate() {
             this->activated = false;
         }

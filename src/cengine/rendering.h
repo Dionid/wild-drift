@@ -33,6 +33,7 @@ class CanvasItem2D {
             this->id = id;
         }
 
+        virtual ~CanvasItem2D() {}
         virtual void Render() = 0;
 };
 
@@ -223,8 +224,6 @@ class TextCanvasItem2D: public CanvasItem2D {
 class RenderingEngine2D {
     private:
         std::atomic<int> activeRenderBufferInd;
-        std::mutex firstBufferMutex;
-        std::mutex secondBufferMutex;
 
     public:
         render_buffer firstBuffer;
@@ -290,7 +289,6 @@ class RenderingEngine2D {
                     )
                 );
             } else if (auto textView = dynamic_cast<cen::TextView*>(node2D)) {
-                
                 activeRenderBuffer.push_back(
                     std::make_unique<TextCanvasItem2D>(
                         newGlobalPosition,
@@ -327,11 +325,9 @@ class RenderingEngine2D {
 
             {
                 if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
-                    // std::lock_guard<std::mutex> lock(secondBufferMutex);
                     secondBuffer = std::move(writeBuffer);
                     activeRenderBufferInd.store(1, std::memory_order_release);
                 } else {
-                    // std::lock_guard<std::mutex> lock(firstBufferMutex);
                     firstBuffer = std::move(writeBuffer);
                     activeRenderBufferInd.store(0, std::memory_order_release);
                 }
@@ -340,12 +336,10 @@ class RenderingEngine2D {
 
         void Render() {
             if (activeRenderBufferInd.load(std::memory_order_acquire) == 0) {
-                // std::lock_guard<std::mutex> lock(firstBufferMutex);
                 for (const auto& item: firstBuffer) {
                     item->Render();
                 }
             } else {
-                // std::lock_guard<std::mutex> lock(secondBufferMutex);
                 for (const auto& item: secondBuffer) {
                     item->Render();
                 }

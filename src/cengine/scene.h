@@ -64,6 +64,8 @@ namespace cen {
                 this->simulationFixedFrameCyclesLimit = simulationFixedFrameCyclesLimit;
             }
 
+            virtual ~Scene() {};
+
             virtual void Init() {};
             virtual void Run() {};
             virtual void BeforeStop() {};
@@ -137,6 +139,8 @@ namespace cen {
                 frameTick,
                 simulationTick
             ) {}
+
+            virtual ~LocalScene() {}
 
             void Run() override {
                 if (!this->isInitialized) {
@@ -300,6 +304,7 @@ namespace cen {
 
             bool ChangeScene(std::unique_ptr<Scene> scene) {
                 if (this->currentScene == nullptr) {
+                    // TODO: SEND ERROR
                     return false;
                 }
 
@@ -341,7 +346,6 @@ namespace cen {
                 isSimulationRunning = false;
 
                 // # After it's done
-                this->currentScene->Stop();
                 if (this->nextScene) {
                     this->currentScene = std::move(this->nextScene);
                     this->nextScene = nullptr;

@@ -41,6 +41,18 @@ struct OnMessageReceivedListener: public Listener<ReceivedNetworkMessage> {
     ) {}
 };
 
+struct PendingNetworkMessage {
+    std::vector<uint8_t> content;
+    ENetPacketFlag flags;
+    ENetPeer* peer;
+
+    PendingNetworkMessage(
+        std::vector<uint8_t> content,
+        ENetPacketFlag flags = ENET_PACKET_FLAG_RELIABLE,
+        ENetPeer* peer = nullptr
+    ): content(content), flags(flags), peer(peer) {}
+};
+
 class UdpTransport {
     public:
 
@@ -57,7 +69,11 @@ class UdpTransport {
     std::string serverHost;
     ENetPeer* serverPeer;
 
-    // # On message received
+    // # Send
+    // TODO: change to growing ring buffer
+    std::vector<PendingNetworkMessage> pendingMessages;
+
+    // # Receive
     enet_uint32 defaultPollTimeout;
     std::atomic<int> nextListenerId = 0;
     std::vector<std::unique_ptr<OnMessageReceivedListener>> onMessageReceivedListeners;
@@ -185,8 +201,6 @@ class UdpTransport {
     }
 
     void Deinit() {
-        std::lock_guard<std::mutex> lock(busy);
-
         this->isRunning.store(false, std::memory_order_release);
 
         if (host != NULL) {
@@ -202,37 +216,56 @@ class UdpTransport {
         this->address = ENetAddress{};
     }
 
-    bool SendMessage(
+    void SendMessage(
         std::vector<uint8_t> message,
         ENetPacketFlag flags = ENET_PACKET_FLAG_RELIABLE,
         ENetPeer* peer = nullptr
     ) {
-        std::lock_guard<std::mutex> lock(busy);
         if (isRunning.load(std::memory_order_acquire) == false) {
-            return false;
+            return;
         }
 
-        ENetPacket* packet = enet_packet_create(
-            message.data(),
-            message.size(),
-            flags
+        std::cout << "Added to pending" << std::endl;
+
+        this->pendingMessages.push_back(
+            PendingNetworkMessage(
+                message,
+                flags,
+                peer
+            )
         );
+    }
 
-        if (this->isServer) {
-            if (peer == nullptr) {
-                enet_host_broadcast(host, 0, packet);
+    void SendPendingMessages() {
+        if (isRunning.load(std::memory_order_acquire) == false) {
+            return;
+        }
+
+        for (const auto& message: this->pendingMessages) {
+            std::cout << "Sending" << std::endl;
+
+            ENetPacket* packet = enet_packet_create(
+                message.content.data(),
+                message.content.size(),
+                message.flags
+            );
+
+            if (this->isServer) {
+                if (message.peer == nullptr) {
+                    enet_host_broadcast(host, 0, packet);
+                } else {
+                    enet_peer_send(message.peer, 0, packet);
+                }
             } else {
-                enet_peer_send(peer, 0, packet);
-            }
-        } else {
-            if (peer == nullptr) {
-                enet_peer_send(this->serverPeer, 0, packet);
-            } else {
-                enet_peer_send(peer, 0, packet);
+                if (message.peer == nullptr) {
+                    enet_peer_send(this->serverPeer, 0, packet);
+                } else {
+                    enet_peer_send(message.peer, 0, packet);
+                }
             }
         }
 
-        return true;
+        this->pendingMessages.clear();
     }
 
     int OnMessageReceived(
@@ -261,8 +294,6 @@ class UdpTransport {
 
      // # Get message from host
     std::optional<ReceivedNetworkMessage> PollNextMessage(enet_uint32 customTimeout) {
-        std::lock_guard<std::mutex> lock(busy);
-
         if (isRunning.load(std::memory_order_acquire) == false) {
             return std::nullopt;
         }
@@ -370,21 +401,21 @@ struct ScopedOnMessageReceivedListener: public ScopedListener<OnMessageReceivedL
 
 class NetworkManager {
     public:
-        std::chrono::milliseconds messageReceivedRate;
+        std::chrono::milliseconds messageReceiveRate;
         std::atomic<bool> isRunning = true;
         std::unordered_map<std::string, std::unique_ptr<UdpTransport>> transports;
         enet_uint32 defaultPollTimeout;
         std::function<void(ReceivedNetworkMessage)> onMessageReceived;
 
         NetworkManager(
-            int messageReceivedRate = 60,
+            int messageReceiveRate = 60,
             enet_uint32 defaultPollTimeout = 0
         ) {
             if (enet_initialize() != 0) {
                 std::cerr << "An error occurred while initializing ENet." << std::endl;
                 return;
             }
-            this->messageReceivedRate = std::chrono::milliseconds(1000 / messageReceivedRate);
+            this->messageReceiveRate = std::chrono::milliseconds(1000 / messageReceiveRate);
             this->defaultPollTimeout = defaultPollTimeout;
         }
 
@@ -452,6 +483,10 @@ class NetworkManager {
                 auto frameStart = std::chrono::high_resolution_clock::now();
                 
                 for (auto& [name, transport]: transports) {
+                    // # Send
+                    transport->SendPendingMessages();
+
+                    // # Receive
                     auto message = transport->PollNextMessage(0);
                     if (message.has_value() && this->onMessageReceived != nullptr) {
                         this->onMessageReceived(message.value());
@@ -462,7 +497,7 @@ class NetworkManager {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
 
-                while (std::chrono::high_resolution_clock::now() - frameStart <= messageReceivedRate) {}
+                while (std::chrono::high_resolution_clock::now() - frameStart <= messageReceiveRate) {}
             }
         }
 
