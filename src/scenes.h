@@ -47,6 +47,7 @@ class MatchScene: public cen::LocalScene {
             // float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
             Ball* ball = this->nodeStorage->AddNode(
                 std::make_unique<Ball>(
+                    false,
                     this->gameAudio,
                     ballRadius,
                     (Vector2){ screen.width/2.0f, screen.height/2.0f },
@@ -62,6 +63,8 @@ class MatchScene: public cen::LocalScene {
             // ## Player
             Player* player = this->nodeStorage->AddNode(
                 std::make_unique<Player>(
+                    false,
+                    0,
                     (Vector2){ sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
@@ -161,6 +164,8 @@ class MatchLockStepScene: public cen::LockStepScene {
             // float randomAngle = (fixedSimulationTick % 100 / 100.0f) * 2 * PI;
             Ball* ball = this->nodeStorage->AddNode(
                 std::make_unique<Ball>(
+                    // TODO: change to "host"
+                    !this->lockStepNetworkManager->transport->udpTransport->isServer,
                     this->gameAudio,
                     ballRadius,
                     (Vector2){ screen.width/2.0f, screen.height/2.0f },
@@ -176,6 +181,8 @@ class MatchLockStepScene: public cen::LockStepScene {
             // ## Player
             Player* player = this->nodeStorage->AddNode(
                 std::make_unique<Player>(
+                    false,
+                    this->lockStepNetworkManager->currentPlayerId,
                     (Vector2){ sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
@@ -187,8 +194,9 @@ class MatchLockStepScene: public cen::LockStepScene {
             player->zOrder = 1;
 
             // ## Opponent
-            Opponent* opponent = this->nodeStorage->AddNode(
-                std::make_unique<Opponent>(
+            Player* opponent = this->nodeStorage->AddNode(
+                std::make_unique<Player>(
+                    true,
                     // TODO: Change this
                     this->lockStepNetworkManager->connectedPlayers[0],
                     (Vector2){ screen.width - sixthScreen, screen.height/2.0f },

@@ -85,6 +85,8 @@ void Paddle::Move(
 
 // # Player
 Player::Player(
+    bool mirror,
+    cen::player_id_t playerId,
     Vector2 position,
     cen::Size size,
     Vector2 velocity = Vector2{},
@@ -92,6 +94,8 @@ Player::Player(
     float maxVelocity = 10.0f
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 { 
+    this->mirror = mirror;
+    this->playerId = playerId;
 };
 
 const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
@@ -114,71 +118,31 @@ void Player::Init() {
 };
 
 void Player::ApplyFieldBoundaries() {
-    if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
-        this->position.x = this->scene->screen.width/2 - this->size.width/2;
-        this->velocity.x = 0;
+    if (this->mirror) {
+        if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 + this->size.width/2;
+            this->velocity.x = 0;
+        }
+    } else {
+        if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 - this->size.width/2;
+            this->velocity.x = 0;
+        }
     }
 }
 
 // # Player Update function
 void Player::FixedUpdate() {
-    const auto& currentPlayerInput = this->scene->playerInputManager.currentPlayerInput;
+    const auto& currentPlayerInput = this->scene->playerInputManager.playerInputs[this->playerId];
 
     // # Calc velocity
     auto directionY = currentPlayerInput.down - currentPlayerInput.up;
     auto directionX = currentPlayerInput.right - currentPlayerInput.left;
 
-    this->Move(
-        directionX,
-        directionY
-    );
-};
-
-// # Player
-Opponent::Opponent(
-    cen::player_id_t playerId,
-    Vector2 position,
-    cen::Size size,
-    Vector2 velocity = Vector2{},
-    float speed = 5.0f,
-    float maxVelocity = 10.0f
-) : Paddle(position, size, velocity, speed, maxVelocity)
-{ 
-    this->playerId = playerId;
-};
-
-const uint64_t Opponent::_tid = cen::TypeIdGenerator::getInstance().getNextId();
-
-void Opponent::Init() {
-    this->AddNode(
-        std::make_unique<cen::RectangleView>(
-            this->size,
-            WHITE
-        )
-    );
-
-    this->AddNode(
-        std::make_unique<cen::Collider>(
-            cen::ColliderType::Solid,
-            cen::Shape::Rectangle(this->size),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
-};
-
-void Opponent::ApplyFieldBoundaries() {
-    if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
-        this->position.x = this->scene->screen.width/2 + this->size.width/2;
-        this->velocity.x = 0;
+    if (this->mirror) {
+        directionY = currentPlayerInput.down - currentPlayerInput.up;
+        directionX = currentPlayerInput.left - currentPlayerInput.right;
     }
-}
-
-// # Opponent Update function
-void Opponent::FixedUpdate() {
-    const auto& playerInput = this->scene->playerInputManager.playerInputs[this->playerId];
-
-    auto directionY = playerInput.down - playerInput.up;
-    auto directionX = playerInput.left - playerInput.right;
 
     this->Move(
         directionX,
@@ -188,6 +152,7 @@ void Opponent::FixedUpdate() {
 
 // # Ball
 Ball::Ball(
+    bool mirror,
     SpcAudio* gameAudio,
     float radius,
     Vector2 position,
@@ -199,6 +164,7 @@ Ball::Ball(
     this->gameAudio = gameAudio;
     this->radius = radius;
     this->maxVelocity = maxVelocity;
+    this->mirror = mirror;
 };
 
 const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();

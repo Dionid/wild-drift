@@ -321,6 +321,9 @@ class LockStepScene: public Scene {
                     IsKeyDown(KEY_D)
                 };
                 this->playerInputManager.currentPlayerInput = currentPlayerInput;
+                this->playerInputManager.playerInputs[
+                    this->lockStepNetworkManager->currentPlayerId
+                ] = currentPlayerInput;
 
                 // # Get other player input
                 auto otherPlayerInput = this->lockStepNetworkManager->SendAndWaitForPlayersInputs(
@@ -328,7 +331,9 @@ class LockStepScene: public Scene {
                     currentPlayerInput
                 );
 
-                this->playerInputManager.playerInputs[otherPlayerInput.playerId] = otherPlayerInput.input;
+                this->playerInputManager.playerInputs[
+                    otherPlayerInput.playerId
+                ] = otherPlayerInput.input;
 
                 // # Start
                 auto frameStart = std::chrono::high_resolution_clock::now();

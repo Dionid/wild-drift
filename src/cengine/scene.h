@@ -165,6 +165,7 @@ namespace cen {
                     };
 
                     this->playerInputManager.currentPlayerInput = currentPlayerInput;
+                    this->playerInputManager.playerInputs[0] = currentPlayerInput;
 
                     // # Start
                     auto frameStart = std::chrono::high_resolution_clock::now();

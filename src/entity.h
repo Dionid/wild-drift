@@ -35,36 +35,15 @@ class Paddle: public cen::CharacterBody2D {
 class Player: public Paddle {
     public:
         static const uint64_t _tid;
+        bool mirror;
+        cen::player_id_t playerId;
 
         cen::type_id_t TypeId() const override {
             return Player::_tid;
         }
 
         Player(
-            Vector2 position,
-            cen::Size size,
-            Vector2 velocity,
-            float speed,
-            float maxVelocity
-        );
-
-        void FixedUpdate() override;
-        void Init() override;
-        void ApplyFieldBoundaries() override;
-};
-
-// # Opponent
-class Opponent: public Paddle {
-    public:
-        static const uint64_t _tid;
-
-        cen::player_id_t playerId;
-
-        cen::type_id_t TypeId() const override {
-            return Opponent::_tid;
-        }
-
-        Opponent(
+            bool mirror,
             cen::player_id_t playerId,
             Vector2 position,
             cen::Size size,
@@ -81,6 +60,7 @@ class Opponent: public Paddle {
 // # Ball
 class Ball: public cen::CharacterBody2D {
     public:
+        bool mirror;
         float radius;
         float maxVelocity;
         SpcAudio* gameAudio;
@@ -92,6 +72,7 @@ class Ball: public cen::CharacterBody2D {
         }
 
         Ball(
+            bool mirror,
             SpcAudio* gameAudio,
             float radius,
             Vector2 position,

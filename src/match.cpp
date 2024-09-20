@@ -22,12 +22,18 @@ void LaunchBallTimer::OnTimerEnd() {
     float randomAngle = (this->scene->fixedSimulationTick % 100 / 100.0f) * 2 * PI;
     ball->velocity.x = cos(randomAngle) * 5;
     ball->velocity.y = sin(randomAngle) * 5;
+
+    if (ball->mirror) {
+        ball->velocity.x *= -1;
+        ball->velocity.y *= -1;
+    }
 }
 
 // # Match Manager
 
 MatchManager::MatchManager(
     SpcAudio* gameAudio,
+    bool mirror,
     int winScore,
     int playerScore,
     int enemyScore
@@ -36,6 +42,7 @@ MatchManager::MatchManager(
     this->winScore = winScore;
     this->playerScore = playerScore;
     this->enemyScore = enemyScore;
+    this->mirror = mirror;
 };
 
 void MatchManager::Init() {

@@ -22,6 +22,7 @@ class LaunchBallTimer: public cen::Timer {
 
 class MatchManager: public cen::Node2D {
     public:
+        bool mirror;
         SpcAudio* gameAudio;
         cen::node_id_t ballId;
         cen::node_id_t playerId;
@@ -35,6 +36,7 @@ class MatchManager: public cen::Node2D {
 
         MatchManager(
             SpcAudio* gameAudio,
+            bool mirror = false,
             int winScore = 100,
             int playerScore = 0,
             int enemyScore = 0
