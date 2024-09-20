@@ -152,11 +152,6 @@ void Player::Update() {
 
     directionY = currentPlayerInput.down - currentPlayerInput.up;
     directionX = currentPlayerInput.right - currentPlayerInput.left;
-
-    // REMOVE: Debug
-    // if (directionX != 0 || directionY != 0) {
-    //     std::cout << "Movement frame: " << this->scene->frameTick << " " << this->scene->fixedSimulationTick << std::endl;
-    // }
 }
 
 // # Ball

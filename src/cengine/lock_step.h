@@ -228,8 +228,6 @@ class LockStepNetworkManager {
 
             this->SendTickInput();
 
-            // auto beforeReceive = std::chrono::high_resolution_clock::now();
-
             while (
                 this->isRunning.load(std::memory_order_acquire)
             ) {
@@ -244,8 +242,6 @@ class LockStepNetworkManager {
 
                 for (const auto& input: lastMessage.inputs) {
                     if (input.tick == tick) {
-                        // std::cout << "r: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforeReceive).count() << ".0 ms" << std::endl;
-
                         return input;
                     }
                 }
