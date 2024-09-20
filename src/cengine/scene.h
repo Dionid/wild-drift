@@ -354,8 +354,6 @@ namespace cen {
                 } else {
                     this->currentScene = nullptr;
                 }
-
-                std::cout << "SceneManager Stopped" << std::endl;
             }
 
             void StopCurrentSceneSimulation() {

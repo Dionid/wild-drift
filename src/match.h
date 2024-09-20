@@ -12,9 +12,7 @@ class LaunchBallTimer: public cen::Timer {
 
         LaunchBallTimer(
             cen::node_id_t ballId,
-            int duration,
-            cen::node_id_t id,
-            cen::Node* parent
+            int duration
         );
 
         void OnTimerEnd() override;

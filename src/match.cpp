@@ -3,10 +3,11 @@
 
 LaunchBallTimer::LaunchBallTimer(
     cen::node_id_t ballId,
-    int duration,
-    cen::node_id_t id = 0,
-    cen::Node* parent = nullptr
-): Timer(duration, id, parent) {
+    int duration
+): Timer(
+    duration,
+    cen::TimerMode::FRAMES
+) {
     this->ballId = ballId;
 }
 
@@ -17,9 +18,7 @@ void LaunchBallTimer::OnTimerEnd() {
         return;
     }
 
-    std::cout << "LaunchBallTimer::OnTimerEnd: " << this->scene->fixedSimulationTick << std::endl;
-
-    float randomAngle = (this->scene->fixedSimulationTick % 100 / 100.0f) * 2 * PI;
+    float randomAngle = (this->scene->frameTick % 100 / 100.0f) * 2 * PI;
     ball->velocity.x = cos(randomAngle) * 5;
     ball->velocity.y = sin(randomAngle) * 5;
 }
@@ -87,10 +86,11 @@ void MatchManager::Init() {
         )
     );
 
+    // # Timer
     this->launchBallTimer = this->AddNode(
         std::make_unique<LaunchBallTimer>(
             this->ballId,
-            500
+            30
         )
     );
 
@@ -126,6 +126,7 @@ void MatchManager::Init() {
 void MatchManager::ResetEntities() {
     auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
     auto player = this->scene->nodeStorage->GetById<Player>(this->playerId);
+    // TODO: Change to <Player>
     auto enemy = this->scene->nodeStorage->GetById<Enemy>(this->enemyId);
 
     if (ball == nullptr || player == nullptr || enemy == nullptr) {
@@ -136,10 +137,12 @@ void MatchManager::ResetEntities() {
     ball->previousPosition = ball->position;
     ball->velocity = (Vector2){ 0.0f, 0.0f };
 
+    // TODO: Move it to Player::Reset
     player->position = (Vector2){ this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
     player->previousPosition = player->position;
     player->velocity = (Vector2){ 0.0f, 0.0f };
 
+    // TODO: Move it to Player::Reset
     enemy->position = (Vector2){ this->scene->screen.width - this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
     enemy->previousPosition = enemy->position;
     enemy->velocity = (Vector2){ 0.0f, 0.0f };
@@ -201,6 +204,8 @@ void MatchManager::FixedUpdate() {
         } else {
             this->PlayerScored();
         }
+
+        std::cout << "Score frame: " << this->scene->frameTick << std::endl;
 
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
             this->scene->eventBus.Emit(std::make_unique<MatchEndEvent>(
