@@ -206,7 +206,7 @@ class LockStepNetworkManager {
 
             this->transport->SendMessage(
                 message,
-                ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT
+                ENET_PACKET_FLAG_UNSEQUENCED
             );
         }
 
@@ -234,7 +234,6 @@ class LockStepNetworkManager {
                 std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
 
                 if (this->receivedInputMessages.size() == 0) {
-                    std::this_thread::yield();
                     continue;
                 }
 
@@ -245,8 +244,6 @@ class LockStepNetworkManager {
                         return input;
                     }
                 }
-
-                std::this_thread::yield();
             }
 
             return PlayerInputTick{0, 0, PlayerInput()};
@@ -338,6 +335,8 @@ class LockStepScene: public Scene {
                     std::chrono::high_resolution_clock::now() - frameStart
                 ).count();
 
+                std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
+
                 this->playerInputManager.playerInputs[
                     otherPlayerInput.playerId
                 ] = otherPlayerInput.input;
@@ -377,8 +376,6 @@ class LockStepScene: public Scene {
                     this->nodeStorage.get(),
                     alpha
                 );
-
-                std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
 
                 // # Wait till next frame
                 while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRateInMs) {}
