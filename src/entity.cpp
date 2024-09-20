@@ -85,7 +85,7 @@ void Paddle::Move(
 
 // # Player
 Player::Player(
-    bool mirror,
+    bool leftSide,
     cen::player_id_t playerId,
     Vector2 position,
     cen::Size size,
@@ -94,7 +94,7 @@ Player::Player(
     float maxVelocity = 10.0f
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 { 
-    this->mirror = mirror;
+    this->leftSide = leftSide;
     this->playerId = playerId;
 };
 
@@ -118,14 +118,14 @@ void Player::Init() {
 };
 
 void Player::ApplyFieldBoundaries() {
-    if (this->mirror) {
-        if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
-            this->position.x = this->scene->screen.width/2 + this->size.width/2;
+    if (this->leftSide) {
+        if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 - this->size.width/2;
             this->velocity.x = 0;
         }
     } else {
-        if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
-            this->position.x = this->scene->screen.width/2 - this->size.width/2;
+        if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 + this->size.width/2;
             this->velocity.x = 0;
         }
     }
@@ -139,11 +139,6 @@ void Player::FixedUpdate() {
     auto directionY = currentPlayerInput.down - currentPlayerInput.up;
     auto directionX = currentPlayerInput.right - currentPlayerInput.left;
 
-    if (this->mirror) {
-        directionY = currentPlayerInput.down - currentPlayerInput.up;
-        directionX = currentPlayerInput.left - currentPlayerInput.right;
-    }
-
     this->Move(
         directionX,
         directionY
@@ -152,7 +147,6 @@ void Player::FixedUpdate() {
 
 // # Ball
 Ball::Ball(
-    bool mirror,
     SpcAudio* gameAudio,
     float radius,
     Vector2 position,
@@ -164,7 +158,6 @@ Ball::Ball(
     this->gameAudio = gameAudio;
     this->radius = radius;
     this->maxVelocity = maxVelocity;
-    this->mirror = mirror;
 };
 
 const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();

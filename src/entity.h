@@ -35,15 +35,15 @@ class Paddle: public cen::CharacterBody2D {
 class Player: public Paddle {
     public:
         static const uint64_t _tid;
-        bool mirror;
         cen::player_id_t playerId;
+        bool leftSide;
 
         cen::type_id_t TypeId() const override {
             return Player::_tid;
         }
 
         Player(
-            bool mirror,
+            bool leftSide,
             cen::player_id_t playerId,
             Vector2 position,
             cen::Size size,
@@ -60,7 +60,6 @@ class Player: public Paddle {
 // # Ball
 class Ball: public cen::CharacterBody2D {
     public:
-        bool mirror;
         float radius;
         float maxVelocity;
         SpcAudio* gameAudio;
@@ -72,7 +71,6 @@ class Ball: public cen::CharacterBody2D {
         }
 
         Ball(
-            bool mirror,
             SpcAudio* gameAudio,
             float radius,
             Vector2 position,
