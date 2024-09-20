@@ -31,14 +31,14 @@ struct ReceivedNetworkMessage {
     std::vector<uint8_t> content;
 };
 
-struct OnMessageReceivedListener {
-    std::function<void(ReceivedNetworkMessage)> onMessageReceived;
-    int id;
-
+struct OnMessageReceivedListener: public Listener<ReceivedNetworkMessage> {
     OnMessageReceivedListener(
-        std::function<void(ReceivedNetworkMessage)> onMessageReceived,
+        std::function<void(ReceivedNetworkMessage)> trigger,
         int id = 0
-    ): onMessageReceived(onMessageReceived), id(id) {}
+    ): Listener(
+        trigger,
+        id
+    ) {}
 };
 
 class UdpTransport {
@@ -166,7 +166,7 @@ class UdpTransport {
             std::cout << "Connection to server succeeded." << std::endl;
 
             for (const auto& listener: this->onMessageReceivedListeners) {
-                listener->onMessageReceived(ReceivedNetworkMessage{
+                listener->trigger(ReceivedNetworkMessage{
                     .type = ReceivedNetworkMessageType::CONNECTED_TO_SERVER
                 });
             }
@@ -289,7 +289,7 @@ class UdpTransport {
                     }
 
                     for (const auto& listener: this->onMessageReceivedListeners) {
-                        listener->onMessageReceived(message);
+                        listener->trigger(message);
                     }
 
                     return message;
@@ -308,7 +308,7 @@ class UdpTransport {
                     };
 
                     for (const auto& listener: this->onMessageReceivedListeners) {
-                        listener->onMessageReceived(message);
+                        listener->trigger(message);
                     }
 
                     return message;
@@ -330,7 +330,7 @@ class UdpTransport {
                     }
 
                     for (const auto& listener: this->onMessageReceivedListeners) {
-                        listener->onMessageReceived(message);
+                        listener->trigger(message);
                     }
 
                     return message;
@@ -345,26 +345,26 @@ class UdpTransport {
     }
 };
 
-struct WrappedOnMessageReceivedListener {
-    UdpTransport* transport;
-    int listenerId;
-
-    WrappedOnMessageReceivedListener(
+struct ScopedOnMessageReceivedListener: public ScopedListener<OnMessageReceivedListener> {
+    ScopedOnMessageReceivedListener(
         UdpTransport* transport,
         std::function<void(ReceivedNetworkMessage)> onMessageReceived,
         int id = 0
-    ): transport(transport) {
-        this->listenerId = transport->OnMessageReceived(
-            std::make_unique<OnMessageReceivedListener>(
-                onMessageReceived,
-                id
-            )
-        );
-    }
-
-    ~WrappedOnMessageReceivedListener() {
-        transport->OffMessageReceived(listenerId);
-    }
+    ): ScopedListener(
+        [&transport](std::unique_ptr<OnMessageReceivedListener> listener) {
+            return transport->OnMessageReceived(
+                std::move(listener)
+            );
+        },
+        [&transport](int id) {
+            transport->OffMessageReceived(id);
+            return;
+        },
+        std::make_unique<OnMessageReceivedListener>(
+            onMessageReceived,
+            id
+        )
+    ) {}
 };
 
 

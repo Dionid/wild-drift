@@ -120,6 +120,39 @@ class PlayerInputManager {
         std::map<player_id_t, PlayerInput> playerInputs;
 };
 
+// # Listeners
+
+template <typename T>
+struct Listener {
+    std::function<void(T)> trigger;
+    int id;
+
+    Listener(
+        std::function<void(T)> trigger,
+        int id = 0
+    ): trigger(trigger), id(id) {}
+};
+
+template <typename T>
+struct ScopedListener {
+    std::function<void(int)> off;
+    int listenerId;
+
+    ScopedListener(
+        std::function<int(std::unique_ptr<T>)> on,
+        std::function<void(int)> off,
+        std::unique_ptr<T> listener
+    ) {
+        this->listenerId = on(
+            std::move(listener)
+        );
+    }
+
+    ~ScopedListener() {
+        this->off(listenerId);
+    }
+};
+
 }
 
 #endif // CENGINE_CORE_H

@@ -16,6 +16,10 @@ enum class MultiplayerNetworkMessageType {
     GAME_DATA,
 
     // # Events
+    CONNECTED_TO_SERVER,
+    DISCONNECTED_FROM_SERVER,
+
+    PLAYER_CONNECTED,
     PLAYER_LEFT,
 };
 
@@ -80,6 +84,16 @@ struct ReceivedMultiplayerNetworkMessage {
     ReceivedNetworkMessage origin;
 };
 
+struct OnMultiplayerMessageReceivedListener: public Listener<ReceivedMultiplayerNetworkMessage> {
+    OnMultiplayerMessageReceivedListener(
+        std::function<void(ReceivedMultiplayerNetworkMessage)> trigger,
+        int id = 0
+    ): Listener(
+        trigger,
+        id
+    ) {}
+};
+
 class MultiplayerNetworkTransport {
     public:
         std::atomic<bool> isRunning = false;
@@ -99,25 +113,68 @@ class MultiplayerNetworkTransport {
         }
 
         int OnMessageReceived(
-            std::function<void(ReceivedMultiplayerNetworkMessage)> onMessageReceived,
-            int id = 0
+            OnMultiplayerMessageReceivedListener onMessageReceived
         ) {
             int newId = this->udpTransport->OnMessageReceived(
                 std::make_unique<OnMessageReceivedListener>(
                     [this, onMessageReceived](ReceivedNetworkMessage message) {
-                        auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
+                        switch (message.type) {
+                            case ReceivedNetworkMessageType::CONNECTED_TO_SERVER: {
+                                onMessageReceived.trigger(ReceivedMultiplayerNetworkMessage{
+                                    .message = MultiplayerNetworkMessage{
+                                        .type = MultiplayerNetworkMessageType::CONNECTED_TO_SERVER,
+                                        .content = {}
+                                    },
+                                    .origin = message
+                                });
+                                break;
+                            }
+                            case ReceivedNetworkMessageType::DISCONNECTED_FROM_SERVER: {
+                                onMessageReceived.trigger(ReceivedMultiplayerNetworkMessage{
+                                    .message = MultiplayerNetworkMessage{
+                                        .type = MultiplayerNetworkMessageType::DISCONNECTED_FROM_SERVER,
+                                        .content = {}
+                                    },
+                                    .origin = message
+                                });
+                                break;
+                            }
+                            case ReceivedNetworkMessageType::PEER_CONNECTED: {
+                                onMessageReceived.trigger(ReceivedMultiplayerNetworkMessage{
+                                    .message = MultiplayerNetworkMessage{
+                                        .type = MultiplayerNetworkMessageType::PLAYER_CONNECTED,
+                                        .content = {}
+                                    },
+                                    .origin = message
+                                });
+                                break;
+                            }
+                            case ReceivedNetworkMessageType::PEER_DISCONNECTED: {
+                                onMessageReceived.trigger(ReceivedMultiplayerNetworkMessage{
+                                    .message = MultiplayerNetworkMessage{
+                                        .type = MultiplayerNetworkMessageType::PLAYER_LEFT,
+                                        .content = {}
+                                    },
+                                    .origin = message
+                                });
+                                break;
+                            }
+                            case ReceivedNetworkMessageType::NEW_MESSAGE: {
+                                auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
 
-                        if (!mm.has_value()) {
-                            // TODO: error
-                            return;
+                                if (!mm.has_value()) {
+                                    // TODO: error
+                                    return;
+                                }
+
+                                onMessageReceived.trigger(ReceivedMultiplayerNetworkMessage{
+                                    .message = mm.value(),
+                                    .origin = message
+                                });
+                            }
                         }
-
-                        onMessageReceived(ReceivedMultiplayerNetworkMessage{
-                            .message = mm.value(),
-                            .origin = message
-                        });
                     },
-                    id
+                    onMessageReceived.id
                 )
             );
             this->listenersIds.push_back(newId);
