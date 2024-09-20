@@ -8,13 +8,15 @@ class SpcMultiplayer {
     public:
         cen::UdpTransport* udpTransport;
         std::unique_ptr<cen::MultiplayerNetworkTransport> multiplayerNetworkTransport;
+        cen::EventBus eventBus;
 
-        int currentPlayerId = -1;
-        int opponentPlayerId = -1;
+        cen::player_id_t currentPlayerId = -1;
+        cen::player_id_t opponentPlayerId = -1;
 
         SpcMultiplayer(
-            cen::UdpTransport* udpTransport
-        ) {
+            cen::UdpTransport* udpTransport,
+            cen::EventBus* eventBus 
+        ): eventBus(eventBus) {
             this->udpTransport = udpTransport;
             this->multiplayerNetworkTransport = std::make_unique<cen::MultiplayerNetworkTransport>(udpTransport);
         }
@@ -49,9 +51,23 @@ class SpcMultiplayer {
                             case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS: {
                                 cen::PlayerJoinSuccessMessage playerJoinSuccessMessage = cen::PlayerJoinSuccessMessage::FromMultiplayerNetworkMessage(message.message);
 
-                                std::cout << "Received player join success message: " << playerJoinSuccessMessage.newPlayerId << std::endl;
+                                this->currentPlayerId = playerJoinSuccessMessage.clientPlayerId;
+                                this->opponentPlayerId = playerJoinSuccessMessage.serverPlayerId;
 
-                                this->currentPlayerId = playerJoinSuccessMessage.newPlayerId;
+                                this->multiplayerNetworkTransport->SendMessage(
+                                    cen::MultiplayerNetworkMessage{
+                                        .type = cen::MultiplayerNetworkMessageType::READY_TO_START,
+                                        .content = {}
+                                    }
+                                );
+                                break;
+                            }
+                            case cen::MultiplayerNetworkMessageType::START_GAME: {
+                                this->eventBus.Emit(
+                                    std::make_unique<cen::SceneChangeRequested>(
+                                        LockStepMatchSceneName
+                                    )
+                                );
                                 break;
                             }
                             default: {
@@ -72,6 +88,7 @@ class SpcMultiplayer {
             int customServerPort = 1234
         ) {
             this->currentPlayerId = 1;
+            this->opponentPlayerId = 2;
 
             multiplayerNetworkTransport->OnMessageReceived(
                 cen::OnMultiplayerMessageReceivedListener(
@@ -82,8 +99,24 @@ class SpcMultiplayer {
                             case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST: {
                                 this->multiplayerNetworkTransport->SendMessage(
                                     cen::PlayerJoinSuccessMessage(
-                                        2
+                                        this->currentPlayerId,
+                                        this->opponentPlayerId
                                     ).ToMultiplayerNetworkMessage()
+                                );
+                                break;
+                            }
+                            case cen::MultiplayerNetworkMessageType::READY_TO_START: {
+                                this->multiplayerNetworkTransport->SendMessage(
+                                    cen::MultiplayerNetworkMessage{
+                                        .type = cen::MultiplayerNetworkMessageType::START_GAME,
+                                        .content = {}
+                                    }
+                                );
+
+                                this->eventBus.Emit(
+                                    std::make_unique<cen::SceneChangeRequested>(
+                                        LockStepMatchSceneName
+                                    )
                                 );
                                 break;
                             }

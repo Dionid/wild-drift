@@ -110,14 +110,25 @@ struct PlayerInputNetworkMessage {
 
         return playerInputMessage;
     }
+
+    MultiplayerNetworkMessage ToMultiplayerNetworkMessage() {
+        return MultiplayerNetworkMessage{
+            .type = MultiplayerNetworkMessageType::GAME_DATA,
+            .content = this->Serialize()
+        };   
+    }
+
+    static PlayerInputNetworkMessage FromMultiplayerNetworkMessage(const MultiplayerNetworkMessage& message) {
+        return PlayerInputNetworkMessage::Deserialize(message.content);
+    }
 };
 
 class LockStepNetworkManager {
     public:
-        bool isStepLockActivated = false;
+        // bool isStepLockActivated = false;
         std::atomic<bool> isRunning = false;
 
-        UdpTransport* transport;
+        MultiplayerNetworkTransport* transport;
 
         cen::player_id_t currentPlayerId;
         std::vector<PlayerInputTick> localInputsBuffer;
@@ -128,28 +139,33 @@ class LockStepNetworkManager {
         std::vector<PlayerInputNetworkMessage> receivedInputMessages;
 
         LockStepNetworkManager(
-            UdpTransport* transport
+            MultiplayerNetworkTransport* transport,
+            cen::player_id_t currentPlayerId,
+            std::vector<cen::player_id_t> connectedPlayers
         ) {
             this->transport = transport;
+            this->currentPlayerId = currentPlayerId;
+            this->connectedPlayers = connectedPlayers;
         }
 
-        void ActivateStepLock() {
-            this->isStepLockActivated = true;
-        }
+        // void ActivateStepLock() {
+        //     this->isStepLockActivated = true;
+        // }
 
         void Init() {
             this->transport->OnMessageReceived(
-                std::make_unique<cen::OnMessageReceivedListener>(
+                cen::OnMultiplayerMessageReceivedListener(
                     [
                         this
-                    ](ReceivedNetworkMessage message) {
-                        if (message.type != ReceivedNetworkMessageType::NEW_MESSAGE) {
+                    ](ReceivedMultiplayerNetworkMessage message) {
+                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
+
+                        if (message.message.type != MultiplayerNetworkMessageType::GAME_DATA) {
                             return;
                         }
 
-                        auto playerInputMessage = PlayerInputNetworkMessage::Deserialize(message.content);
+                        auto playerInputMessage = PlayerInputNetworkMessage::FromMultiplayerNetworkMessage(message.message);
 
-                        std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
                         this->receivedInputMessages.push_back(playerInputMessage);
 
                         // TODO: Change to ring buffer
@@ -167,7 +183,8 @@ class LockStepNetworkManager {
             auto message = PlayerInputNetworkMessage(
                 this->currentPlayerId,
                 this->localInputsBuffer
-            ).Serialize();
+            ).ToMultiplayerNetworkMessage();
+
             this->transport->SendMessage(message);
         }
 
@@ -175,9 +192,9 @@ class LockStepNetworkManager {
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            if (!this->isStepLockActivated) {
-                return PlayerInputTick{0, 0, PlayerInput()};
-            }
+            // if (!this->isStepLockActivated) {
+            //     return PlayerInputTick{0, 0, PlayerInput()};
+            // }
 
             this->localInputsBuffer.push_back(
                 PlayerInputTick{
@@ -221,8 +238,8 @@ class LockStepScene: public Scene {
         std::unique_ptr<LockStepNetworkManager> lockStepNetworkManager;
 
         LockStepScene(
-            cen::UdpTransport* udpTransport,
             scene_name name,
+            std::unique_ptr<LockStepNetworkManager> lockStepNetworkManager,
             cen::ScreenResolution screen,
             Camera2D* camera,
             RenderingEngine2D* renderingEngine,
@@ -246,9 +263,7 @@ class LockStepScene: public Scene {
             std::move(collisionEngine),
             std::move(nodeStorage)
         ) {
-            this->lockStepNetworkManager = std::make_unique<LockStepNetworkManager>(
-                udpTransport
-            );
+            this->lockStepNetworkManager = std::move(lockStepNetworkManager);
         }
 
         virtual void Stop() {

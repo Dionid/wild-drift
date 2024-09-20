@@ -11,6 +11,7 @@ enum class MultiplayerNetworkMessageType {
     // # Commands
     PLAYER_JOIN_REQUEST,
     PLAYER_JOIN_SUCCESS,
+    START_GAME,
     
     // # Data
     GAME_DATA,
@@ -21,6 +22,8 @@ enum class MultiplayerNetworkMessageType {
 
     PLAYER_CONNECTED,
     PLAYER_LEFT,
+
+    READY_TO_START,
 };
 
 struct MultiplayerNetworkMessage {
@@ -80,23 +83,31 @@ struct MultiplayerNetworkMessage {
 };
 
 struct PlayerJoinSuccessMessage {
-    cen::player_id_t newPlayerId;
+    cen::player_id_t serverPlayerId;
+    cen::player_id_t clientPlayerId;
 
     PlayerJoinSuccessMessage() {};
 
     PlayerJoinSuccessMessage(
-        cen::player_id_t newPlayerId
+        cen::player_id_t serverPlayerId,
+        cen::player_id_t clientPlayerId
     ) {
-        this->newPlayerId = newPlayerId;
+        this->serverPlayerId = serverPlayerId;
+        this->clientPlayerId = clientPlayerId;
     }
 
     MultiplayerNetworkMessage ToMultiplayerNetworkMessage() {
         std::vector<uint8_t> buffer;
 
-        // Serialize newPlayerId as raw bytes
-        cen::player_id_t newPlayerIdCopy = newPlayerId;
-        uint8_t* newPlayerIdPtr = reinterpret_cast<uint8_t*>(&newPlayerIdCopy);
-        buffer.insert(buffer.end(), newPlayerIdPtr, newPlayerIdPtr + sizeof(cen::player_id_t));
+        // Serialize serverPlayerId as raw bytes
+        cen::player_id_t serverPlayerIdCopy = serverPlayerId;
+        uint8_t* serverPlayerIdPtr = reinterpret_cast<uint8_t*>(&serverPlayerIdCopy);
+        buffer.insert(buffer.end(), serverPlayerIdPtr, serverPlayerIdPtr + sizeof(cen::player_id_t));
+
+        // Serialize clientPlayerId as raw bytes
+        cen::player_id_t clientPlayerIdCopy = clientPlayerId;
+        uint8_t* clientPlayerIdPtr = reinterpret_cast<uint8_t*>(&clientPlayerIdCopy);
+        buffer.insert(buffer.end(), clientPlayerIdPtr, clientPlayerIdPtr + sizeof(cen::player_id_t));
 
         return MultiplayerNetworkMessage{
             .type = MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS,
@@ -109,11 +120,18 @@ struct PlayerJoinSuccessMessage {
 
         size_t offset = 0;
 
-        // Deserialize newPlayerId
+        // Deserialize serverPlayerId
         if (message.content.size() < sizeof(cen::player_id_t)) {
-            throw std::runtime_error("Insufficient data to deserialize newPlayerId");
+            throw std::runtime_error("Insufficient data to deserialize serverPlayerId");
         }
-        std::memcpy(&playerJoinSuccessMessage.newPlayerId, message.content.data() + offset, sizeof(cen::player_id_t));
+        std::memcpy(&playerJoinSuccessMessage.serverPlayerId, message.content.data() + offset, sizeof(cen::player_id_t));
+        offset += sizeof(cen::player_id_t);
+
+        // Deserialize clientPlayerId
+        if (message.content.size() < sizeof(cen::player_id_t)) {
+            throw std::runtime_error("Insufficient data to deserialize clientPlayerId");
+        }
+        std::memcpy(&playerJoinSuccessMessage.clientPlayerId, message.content.data() + offset, sizeof(cen::player_id_t));
         offset += sizeof(cen::player_id_t);
 
         return playerJoinSuccessMessage;

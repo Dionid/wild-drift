@@ -5,11 +5,13 @@
 1. Multiplayer
     1. Thread results
     1. On disconnect
+1. Managers as Actors?
 1. Event bus Thread safety
 1. Errors
 1. Escape not working in waiting while loop
 1. Logger
 1. EventBus is now flushing only while scene is working
+1. Move SPC logic from .h to .cpp
 1. New features
     1. Capsule Collider
     1. AssetsLoader threads

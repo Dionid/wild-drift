@@ -12,6 +12,7 @@ struct CrossSceneStorage {
     bool isPlayerWon;
 };
 
+// TODO: rename to LocalMatchScene
 class MatchScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
@@ -124,7 +125,7 @@ class MatchLockStepScene: public cen::LockStepScene {
         CrossSceneStorage* crossSceneStorage;
 
         MatchLockStepScene(
-            cen::UdpTransport* udpTransport,
+            SpcMultiplayer* multiplayer,
             CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
@@ -132,8 +133,12 @@ class MatchLockStepScene: public cen::LockStepScene {
             cen::RenderingEngine2D* renderingEngine,
             cen::EventBus* eventBus
         ): cen::LockStepScene(
-            udpTransport,
-            LocalMatchSceneName,
+            LockStepMatchSceneName,
+            std::make_unique<cen::LockStepNetworkManager>(
+                multiplayer->multiplayerNetworkTransport.get(),
+                multiplayer->currentPlayerId,
+                std::vector<cen::player_id_t>{ multiplayer->opponentPlayerId }
+            ),
             screen,
             camera,
             renderingEngine,
@@ -179,9 +184,9 @@ class MatchLockStepScene: public cen::LockStepScene {
             player->zOrder = 1;
 
             // ## Enemy
-            Opponent* enemy = this->nodeStorage->AddNode(
+            Opponent* opponent = this->nodeStorage->AddNode(
                 std::make_unique<Opponent>(
-                    cen::player_id_t(2),
+                    this->lockStepNetworkManager->connectedPlayers[0],
                     (Vector2){ screen.width - sixthScreen, screen.height/2.0f },
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },
@@ -190,15 +195,16 @@ class MatchLockStepScene: public cen::LockStepScene {
                 )
             );
 
-            enemy->zOrder = 1;
+            opponent->zOrder = 1;
 
+            // ## MatchManager
             MatchManager* matchManager = this->nodeStorage->AddNode(std::make_unique<MatchManager>(
                 this->gameAudio
             ));
 
             matchManager->ballId = ball->id;
             matchManager->playerId = player->id;
-            matchManager->enemyId = enemy->id;
+            matchManager->enemyId = opponent->id;
 
             PlaySound(this->gameAudio->start);
 

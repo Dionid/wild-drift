@@ -77,7 +77,8 @@ int main() {
 
     // # SPC Multiplayer
     SpcMultiplayer scpMultiplayer = SpcMultiplayer(
-        mainTransport
+        mainTransport,
+        &eventBus
     );
 
     // # Scenes
@@ -152,6 +153,31 @@ int main() {
                 &eventBus
             ](){
                 return std::make_unique<MatchScene>(
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
+
+    // ## Lock Step Match Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            LockStepMatchSceneName,
+            [
+                &scpMultiplayer,
+                &crossSceneStorage,
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchLockStepScene>(
+                    &scpMultiplayer,
                     &crossSceneStorage,
                     &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
