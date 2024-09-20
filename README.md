@@ -6,6 +6,7 @@
     1. Thread results
     1. On disconnect
 1. Managers as Actors?
+1. Signals to send stopping messages down the tree
 1. Event bus Thread safety
 1. Errors
 1. Escape not working in waiting while loop

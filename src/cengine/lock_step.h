@@ -133,6 +133,7 @@ struct PlayerInputNetworkMessage {
     }
 };
 
+// TODO: rename
 class LockStepNetworkManager {
     public:
         // bool isStepLockActivated = false;
@@ -169,6 +170,14 @@ class LockStepNetworkManager {
                         this
                     ](ReceivedMultiplayerNetworkMessage message) {
                         std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
+
+                        if (
+                            message.message.type == MultiplayerNetworkMessageType::PLAYER_LEFT
+                            || message.message.type == MultiplayerNetworkMessageType::DISCONNECTED_FROM_SERVER
+                        ) {
+                            this->Stop();
+                            return;
+                        }
 
                         if (message.message.type != MultiplayerNetworkMessageType::GAME_DATA) {
                             return;
@@ -243,6 +252,7 @@ class LockStepNetworkManager {
         }
 
         void Stop() {
+            std::cout << "LockStepNetworkManager::Stop" << std::endl;
             this->isRunning.store(false, std::memory_order_release);
         }
 };
@@ -280,12 +290,13 @@ class LockStepScene: public Scene {
             this->lockStepNetworkManager = std::move(lockStepNetworkManager);
         }
 
-        virtual void Stop() {
+        void Stop() override {
+            std::cout << "LockStepNetworkScene::Stop" << std::endl;
             this->lockStepNetworkManager->Stop();
             Scene::Stop();
         }
 
-        void Run() {
+        void Run() override {
             this->lockStepNetworkManager->Init();
 
             if (!this->isInitialized) {
@@ -296,8 +307,9 @@ class LockStepScene: public Scene {
             std::chrono::milliseconds accumulatedFixedTime(0);
             auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
 
-            while (this->isAlive.load(std::memory_order_acquire))    // Detect window close button or ESC key
-            {
+            while (
+                this->isAlive.load(std::memory_order_acquire)
+            ) {
                 // # Frame Tick
                 this->frameTick++;
 

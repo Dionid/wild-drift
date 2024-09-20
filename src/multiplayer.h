@@ -36,8 +36,6 @@ class SpcMultiplayer {
             multiplayerNetworkTransport->OnMessageReceived(
                 cen::OnMultiplayerMessageReceivedListener(
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
-                        std::cout << "Received server message: " << static_cast<int>(message.message.type) << std::endl;
-
                         switch (message.message.type) {
                             case cen::MultiplayerNetworkMessageType::CONNECTED_TO_SERVER: {
                                 this->multiplayerNetworkTransport->SendMessage(
@@ -93,8 +91,6 @@ class SpcMultiplayer {
             multiplayerNetworkTransport->OnMessageReceived(
                 cen::OnMultiplayerMessageReceivedListener(
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
-                        std::cout << "Received client message " << static_cast<int>(message.message.type) << std::endl;
-
                         switch ( message.message.type ) {
                             case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST: {
                                 this->multiplayerNetworkTransport->SendMessage(
@@ -116,6 +112,14 @@ class SpcMultiplayer {
                                 this->eventBus.Emit(
                                     std::make_unique<cen::SceneChangeRequested>(
                                         LockStepMatchSceneName
+                                    )
+                                );
+                                break;
+                            }
+                            case cen::MultiplayerNetworkMessageType::PLAYER_LEFT: {
+                                this->eventBus.Emit(
+                                    std::make_unique<cen::SceneChangeRequested>(
+                                        MainMenuSceneName
                                     )
                                 );
                                 break;

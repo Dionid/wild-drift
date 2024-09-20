@@ -71,7 +71,7 @@ namespace cen {
             virtual void BeforeStop() {};
             virtual void AfterStop() {};
             
-            void Stop() {
+            virtual void Stop() {
                 this->BeforeStop();
                 this->isAlive.store(false, std::memory_order_release);
             };
@@ -353,6 +353,8 @@ namespace cen {
                 } else {
                     this->currentScene = nullptr;
                 }
+
+                std::cout << "SceneManager Stopped" << std::endl;
             }
 
             void StopCurrentSceneSimulation() {

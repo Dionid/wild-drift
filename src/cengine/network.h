@@ -499,6 +499,8 @@ class NetworkManager {
 
                 while (std::chrono::high_resolution_clock::now() - frameStart <= messageReceiveRate) {}
             }
+
+            std::cout << "NetworkManager Stopped" << std::endl;
         }
 
         void Stop() {
