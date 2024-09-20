@@ -344,16 +344,19 @@ class ServerLobbyScene: public cen::LocalScene {
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
                         std::cout << "Received client message " << static_cast<int>(message.message.type) << std::endl;
 
-                        if (message.message.type != cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST) {
-                            return;
-                        }
-
-                        this->multiplayerNetworkTransport->SendMessage(
-                            cen::MultiplayerNetworkMessage{
-                                .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS,
-                                .content = {}
+                        switch ( message.message.type ) {
+                            case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST: {
+                                this->multiplayerNetworkTransport->SendMessage(
+                                    cen::PlayerJoinSuccessMessage(
+                                        10
+                                    ).ToMultiplayerNetworkMessage()
+                                );
+                                break;
                             }
-                        );
+                            default: {
+                                break;
+                            }
+                        }
                     }
                 )
             );
@@ -401,16 +404,26 @@ class ClientLobbyScene: public cen::LocalScene {
                     [this](cen::ReceivedMultiplayerNetworkMessage message){
                         std::cout << "Received server message: " << static_cast<int>(message.message.type) << std::endl;
 
-                        if (message.message.type != cen::MultiplayerNetworkMessageType::CONNECTED_TO_SERVER) {
-                            return;
-                        }
-                        
-                        this->multiplayerNetworkTransport->SendMessage(
-                            cen::MultiplayerNetworkMessage{
-                                .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST,
-                                .content = {}
+                        switch ( message.message.type ) {
+                            case cen::MultiplayerNetworkMessageType::CONNECTED_TO_SERVER: {
+                                this->multiplayerNetworkTransport->SendMessage(
+                                    cen::MultiplayerNetworkMessage{
+                                        .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST,
+                                        .content = {}
+                                    }
+                                );
+                                break;
                             }
-                        );
+                            case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS: {
+                                cen::PlayerJoinSuccessMessage playerJoinSuccessMessage = cen::PlayerJoinSuccessMessage::FromMultiplayerNetworkMessage(message.message);
+
+                                std::cout << "New player id: " << playerJoinSuccessMessage.newPlayerId << std::endl;
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
                     }
                 )
             );

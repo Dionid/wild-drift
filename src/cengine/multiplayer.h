@@ -79,6 +79,47 @@ struct MultiplayerNetworkMessage {
     }
 };
 
+struct PlayerJoinSuccessMessage {
+    cen::player_id_t newPlayerId;
+
+    PlayerJoinSuccessMessage() {};
+
+    PlayerJoinSuccessMessage(
+        cen::player_id_t newPlayerId
+    ) {
+        this->newPlayerId = newPlayerId;
+    }
+
+    MultiplayerNetworkMessage ToMultiplayerNetworkMessage() {
+        std::vector<uint8_t> buffer;
+
+        // Serialize newPlayerId as raw bytes
+        cen::player_id_t newPlayerIdCopy = newPlayerId;
+        uint8_t* newPlayerIdPtr = reinterpret_cast<uint8_t*>(&newPlayerIdCopy);
+        buffer.insert(buffer.end(), newPlayerIdPtr, newPlayerIdPtr + sizeof(cen::player_id_t));
+
+        return MultiplayerNetworkMessage{
+            .type = MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS,
+            .content = buffer
+        };
+    }
+
+    static PlayerJoinSuccessMessage FromMultiplayerNetworkMessage(const MultiplayerNetworkMessage& message) {
+        PlayerJoinSuccessMessage playerJoinSuccessMessage;
+
+        size_t offset = 0;
+
+        // Deserialize newPlayerId
+        if (message.content.size() < sizeof(cen::player_id_t)) {
+            throw std::runtime_error("Insufficient data to deserialize newPlayerId");
+        }
+        std::memcpy(&playerJoinSuccessMessage.newPlayerId, message.content.data() + offset, sizeof(cen::player_id_t));
+        offset += sizeof(cen::player_id_t);
+
+        return playerJoinSuccessMessage;
+    }
+};
+
 struct ReceivedMultiplayerNetworkMessage {
     MultiplayerNetworkMessage message;
     ReceivedNetworkMessage origin;
