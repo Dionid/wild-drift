@@ -80,36 +80,61 @@ struct ReceivedMultiplayerNetworkMessage {
     ReceivedNetworkMessage origin;
 };
 
-class MultiplayerNetworkManager {
+class MultiplayerNetworkTransport {
     public:
         std::atomic<bool> isRunning = false;
         cen::UdpTransport* udpTransport;
-        std::function<void(ReceivedMultiplayerNetworkMessage)> onMessageReceived;
+        std::vector<int> listenersIds;
 
-        MultiplayerNetworkManager(
-            cen::UdpTransport* udpTransport,
-            std::function<void(ReceivedMultiplayerNetworkMessage)> onMessageReceived
+        MultiplayerNetworkTransport(
+            cen::UdpTransport* udpTransport
         ) {
             this->udpTransport = udpTransport;
-            this->onMessageReceived = onMessageReceived;
-            this->udpTransport->OnMessageReceived(
-                std::make_unique<cen::OnMessageReceivedListener>(
-                    [this](ReceivedNetworkMessage message) {
-                        if (this->onMessageReceived != nullptr) {
-                            auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
+        }
 
-                            if (!mm.has_value()) {
-                                return;
-                            }
+        ~MultiplayerNetworkTransport() {
+            for (const auto& listenerId: this->listenersIds) {
+                this->udpTransport->OffMessageReceived(listenerId);
+            }
+        }
 
-                            this->onMessageReceived(ReceivedMultiplayerNetworkMessage{
-                                .message = mm.value(),
-                                .origin = message
-                            });
+        int OnMessageReceived(
+            std::function<void(ReceivedMultiplayerNetworkMessage)> onMessageReceived,
+            int id = 0
+        ) {
+            int newId = this->udpTransport->OnMessageReceived(
+                std::make_unique<OnMessageReceivedListener>(
+                    [this, onMessageReceived](ReceivedNetworkMessage message) {
+                        auto mm = MultiplayerNetworkMessage::Deserialize(message.content);
+
+                        if (!mm.has_value()) {
+                            // TODO: error
+                            return;
                         }
-                    }
+
+                        onMessageReceived(ReceivedMultiplayerNetworkMessage{
+                            .message = mm.value(),
+                            .origin = message
+                        });
+                    },
+                    id
                 )
             );
+            this->listenersIds.push_back(newId);
+            return newId;
+        }
+
+        void OffMessageReceived(int id) {
+            this->listenersIds.erase(
+                std::remove(
+                    this->listenersIds.begin(),
+                    this->listenersIds.end(),
+                    id
+                ),
+                this->listenersIds.end()
+            );
+
+            this->udpTransport->OffMessageReceived(id);
         }
 
         bool SendMessage(
@@ -133,6 +158,25 @@ class MultiplayerNetworkManager {
 
             return MultiplayerNetworkMessage::Deserialize(nextMessage->content);
         }
+};
+
+struct WrappedOnMultiplayerMessageReceivedListener {
+    cen::MultiplayerNetworkTransport* transport;
+    int listenerId;
+
+    WrappedOnMultiplayerMessageReceivedListener(
+        cen::MultiplayerNetworkTransport* transport,
+        std::function<void(ReceivedMultiplayerNetworkMessage)> onMessageReceived,
+        int id = 0
+    ): transport(transport) {
+        this->listenerId = transport->OnMessageReceived(
+            onMessageReceived
+        );
+    }
+
+    ~WrappedOnMultiplayerMessageReceivedListener() {
+        transport->OffMessageReceived(listenerId);
+    }
 };
 
 }
