@@ -25,7 +25,6 @@ void LaunchBallTimer::OnTimerEnd() {
 
     if (ball->mirror) {
         ball->velocity.x *= -1;
-        ball->velocity.y *= -1;
     }
 }
 
