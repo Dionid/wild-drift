@@ -213,6 +213,8 @@ class UdpTransport {
             serverPeer = NULL;
         }
 
+        this->onMessageReceivedListeners.clear();
+
         this->address = ENetAddress{};
     }
 

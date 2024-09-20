@@ -3,6 +3,7 @@
 #include "menus.h"
 #include "match.h"
 #include "events.h"
+#include "multiplayer.h"
 
 #ifndef MAIN_SCENE_H
 #define MAIN_SCENE_H
@@ -282,10 +283,10 @@ class MainMenuScene: public cen::LocalScene {
         cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
         SpcAudio* gameAudio;
-        cen::UdpTransport* udpTransport;
+        SpcMultiplayer* scpMultiplayer;
 
         MainMenuScene(
-            cen::UdpTransport* udpTransport,
+            SpcMultiplayer* scpMultiplayer,
             cen::SceneManager* sceneManager,
             CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
@@ -300,7 +301,7 @@ class MainMenuScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->udpTransport = udpTransport;
+            this->scpMultiplayer = scpMultiplayer;
             this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
             this->gameAudio = gameAudio;
@@ -313,12 +314,10 @@ class MainMenuScene: public cen::LocalScene {
 class ServerLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
-        cen::UdpTransport* udpTransport;
-        int listenerId;
-        std::unique_ptr<cen::MultiplayerNetworkTransport> multiplayerNetworkTransport;
+        SpcMultiplayer* scpMultiplayer;
 
         ServerLobbyScene(
-            cen::UdpTransport* udpTransport,
+            SpcMultiplayer* scpMultiplayer,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -331,39 +330,12 @@ class ServerLobbyScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->udpTransport = udpTransport;
+            this->scpMultiplayer = scpMultiplayer;
             this->gameAudio = gameAudio;
-            this->multiplayerNetworkTransport = std::make_unique<cen::MultiplayerNetworkTransport>(udpTransport);
         }
 
-        void BeforeStop() override {}
-
         void Init() override {
-            multiplayerNetworkTransport->OnMessageReceived(
-                cen::OnMultiplayerMessageReceivedListener(
-                    [this](cen::ReceivedMultiplayerNetworkMessage message){
-                        std::cout << "Received client message " << static_cast<int>(message.message.type) << std::endl;
-
-                        switch ( message.message.type ) {
-                            case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST: {
-                                this->multiplayerNetworkTransport->SendMessage(
-                                    cen::PlayerJoinSuccessMessage(
-                                        10
-                                    ).ToMultiplayerNetworkMessage()
-                                );
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
-                        }
-                    }
-                )
-            );
-
-            this->udpTransport->InitAsServer(
-                1234
-            );
+            this->scpMultiplayer->InitAsServer();
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
         }
@@ -373,12 +345,10 @@ class ServerLobbyScene: public cen::LocalScene {
 class ClientLobbyScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
-        cen::UdpTransport* udpTransport;
-        int listenerId;
-        std::unique_ptr<cen::MultiplayerNetworkTransport> multiplayerNetworkTransport;
+        SpcMultiplayer* scpMultiplayer;
 
         ClientLobbyScene(
-            cen::UdpTransport* udpTransport,
+            SpcMultiplayer* scpMultiplayer,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -391,47 +361,12 @@ class ClientLobbyScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->udpTransport = udpTransport;
+            this->scpMultiplayer = scpMultiplayer;
             this->gameAudio = gameAudio;
-            this->multiplayerNetworkTransport = std::make_unique<cen::MultiplayerNetworkTransport>(udpTransport);
         }
 
-        void BeforeStop() override {}
-
         void Init() override {
-            multiplayerNetworkTransport->OnMessageReceived(
-                cen::OnMultiplayerMessageReceivedListener(
-                    [this](cen::ReceivedMultiplayerNetworkMessage message){
-                        std::cout << "Received server message: " << static_cast<int>(message.message.type) << std::endl;
-
-                        switch ( message.message.type ) {
-                            case cen::MultiplayerNetworkMessageType::CONNECTED_TO_SERVER: {
-                                this->multiplayerNetworkTransport->SendMessage(
-                                    cen::MultiplayerNetworkMessage{
-                                        .type = cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST,
-                                        .content = {}
-                                    }
-                                );
-                                break;
-                            }
-                            case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS: {
-                                cen::PlayerJoinSuccessMessage playerJoinSuccessMessage = cen::PlayerJoinSuccessMessage::FromMultiplayerNetworkMessage(message.message);
-
-                                std::cout << "New player id: " << playerJoinSuccessMessage.newPlayerId << std::endl;
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
-                        }
-                    }
-                )
-            );
-
-            this->udpTransport->InitAsClient(
-                "127.0.0.1",
-                1234
-            );
+            this->scpMultiplayer->InitAsClient();
 
             this->nodeStorage->AddNode(std::make_unique<ServerLobbyMenu>());
         }

@@ -3,7 +3,7 @@
 void MainMenuScene::Init() {
     EnableCursor();
 
-    this->udpTransport->Deinit();
+    this->scpMultiplayer->Deinit();
 
     // ## MainMenu
     MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
@@ -33,7 +33,7 @@ void MainMenuScene::Init() {
     ](const cen::Event* event) {
         this->sceneManager->ChangeScene(
             std::make_unique<ServerLobbyScene>(
-                this->udpTransport,
+                this->scpMultiplayer,
                 this->gameAudio,
                 this->screen,
                 this->camera,
@@ -56,7 +56,7 @@ void MainMenuScene::Init() {
     ](const cen::Event* event) {
         this->sceneManager->ChangeScene(
             std::make_unique<ClientLobbyScene>(
-                this->udpTransport,
+                this->scpMultiplayer,
                 this->gameAudio,
                 this->screen,
                 this->camera,

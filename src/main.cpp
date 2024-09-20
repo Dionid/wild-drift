@@ -75,6 +75,11 @@ int main() {
         std::make_unique<cen::UdpTransport>()
     );
 
+    // # SPC Multiplayer
+    SpcMultiplayer scpMultiplayer = SpcMultiplayer(
+        mainTransport
+    );
+
     // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
@@ -90,7 +95,7 @@ int main() {
         std::make_unique<cen::SceneConstructor>(
             MainMenuSceneName,
             [
-                mainTransport,
+                &scpMultiplayer,
                 &crossSceneStorage,
                 &gameAudio,
                 &sceneManager,
@@ -99,7 +104,7 @@ int main() {
                 &eventBus
             ](){
                 return std::make_unique<MainMenuScene>(
-                    mainTransport,
+                    &scpMultiplayer,
                     &sceneManager,
                     &crossSceneStorage,
                     &gameAudio,
