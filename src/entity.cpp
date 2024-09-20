@@ -113,6 +113,18 @@ void Player::Init() {
     );
 };
 
+void Player::Reset() {
+    this->velocity = (Vector2){ 0.0f, 0.0f };
+
+    if (this->leftSide) {
+        this->position = (Vector2){ this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
+        this->previousPosition = this->position;
+    } else {
+        this->position = (Vector2){ this->scene->screen.width - this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
+        this->previousPosition = this->position;
+    }
+}
+
 void Player::ApplyFieldBoundaries() {
     if (this->leftSide) {
         if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {

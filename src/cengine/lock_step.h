@@ -228,7 +228,7 @@ class LockStepNetworkManager {
 
             this->SendTickInput();
 
-            auto beforeReceive = std::chrono::high_resolution_clock::now();
+            // auto beforeReceive = std::chrono::high_resolution_clock::now();
 
             while (
                 this->isRunning.load(std::memory_order_acquire)
@@ -382,7 +382,7 @@ class LockStepScene: public Scene {
                     alpha
                 );
 
-                // std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
+                std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
 
                 // # Wait till next frame
                 while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRateInMs) {}

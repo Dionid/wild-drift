@@ -59,6 +59,8 @@ class Player: public Paddle {
         void FixedUpdate() override;
         void Init() override;
         void ApplyFieldBoundaries() override;
+
+        void Reset();
 };
 
 // # Ball

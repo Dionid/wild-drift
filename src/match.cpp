@@ -136,15 +136,8 @@ void MatchManager::ResetEntities() {
     ball->previousPosition = ball->position;
     ball->velocity = (Vector2){ 0.0f, 0.0f };
 
-    // TODO: Move it to Player::Reset
-    player->position = (Vector2){ this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
-    player->previousPosition = player->position;
-    player->velocity = (Vector2){ 0.0f, 0.0f };
-
-    // TODO: Move it to Player::Reset
-    enemy->position = (Vector2){ this->scene->screen.width - this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
-    enemy->previousPosition = enemy->position;
-    enemy->velocity = (Vector2){ 0.0f, 0.0f };
+    player->Reset();
+    enemy->Reset();
 
     this->launchBallTimer->Reset();
 }
