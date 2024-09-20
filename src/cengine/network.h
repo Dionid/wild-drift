@@ -80,7 +80,7 @@ class UdpTransport {
 
     UdpTransport(
         uint64_t serverPort = 1234,
-        enet_uint32 defaultPollTimeout = 1000,
+        enet_uint32 defaultPollTimeout = 0,
         std::string serverHost = ""
     ) {
         this->serverPort = serverPort;

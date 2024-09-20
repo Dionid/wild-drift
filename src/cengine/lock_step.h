@@ -133,20 +133,21 @@ struct PlayerInputNetworkMessage {
     }
 };
 
-// TODO: rename
 class LockStepNetworkManager {
     public:
-        // bool isStepLockActivated = false;
         std::atomic<bool> isRunning = false;
 
         MultiplayerNetworkTransport* transport;
 
         cen::player_id_t currentPlayerId;
+        
+        // TODO: Change to ring buffer
         std::vector<PlayerInputTick> localInputsBuffer;
 
         std::vector<cen::player_id_t> connectedPlayers;
 
         std::mutex receivedInputMessagesMutex;
+        // TODO: Change to ring buffer
         std::vector<PlayerInputNetworkMessage> receivedInputMessages;
 
         LockStepNetworkManager(
@@ -158,10 +159,6 @@ class LockStepNetworkManager {
             this->currentPlayerId = currentPlayerId;
             this->connectedPlayers = connectedPlayers;
         }
-
-        // void ActivateStepLock() {
-        //     this->isStepLockActivated = true;
-        // }
 
         void Init() {
             this->transport->OnMessageReceived(
@@ -191,7 +188,6 @@ class LockStepNetworkManager {
 
                         this->receivedInputMessages.push_back(playerInputMessage.value());
 
-                        // TODO: Change to ring buffer
                         if (this->receivedInputMessages.size() > 100) {
                             this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
                         }
@@ -208,17 +204,16 @@ class LockStepNetworkManager {
                 this->localInputsBuffer
             ).ToMultiplayerNetworkMessage();
 
-            this->transport->SendMessage(message);
+            this->transport->SendMessage(
+                message,
+                ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT
+            );
         }
 
         PlayerInputTick SendAndWaitForPlayersInputs(
             uint64_t tick,
             PlayerInput currentPlayerInput
         ) {
-            // if (!this->isStepLockActivated) {
-            //     return PlayerInputTick{0, 0, PlayerInput()};
-            // }
-
             this->localInputsBuffer.push_back(
                 PlayerInputTick{
                     this->currentPlayerId,
@@ -227,24 +222,34 @@ class LockStepNetworkManager {
                 }
             );
 
-            // TODO: Change to ring buffer
             if (this->localInputsBuffer.size() > 30) {
                 this->localInputsBuffer.erase(this->localInputsBuffer.begin() + 20);
             }
 
             this->SendTickInput();
 
+            auto beforeReceive = std::chrono::high_resolution_clock::now();
+
             while (
                 this->isRunning.load(std::memory_order_acquire)
             ) {
                 std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
-                for (const auto& playerInputMessage: this->receivedInputMessages) {
-                    for (const auto& input: playerInputMessage.inputs) {
-                        if (input.tick == tick) {
-                            return input;
-                        }
+
+                if (this->receivedInputMessages.size() == 0) {
+                    std::this_thread::yield();
+                    continue;
+                }
+
+                const auto& lastMessage = this->receivedInputMessages.back();
+
+                for (const auto& input: lastMessage.inputs) {
+                    if (input.tick == tick) {
+                        // std::cout << "r: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - beforeReceive).count() << ".0 ms" << std::endl;
+
+                        return input;
                     }
                 }
+
                 std::this_thread::yield();
             }
 
@@ -252,7 +257,6 @@ class LockStepNetworkManager {
         }
 
         void Stop() {
-            std::cout << "LockStepNetworkManager::Stop" << std::endl;
             this->isRunning.store(false, std::memory_order_release);
         }
 };
@@ -291,7 +295,6 @@ class LockStepScene: public Scene {
         }
 
         void Stop() override {
-            std::cout << "LockStepNetworkScene::Stop" << std::endl;
             this->lockStepNetworkManager->Stop();
             Scene::Stop();
         }
@@ -335,6 +338,10 @@ class LockStepScene: public Scene {
                     currentPlayerInput
                 );
 
+                auto inputArrivalTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - frameStart
+                ).count();
+
                 this->playerInputManager.playerInputs[
                     otherPlayerInput.playerId
                 ] = otherPlayerInput.input;
@@ -374,6 +381,8 @@ class LockStepScene: public Scene {
                     this->nodeStorage.get(),
                     alpha
                 );
+
+                // std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
 
                 // # Wait till next frame
                 while (std::chrono::high_resolution_clock::now() - frameStart <= simulationFrameRateInMs) {}

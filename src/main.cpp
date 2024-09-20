@@ -67,7 +67,9 @@ int main() {
     );
 
     // # Network Manager
-    cen::NetworkManager networkManager = cen::NetworkManager();
+    cen::NetworkManager networkManager = cen::NetworkManager(
+        240
+    );
 
     // # Main Udp Transport
     cen::UdpTransport* mainTransport = networkManager.AddTransport(
@@ -152,7 +154,7 @@ int main() {
                 &renderingEngine,
                 &eventBus
             ](){
-                return std::make_unique<MatchScene>(
+                return std::make_unique<LocalMatchScene>(
                     &crossSceneStorage,
                     &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},

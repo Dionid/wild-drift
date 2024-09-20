@@ -1,5 +1,7 @@
 #include "scenes.h"
 
+// # MainMenuScene
+
 void MainMenuScene::Init() {
     EnableCursor();
 

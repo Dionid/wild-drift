@@ -12,13 +12,12 @@ struct CrossSceneStorage {
     bool isPlayerWon;
 };
 
-// TODO: rename to LocalMatchScene
-class MatchScene: public cen::LocalScene {
+class LocalMatchScene: public cen::LocalScene {
     public:
         SpcAudio* gameAudio;
         CrossSceneStorage* crossSceneStorage;
 
-        MatchScene(
+        LocalMatchScene(
             CrossSceneStorage* crossSceneStorage,
             SpcAudio* gameAudio,
             cen::ScreenResolution screen,
