@@ -151,7 +151,7 @@ class LockStepNetworkManager {
 
         std::mutex receivedInputMessagesMutex;
         // TODO: Change to ring buffer
-        std::vector<PlayerInputNetworkMessage> receivedInputMessages;
+        std::unordered_map<uint64_t, std::unordered_map<cen::player_id_t, PlayerInputTick>> receivedInputMessages;
 
         LockStepNetworkManager(
             MultiplayerNetworkTransport* transport,
@@ -191,11 +191,18 @@ class LockStepNetworkManager {
                             return;
                         }
 
-                        this->receivedInputMessages.push_back(playerInputMessage.value());
+                        for (const auto& input: playerInputMessage.value().inputs) {
+                            if (this->receivedInputMessages.find(input.tick) == this->receivedInputMessages.end()) {
+                                this->receivedInputMessages[input.tick] = std::unordered_map<cen::player_id_t, PlayerInputTick>{};
+                            }
 
-                        if (this->receivedInputMessages.size() > 100) {
-                            this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
+                            this->receivedInputMessages[input.tick][input.playerId] = input;
                         }
+
+                        // this->receivedInputMessages.push_back(playerInputMessage.value());
+                        // if (this->receivedInputMessages.size() > 100) {
+                        //     this->receivedInputMessages.erase(this->receivedInputMessages.begin() + 20);
+                        // }
                     }
                 )
             );
@@ -235,11 +242,8 @@ class LockStepNetworkManager {
 
             this->SendTickInput();
 
-            bool done = false;
-
             while (
-                this->isRunning.load(std::memory_order_acquire) &&
-                !done
+                this->isRunning.load(std::memory_order_acquire)
             ) {
                 std::lock_guard<std::mutex> lock(this->receivedInputMessagesMutex);
 
@@ -247,23 +251,19 @@ class LockStepNetworkManager {
                     continue;
                 }
 
-                const auto& lastMessage = this->receivedInputMessages.back();
-
-                for (const auto& input: lastMessage.inputs) {
-                    if (input.tick == tick - playoutDelay) {
-                        result[input.playerId] = input;
-                        done = true;
-                        break;
-                    }
+                if (this->receivedInputMessages.find(tick) == this->receivedInputMessages.end()) {
+                    continue;
                 }
 
-                if (!done) {
-                    return result;
+                for (const auto& [playerId, message]: this->receivedInputMessages[tick]) {
+                    result[playerId] = message;
                 }
+
+                break;
             }
 
             for (const auto& localInput: this->localInputsBuffer) {
-                if (localInput.tick == tick - playoutDelay) {
+                if (localInput.tick == tick) {
                     result[this->localPlayerId] = localInput;
                 }
             }

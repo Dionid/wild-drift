@@ -3,10 +3,10 @@
 # Roadmap
 
 1. Multiplayer
-    1. If ready
     1. Thread results
     1. On disconnect
     1. cen::PlayerInputManager to parent class
+    1. Loop throw received messages (or index somehow)
     1. Remove coping of network messages
     1. Check Float Precision
     1. (optional) Broadcast from host to clients
