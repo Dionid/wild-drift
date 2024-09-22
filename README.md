@@ -3,10 +3,14 @@
 # Roadmap
 
 1. Multiplayer
+    1. If ready
     1. Thread results
     1. On disconnect
+    1. cen::PlayerInputManager to parent class
     1. Remove coping of network messages
     1. Check Float Precision
+    1. (optional) Broadcast from host to clients
+    1. P2P
 1. Managers as Actors?
 1. Signals to send stopping messages down the tree
 1. Event bus Thread safety
@@ -15,6 +19,7 @@
 1. Logger
 1. EventBus is now flushing only while scene is working
 1. Move SPC logic from .h to .cpp
+1. More private / protected members
 1. New features
     1. Capsule Collider
     1. AssetsLoader threads

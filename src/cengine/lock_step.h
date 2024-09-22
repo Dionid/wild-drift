@@ -315,9 +315,8 @@ class LockStepScene: public Scene {
                 this->FullInit();
             }
 
-            float fixedTickEveryFrameTicks = this->simulationFrameRate / this->simulationFixedFrameRate;
-            int lastFixedFrameTick = this->frameTick;
-            int accumulatedFixedFrame = 0;
+            float fixedTickEveryFrameTicks = static_cast<float>(this->simulationFrameRate) / this->simulationFixedFrameRate;
+            float accumulatedFixedFrame = 0.0f;
 
             while (
                 this->isAlive.load(std::memory_order_acquire)
@@ -342,6 +341,7 @@ class LockStepScene: public Scene {
                     currentPlayerInput
                 );
 
+                // # Map players input
                 for (const auto& [playerId, input]: playersInputs) {
                     if (playerId == this->lockStepNetworkManager->currentPlayerId) {
                         this->playerInputManager.currentPlayerInput = input.input;
@@ -349,22 +349,19 @@ class LockStepScene: public Scene {
                     this->playerInputManager.playerInputs[playerId] = input.input;
                 }
 
-                auto inputArrivalTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::high_resolution_clock::now() - frameStart
-                ).count();
+                // auto inputArrivalTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                //     std::chrono::high_resolution_clock::now() - frameStart
+                // ).count();
 
-                std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
+                // std::cout << "i: " << inputArrivalTime << ".0 ms" << std::endl;
 
                 // # Init new nodes
                 this->nodeStorage->InitNewNodes();
 
                 // # Fixed update
-                int fixedFrameDuration = this->frameTick - lastFixedFrameTick;
-                lastFixedFrameTick = this->frameTick;
-                accumulatedFixedFrame += fixedFrameDuration;
+                accumulatedFixedFrame += 1.0f;
 
-                int fixedUpdateCycles = 0;
-                while (accumulatedFixedFrame >= fixedTickEveryFrameTicks && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
+                while (accumulatedFixedFrame >= fixedTickEveryFrameTicks) {
                     this->fixedSimulationTick++;
 
                     // # Simulation current Tick
@@ -372,7 +369,6 @@ class LockStepScene: public Scene {
 
                     // ## Correct time and cycles
                     accumulatedFixedFrame -= fixedTickEveryFrameTicks;
-                    fixedUpdateCycles++;
                 }
 
                 // # Initial

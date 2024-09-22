@@ -197,6 +197,8 @@ void MatchManager::FixedUpdate() {
             this->PlayerScored();
         }
 
+        std::cout << "Score frame: " << this->scene->frameTick << std::endl;
+
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
             this->scene->eventBus.Emit(std::make_unique<MatchEndEvent>(
                 this->playerScore >= this->winScore
