@@ -115,8 +115,8 @@ struct PlayerInput {
 
 class PlayerInputManager {
     public:
-        player_id_t currentPlayerId;
-        PlayerInput currentPlayerInput;
+        player_id_t localPlayerId;
+        PlayerInput localPlayerInput;
         std::map<player_id_t, PlayerInput> playerInputs;
 };
 

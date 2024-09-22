@@ -138,8 +138,9 @@ class MatchLockStepScene: public cen::LockStepScene {
             LockStepMatchSceneName,
             std::make_unique<cen::LockStepNetworkManager>(
                 multiplayer->multiplayerNetworkTransport.get(),
-                multiplayer->currentPlayerId,
-                std::vector<cen::player_id_t>{ multiplayer->opponentPlayerId }
+                multiplayer->localPlayerId,
+                std::vector<cen::player_id_t>{ multiplayer->opponentPlayerId },
+                3
             ),
             screen,
             camera,
@@ -180,7 +181,7 @@ class MatchLockStepScene: public cen::LockStepScene {
             Player* player = this->nodeStorage->AddNode(
                 std::make_unique<Player>(
                     isHost,
-                    this->lockStepNetworkManager->currentPlayerId,
+                    this->lockStepNetworkManager->localPlayerId,
                     isHost ? leftSidePosition : rightSidePosition,
                     (cen::Size){ 40.0f, 120.0f },
                     (Vector2){ 0.0f, 0.0f },

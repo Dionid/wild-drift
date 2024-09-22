@@ -162,15 +162,15 @@ namespace cen {
                     this->frameTick++;
 
                     // # Input
-                    auto currentPlayerInput = cen::PlayerInput{
+                    auto localPlayerInput = cen::PlayerInput{
                         IsKeyDown(KEY_W),
                         IsKeyDown(KEY_S),
                         IsKeyDown(KEY_A),
                         IsKeyDown(KEY_D)
                     };
 
-                    this->playerInputManager.currentPlayerInput = currentPlayerInput;
-                    this->playerInputManager.playerInputs[0] = currentPlayerInput;
+                    this->playerInputManager.localPlayerInput = localPlayerInput;
+                    this->playerInputManager.playerInputs[0] = localPlayerInput;
 
                     // # Start
                     auto frameStart = std::chrono::high_resolution_clock::now();

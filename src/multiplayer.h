@@ -10,7 +10,7 @@ class SpcMultiplayer {
         std::unique_ptr<cen::MultiplayerNetworkTransport> multiplayerNetworkTransport;
         cen::EventBus eventBus;
 
-        cen::player_id_t currentPlayerId = -1;
+        cen::player_id_t localPlayerId = -1;
         cen::player_id_t opponentPlayerId = -1;
 
         SpcMultiplayer(
@@ -22,7 +22,7 @@ class SpcMultiplayer {
         }
 
         void Deinit() {
-            this->currentPlayerId = -1;
+            this->localPlayerId = -1;
             this->opponentPlayerId = -1;
             this->udpTransport->Deinit();
         }
@@ -49,7 +49,7 @@ class SpcMultiplayer {
                             case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_SUCCESS: {
                                 cen::PlayerJoinSuccessMessage playerJoinSuccessMessage = cen::PlayerJoinSuccessMessage::FromMultiplayerNetworkMessage(message.message);
 
-                                this->currentPlayerId = playerJoinSuccessMessage.clientPlayerId;
+                                this->localPlayerId = playerJoinSuccessMessage.clientPlayerId;
                                 this->opponentPlayerId = playerJoinSuccessMessage.serverPlayerId;
 
                                 this->multiplayerNetworkTransport->SendMessage(
@@ -85,7 +85,7 @@ class SpcMultiplayer {
         void InitAsServer(
             int customServerPort = 1234
         ) {
-            this->currentPlayerId = 1;
+            this->localPlayerId = 1;
             this->opponentPlayerId = 2;
 
             multiplayerNetworkTransport->OnMessageReceived(
@@ -95,7 +95,7 @@ class SpcMultiplayer {
                             case cen::MultiplayerNetworkMessageType::PLAYER_JOIN_REQUEST: {
                                 this->multiplayerNetworkTransport->SendMessage(
                                     cen::PlayerJoinSuccessMessage(
-                                        this->currentPlayerId,
+                                        this->localPlayerId,
                                         this->opponentPlayerId
                                     ).ToMultiplayerNetworkMessage()
                                 );
