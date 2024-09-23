@@ -158,6 +158,9 @@ namespace cen {
 
                 while (this->isAlive.load(std::memory_order_acquire))    // Detect window close button or ESC key
                 {
+                    // # Start
+                    auto frameStart = std::chrono::high_resolution_clock::now();
+
                     // # Frame Tick
                     this->frameTick++;
 
@@ -171,9 +174,6 @@ namespace cen {
 
                     this->playerInputManager.localPlayerInput = localPlayerInput;
                     this->playerInputManager.playerInputs[0] = localPlayerInput;
-
-                    // # Start
-                    auto frameStart = std::chrono::high_resolution_clock::now();
 
                     // # Init new nodes
                     this->nodeStorage->InitNewNodes();

@@ -59,6 +59,7 @@ class UdpTransport {
     bool isServer;
     std::atomic<bool> isRunning = false;
     std::mutex busy;
+    std::mutex pendingMessagesMutex;
     uint64_t serverPort;
     ENetAddress address;
 
@@ -227,6 +228,8 @@ class UdpTransport {
             return false;
         }
 
+        std::lock_guard<std::mutex> lock(pendingMessagesMutex);
+
         this->pendingMessages.push_back(
             PendingNetworkMessage(
                 message,
@@ -242,6 +245,8 @@ class UdpTransport {
         if (isRunning.load(std::memory_order_acquire) == false) {
             return;
         }
+
+        std::lock_guard<std::mutex> lock(pendingMessagesMutex);
 
         for (const auto& message: this->pendingMessages) {
             ENetPacket* packet = enet_packet_create(

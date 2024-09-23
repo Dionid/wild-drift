@@ -11,6 +11,7 @@
     1. Check Float Precision
     1. (optional) Broadcast from host to clients
     1. P2P
+1. uint64_t -> smaller types
 1. Managers as Actors?
 1. Signals to send stopping messages down the tree
 1. Event bus Thread safety

@@ -50,10 +50,6 @@ struct PlayerInputNetworkMessage {
             uint8_t* inputTickPtr = reinterpret_cast<uint8_t*>(&inputTickCopy);
             buffer.insert(buffer.end(), inputTickPtr, inputTickPtr + sizeof(uint64_t));
 
-            // Serialize PlayerInput
-            // std::vector<uint8_t> inputPlayerInputSerialized = input.input.Serialize();
-            // buffer.insert(buffer.end(), inputPlayerInputSerialized.begin(), inputPlayerInputSerialized.end());
-
             input.input.Serialize(buffer);
         }
 
@@ -231,7 +227,7 @@ class LockStepNetworkManager {
             this->localInputsBuffer.push_back(
                 PlayerInputTick{
                     this->localPlayerId,
-                    tick,
+                    tick + this->playoutDelay,
                     localPlayerInput
                 }
             );
@@ -324,6 +320,16 @@ class LockStepScene: public Scene {
 
             float fixedTickEveryFrameTicks = static_cast<float>(this->simulationFrameRate) / this->simulationFixedFrameRate;
             float accumulatedFixedFrame = 0.0f;
+
+            for (uint64_t i = 0; i < this->lockStepNetworkManager->playoutDelay; i++) {
+                this->lockStepNetworkManager->localInputsBuffer.push_back(
+                    PlayerInputTick{
+                        this->lockStepNetworkManager->localPlayerId,
+                        i + 1,
+                        cen::PlayerInput{}
+                    }
+                );
+            }
 
             while (
                 this->isAlive.load(std::memory_order_acquire)
