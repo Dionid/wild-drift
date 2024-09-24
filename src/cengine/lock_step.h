@@ -267,6 +267,18 @@ class LockStepNetworkManager {
             return result;
         }
 
+        void FillLocalInputForDelayBuffer() {
+            for (uint64_t i = 0; i < this->playoutDelay; i++) {
+                this->localInputsBuffer.push_back(
+                    PlayerInputTick{
+                        this->localPlayerId,
+                        i + 1,
+                        cen::PlayerInput{}
+                    }
+                );
+            }
+        }
+
         void Stop() {
             this->isRunning.store(false, std::memory_order_release);
         }
@@ -321,15 +333,7 @@ class LockStepScene: public Scene {
             float fixedTickEveryFrameTicks = static_cast<float>(this->simulationFrameRate) / this->simulationFixedFrameRate;
             float accumulatedFixedFrame = 0.0f;
 
-            for (uint64_t i = 0; i < this->lockStepNetworkManager->playoutDelay; i++) {
-                this->lockStepNetworkManager->localInputsBuffer.push_back(
-                    PlayerInputTick{
-                        this->lockStepNetworkManager->localPlayerId,
-                        i + 1,
-                        cen::PlayerInput{}
-                    }
-                );
-            }
+            this->lockStepNetworkManager->FillLocalInputForDelayBuffer();
 
             while (
                 this->isAlive.load(std::memory_order_acquire)
