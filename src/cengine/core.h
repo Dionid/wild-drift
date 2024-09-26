@@ -80,6 +80,7 @@ static int getTypeId(T* value) {
     return TypeTag<T>::id;
 }
 
+// TODO: move this away to game logic
 // # Input
 struct PlayerInput {
     bool up;

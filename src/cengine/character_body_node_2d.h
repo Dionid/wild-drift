@@ -45,9 +45,7 @@ class CharacterBody2D: public CollisionObject2D {
             this->position.y += this->velocity.y;
         }
 
-        void MoveAndSlide(
-            
-        ) {
+        void MoveAndSlide() {
             if (this->velocity.x == 0 && this->velocity.y == 0) {
                 return;
             }

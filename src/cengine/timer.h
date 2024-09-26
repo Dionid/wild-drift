@@ -37,7 +37,7 @@ class Timer: public Node {
                     this->createdAt = this->scene->frameTick;
                     break;
                 case TimerMode::FIXED_FRAMES:
-                    this->createdAt = this->scene->fixedSimulationTick;
+                    this->createdAt = this->scene->fixedFrameTick;
                     break;
             }
         }
@@ -68,7 +68,7 @@ class Timer: public Node {
                     }
                     break;
                 case TimerMode::FIXED_FRAMES:
-                    if (this->scene->fixedSimulationTick - this->createdAt >= this->triggerAfter) {
+                    if (this->scene->fixedFrameTick - this->createdAt >= this->triggerAfter) {
                         this->OnTimerEnd();
                         this->Deactivate();
                     }

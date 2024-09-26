@@ -330,7 +330,7 @@ class LockStepScene: public Scene {
                 this->FullInit();
             }
 
-            float fixedTickEveryFrameTicks = static_cast<float>(this->simulationFrameRate) / this->simulationFixedFrameRate;
+            float fixedTickEveryFrameTicks = static_cast<float>(this->simulationFrameRate) / this->fixedSimulationFrameRate;
             float accumulatedFixedFrame = 0.0f;
 
             this->lockStepNetworkManager->FillLocalInputForDelayBuffer();
@@ -373,7 +373,7 @@ class LockStepScene: public Scene {
                 accumulatedFixedFrame += 1.0f;
 
                 while (accumulatedFixedFrame >= fixedTickEveryFrameTicks) {
-                    this->fixedSimulationTick++;
+                    this->fixedFrameTick++;
 
                     // # Simulation current Tick
                     this->FixedSimulationTick();

@@ -20,16 +20,17 @@ namespace cen {
             scene_name name;
 
             u_int64_t frameTick;
-            u_int64_t fixedSimulationTick;
+            u_int64_t fixedFrameTick;
 
             int simulationFrameRate;
             std::chrono::milliseconds simulationFrameRateInMs;
-            int simulationFixedFrameRate;
-            std::chrono::milliseconds simulationFixedFrameRateInMs;
-            int simulationFixedFrameCyclesLimit;
+            int fixedSimulationFrameRate;
+            std::chrono::milliseconds fixedSimulationFrameRateInMs;
+            int fixedSimulationFrameCyclesLimit;
 
             Camera2D* camera;
             cen::ScreenResolution screen;
+            // TODO: change this to pointer
             cen::PlayerInputManager playerInputManager;
             cen::RenderingEngine2D* renderingEngine;
             cen::EventBus eventBus;
@@ -45,7 +46,7 @@ namespace cen {
                 cen::EventBus* eventBus,
                 int simulationFrameRate = 60,
                 int simulationFixedFrameRate = 40,
-                int simulationFixedFrameCyclesLimit = 10,
+                int fixedSimulationFrameCyclesLimit = 10,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
@@ -62,11 +63,11 @@ namespace cen {
                 this->nodeStorage->scene = this;
 
                 this->simulationFrameRate = simulationFrameRate;
-                this->simulationFixedFrameRate = simulationFixedFrameRate;
+                this->fixedSimulationFrameRate = simulationFixedFrameRate;
 
                 this->simulationFrameRateInMs = std::chrono::milliseconds(1000 / simulationFrameRate);
-                this->simulationFixedFrameRateInMs = std::chrono::milliseconds(1000 / simulationFixedFrameRate);
-                this->simulationFixedFrameCyclesLimit = simulationFixedFrameCyclesLimit;
+                this->fixedSimulationFrameRateInMs = std::chrono::milliseconds(1000 / simulationFixedFrameRate);
+                this->fixedSimulationFrameCyclesLimit = fixedSimulationFrameCyclesLimit;
             }
 
             virtual ~Scene() {};
@@ -123,7 +124,7 @@ namespace cen {
                 cen::EventBus* eventBus,
                 int simulationFrameRate = 60,
                 int simulationFixedFrameRate = 40,
-                int simulationFixedFrameCyclesLimit = 10,
+                int fixedSimulationFrameCyclesLimit = 10,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),
                 std::unique_ptr<NodeStorage> nodeStorage = std::make_unique<NodeStorage>(),
@@ -137,7 +138,7 @@ namespace cen {
                 eventBus,
                 simulationFrameRate,
                 simulationFixedFrameRate,
-                simulationFixedFrameCyclesLimit,
+                fixedSimulationFrameCyclesLimit,
                 playerInputManager,
                 std::move(collisionEngine),
                 std::move(nodeStorage),
@@ -185,14 +186,14 @@ namespace cen {
                     accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
 
                     int fixedUpdateCycles = 0;
-                    while (accumulatedFixedTime >= simulationFixedFrameRateInMs && fixedUpdateCycles < simulationFixedFrameCyclesLimit) {
-                        this->fixedSimulationTick++;
+                    while (accumulatedFixedTime >= fixedSimulationFrameRateInMs && fixedUpdateCycles < fixedSimulationFrameCyclesLimit) {
+                        this->fixedFrameTick++;
 
                         // # Simulation current Tick
                         this->FixedSimulationTick();
 
                         // ## Correct time and cycles
-                        accumulatedFixedTime -= simulationFixedFrameRateInMs;
+                        accumulatedFixedTime -= fixedSimulationFrameRateInMs;
                         fixedUpdateCycles++;
                     }
 
@@ -205,7 +206,7 @@ namespace cen {
                     this->eventBus.Flush();
 
                     // # Sync GameState and RendererState
-                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / simulationFixedFrameRateInMs.count();
+                    auto alpha = static_cast<double>(accumulatedFixedTime.count()) / fixedSimulationFrameRateInMs.count();
 
                     this->renderingEngine->SyncRenderBuffer(
                         this->nodeStorage.get(),
