@@ -1,20 +1,33 @@
 #include "cengine/cengine.h"
 #include "menus.h"
+#include "events.h"
+#include "globals.h"
 
-MainMenu::MainMenu(
-    std::function<void(cen::GameContext*)> onStart
-): cen::Node2D(Vector2{}) {
-    this->onStart = onStart;
-}
+MainMenu::MainMenu(): cen::Node2D(Vector2{}) {}
 
-void MainMenu::Init(cen::GameContext* ctx) {
+void MainMenu::Init() {
+    auto yStart = this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f;
+    auto btnStart = yStart + 100.0f;
+
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                yStart
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
+    );
+
     this->AddNode(
         std::make_unique<cen::Btn>(
             start,
             btnFontSize,
             Vector2{
-                ctx->worldWidth / 2,
-                ctx->worldHeight / 2 + 50
+                this->scene->screen.width / 2.0f,
+                btnStart
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
@@ -22,24 +35,52 @@ void MainMenu::Init(cen::GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, cen::Btn* btn) {
-                    if (this->onStart) {
-                        this->onStart(ctx);
-                    }
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(std::make_unique<StartEvent>());
                 }
             )
         )
     );
 
     this->AddNode(
-        std::make_unique<cen::TextView>(
+        std::make_unique<cen::Btn>(
+            "Host",
+            btnFontSize,
             Vector2{
-                ctx->worldWidth / 2 - MeasureText(title, titleFontSize) / 2,
-                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+                this->scene->screen.width / 2.0f,
+                btnStart + 50.0f
             },
-            title,
-            titleFontSize,
-            WHITE
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(std::make_unique<HostEvent>());
+                }
+            )
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Btn>(
+            "Join",
+            btnFontSize,
+            Vector2{
+                this->scene->screen.width / 2.0f,
+                btnStart + 100.0f
+            },
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(std::make_unique<JoinEvent>());
+                }
+            )
         )
     );
 }
@@ -47,21 +88,19 @@ void MainMenu::Init(cen::GameContext* ctx) {
 // # MatchEndMenu
 
 MatchEndMenu::MatchEndMenu(
-    std::function<void(cen::GameContext*)> onRestart,
     bool playerWon
 ): cen::Node2D(Vector2{}) {
-    this->onRestart = onRestart;
     this->playerWon = playerWon;
 }
 
-void MatchEndMenu::Init(cen::GameContext* ctx) {
+void MatchEndMenu::Init() {
     this->AddNode(
         std::make_unique<cen::Btn>(
             "Play again",
             btnFontSize,
             Vector2{
-                ctx->worldWidth / 2,
-                ctx->worldHeight / 2 + 50
+                this->scene->screen.width / 2.0f,
+                this->scene->screen.height / 2.0f + 50.0f
             },
             cen::Size{ 0, 0 },
             Vector2{ 0.5, 0.5 },
@@ -69,33 +108,121 @@ void MatchEndMenu::Init(cen::GameContext* ctx) {
                 nullptr,
                 nullptr,
                 nullptr,
-                [this](cen::GameContext* ctx, cen::Btn* btn) {
-                    if (this->onRestart) {
-                        this->onRestart(ctx);
-                    }
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(std::make_unique<RestartEvent>());
                 }
             )
         )
     );
 
-    titleView = this->AddNode(
+    auto text = playerWon ? "YOU WON" : "YOU LOST";
+
+    this->titleView = this->AddNode(
         std::make_unique<cen::TextView>(
             Vector2{
-                ctx->worldWidth / 2 - MeasureText("YOU WON", titleFontSize) / 2,
-                ctx->worldHeight / 2 - titleFontSize / 2 - 30
+                this->scene->screen.width / 2.0f - MeasureText(text, titleFontSize) / 2.0f,
+                this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f
             },
-            "YOU WON",
+            text,
             titleFontSize,
             WHITE
         )
     );
 }
 
-void MatchEndMenu::SetPlayerWon(cen::GameContext* ctx, bool playerWon) {
-    this->playerWon = playerWon;
-    titleView->text = playerWon ? "YOU WON" : "YOU LOST";
-    titleView->position = Vector2{
-        ctx->worldWidth / 2 - MeasureText(titleView->text.c_str(), titleFontSize) / 2,
-        ctx->worldHeight / 2 - titleFontSize / 2 - 30
-    };
+// # Server Lobby Menu
+
+ServerLobbyMenu::ServerLobbyMenu(): cen::Node2D(Vector2{}) {}
+
+void ServerLobbyMenu::Init() {
+    auto yStart = this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f;
+    auto btnStart = yStart + 100.0f;
+
+    auto title = "Waiting...";
+
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                yStart
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Btn>(
+            "Cancel",
+            btnFontSize,
+            Vector2{
+                this->scene->screen.width / 2.0f,
+                btnStart
+            },
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(
+                        std::make_unique<cen::SceneChangeRequested>(
+                            MainMenuSceneName
+                        )
+                    );
+                }
+            )
+        )
+    );
+}
+
+
+// # Server Lobby Menu
+
+ClientLobbyMenu::ClientLobbyMenu(): cen::Node2D(Vector2{}) {}
+
+void ClientLobbyMenu::Init() {
+    auto yStart = this->scene->screen.height / 2.0f - titleFontSize / 2.0f - 30.0f;
+    auto btnStart = yStart + 100.0f;
+
+    auto title = "Searching...";
+
+    this->AddNode(
+        std::make_unique<cen::TextView>(
+            Vector2{
+                this->scene->screen.width / 2.0f - MeasureText(title, titleFontSize) / 2.0f,
+                yStart
+            },
+            title,
+            titleFontSize,
+            WHITE
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<cen::Btn>(
+            "Cancel",
+            btnFontSize,
+            Vector2{
+                this->scene->screen.width / 2.0f,
+                btnStart
+            },
+            cen::Size{ 0, 0 },
+            Vector2{ 0.5, 0.5 },
+            cen::Callbacks(
+                nullptr,
+                nullptr,
+                nullptr,
+                [this](cen::Btn* btn) {
+                    this->scene->eventBus.Emit(
+                        std::make_unique<cen::SceneChangeRequested>(
+                            MainMenuSceneName
+                        )
+                    );
+                }
+            )
+        )
+    );
 }

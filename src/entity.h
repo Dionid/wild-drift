@@ -26,18 +26,28 @@ class Paddle: public cen::CharacterBody2D {
 
         void ApplyFriction();
         void ApplyWorldBoundaries(float worldWidth, float worldHeight);
+
+        void Move(int directionX, int directionY);
+        virtual void ApplyFieldBoundaries() = 0;
 };
 
 // # Player
 class Player: public Paddle {
     public:
         static const uint64_t _tid;
+        cen::player_id_t playerId;
+        bool leftSide;
+
+        int directionY;
+        int directionX;
 
         cen::type_id_t TypeId() const override {
             return Player::_tid;
         }
 
         Player(
+            bool leftSide,
+            cen::player_id_t playerId,
             Vector2 position,
             cen::Size size,
             Vector2 velocity,
@@ -45,8 +55,12 @@ class Player: public Paddle {
             float maxVelocity
         );
 
-        void FixedUpdate(cen::GameContext* ctx) override;
-        void Init(cen::GameContext* ctx) override;
+        void Update() override;
+        void FixedUpdate() override;
+        void Init() override;
+        void ApplyFieldBoundaries() override;
+
+        void Reset();
 };
 
 // # Ball
@@ -71,25 +85,24 @@ class Ball: public cen::CharacterBody2D {
             float maxVelocity
         );
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
+        void Init() override;
+        void FixedUpdate() override;
         void OnCollision(cen::Collision c) override;
         void OnCollisionStarted(cen::Collision c) override;
 };
 
-// # Enemy
-
-class Enemy: public Paddle {
+// # AiOpponent
+class AiOpponent: public Player {
     public:
         cen::node_id_t ballId;
 
         static const uint64_t _tid;
 
         cen::type_id_t TypeId() const override {
-            return Enemy::_tid;
+            return AiOpponent::_tid;
         }
 
-        Enemy(
+        AiOpponent(
             cen::node_id_t ballId,
             Vector2 position,
             cen::Size size,
@@ -98,8 +111,7 @@ class Enemy: public Paddle {
             float maxVelocity
         );
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
+        void Update() override;
 };
 
 // # Goal
@@ -121,17 +133,7 @@ class Goal: public cen::CollisionObject2D {
             cen::Size size
         );
 
-        void Init(cen::GameContext* ctx) override;
-};
-
-struct StartEvent: public cen::Event {
-    static const std::string type;
-    StartEvent(): cen::Event(StartEvent::type) {}
-};
-
-struct RestartEvent: public cen::Event {
-    static const std::string type;
-    RestartEvent(): cen::Event(RestartEvent::type) {}
+        void Init() override;
 };
 
 #endif // CSP_ENTITY_H_

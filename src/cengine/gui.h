@@ -2,7 +2,6 @@
 #define CENGINE_GUI_H_
 
 #include <functional>
-#include "raylib.h"
 #include "node_2d.h"
 
 namespace cen {
@@ -16,16 +15,16 @@ enum class BtnState {
 class Btn;
 
 struct Callbacks {
-    std::function<void(cen::GameContext*, Btn*)> onHover;
-    std::function<void(cen::GameContext*, Btn*)> onDown;
-    std::function<void(cen::GameContext*, Btn*)> onUp;
-    std::function<void(cen::GameContext*, Btn*)> onClick;
+    std::function<void(Btn*)> onHover;
+    std::function<void(Btn*)> onDown;
+    std::function<void(Btn*)> onUp;
+    std::function<void(Btn*)> onClick;
 
     Callbacks(
-        std::function<void(cen::GameContext*, Btn*)> onHover = nullptr,
-        std::function<void(cen::GameContext*, Btn*)> onDown = nullptr,
-        std::function<void(cen::GameContext*, Btn*)> onUp = nullptr,
-        std::function<void(cen::GameContext*, Btn*)> onClick = nullptr
+        std::function<void(Btn*)> onHover = nullptr,
+        std::function<void(Btn*)> onDown = nullptr,
+        std::function<void(Btn*)> onUp = nullptr,
+        std::function<void(Btn*)> onClick = nullptr
     ) {
         this->onHover = onHover;
         this->onDown = onDown;
@@ -53,7 +52,7 @@ class Btn: public cen::Node2D {
             Callbacks callbacks
         );
 
-        void Update(cen::GameContext* ctx) override; 
+        void Update() override; 
 };
 
 }

@@ -8,155 +8,18 @@
 #include "entity.h"
 #include "match.h"
 #include "menus.h"
+#include "scenes.h"
 
-void gameLoopPipeline(
-    cen::GameContext* ctx,
-    SpcAudio* gameAudio
-) {
-    // # MatchEndMenu
-    auto matchEndMenu = ctx->scene->node_storage->AddNode(std::make_unique<MatchEndMenu>(
-        [&](cen::GameContext* ctx) {
-            ctx->scene->eventBus.emit(RestartEvent());
-        }
-    ));
-
-    matchEndMenu->Deactivate();
-
-    // # Match
-    MatchManager* matchManager = ctx->scene->node_storage->AddNode(std::make_unique<MatchManager>(
-        gameAudio,
-        [&](cen::GameContext* ctx) {
-            matchManager->Deactivate();
-            matchEndMenu->SetPlayerWon(ctx, matchManager->playerScore > matchManager->enemyScore);
-            matchEndMenu->Activate();
-            EnableCursor();
-        }
-    ));
-
-    matchManager->Deactivate();
-
-    // # MainMenu
-    MainMenu* mainMenu = ctx->scene->node_storage->AddNode(std::make_unique<MainMenu>(
-        [&](cen::GameContext* ctx) {
-            ctx->scene->eventBus.emit(StartEvent());
-        }
-    ));
-
-    auto ose = cen::EventListener(
-        [&](cen::GameContext* ctx, const cen::Event& event) {
-            PlaySound(gameAudio->start);
-            mainMenu->Deactivate();
-            matchEndMenu->Deactivate();
-            matchManager->Reset(ctx);
-            matchManager->Activate();
-            DisableCursor();
-        }
-    );
-
-    ctx->scene->eventBus.on(
-        StartEvent{},
-        &ose
-    );
-
-    ctx->scene->eventBus.on(
-        RestartEvent{},
-        &ose
-    );
-
-    // # Init
-    // # While nodes are initing more of them can be added
-    for (const auto& node: ctx->scene->node_storage->nodes) {
-        node->TraverseInit(ctx);
-    }
-
-    // # Node Storage
-    ctx->scene->node_storage->Init();
-
-    // # Main Loop
-    const int targetFPS = 60;
-    const int fixedUpdateRate = 40;
-
-    const std::chrono::milliseconds targetFrameTime(1000 / targetFPS);
-    const std::chrono::milliseconds targetFixedUpdateTime(1000 / fixedUpdateRate);
-
-    auto lastFixedFrameTime = std::chrono::high_resolution_clock::now();
-    std::chrono::milliseconds accumulatedFixedTime(0);
-
-    int fixedUpdateCyclesLimit = 10;
-
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // # Start
-        auto frameStart = std::chrono::high_resolution_clock::now();
-
-        // # Update
-        ctx->scene->node_storage->InitNewNodes(ctx);
-
-        // # Fixed update
-        auto now = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> fixedFrameDuration = now - lastFixedFrameTime;
-        lastFixedFrameTime = now;
-        accumulatedFixedTime += std::chrono::duration_cast<std::chrono::milliseconds>(fixedFrameDuration);
-
-        int fixedUpdateCycles = 0;
-        while (accumulatedFixedTime >= targetFixedUpdateTime && fixedUpdateCycles < fixedUpdateCyclesLimit) {
-            // # Invalidate previous
-            for (const auto& node: ctx->scene->node_storage->nodes) {
-                node->TraverseInvalidatePrevious();
-            }
-
-            for (const auto& node: ctx->scene->node_storage->nodes) {
-                node->TraverseFixedUpdate(ctx);
-            }
-
-            // ## Collision
-            ctx->scene->collisionEngine->NarrowCollisionCheckNaive(ctx);
-
-            accumulatedFixedTime -= targetFixedUpdateTime;
-            fixedUpdateCycles++;
-        }
-
-        // # Initial
-        for (const auto& node: ctx->scene->node_storage->nodes) {
-            node->TraverseUpdate(ctx);
-        }
-
-        // # Flush events
-        for (const auto& topic: ctx->scene->topics) {
-            topic->flush();
-        }
-
-        ctx->scene->eventBus.flush(ctx);
-
-        // # Map GameState to RendererState
-        auto alpha = static_cast<double>(accumulatedFixedTime.count()) / targetFixedUpdateTime.count();
-
-        ctx->scene->renderingEngine->SyncRenderBuffer(
-            ctx->scene->node_storage.get(),
-            alpha
-        );
-
-        // # End
-        auto frameEnd = std::chrono::high_resolution_clock::now();
-
-        std::chrono::duration<double, std::milli> frameDuration = frameEnd - frameStart;
-
-        // QUESTION: maybe sleep better? But it overshoot for 3ms
-        // Busy wait
-        while (std::chrono::high_resolution_clock::now() - frameStart <= targetFrameTime) {}
-    }
+void runSimulation(cen::SceneManager* sceneManager) {
+    sceneManager->Run();
 };
 
-void renderingPipeline(cen::GameContext* ctx, cen::Debugger* debugger) {
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // std::cout << GetFrameTime() << std::endl;
-        BeginDrawing();
-            ClearBackground(BLACK);
-            ctx->scene->renderingEngine->Render();
-            debugger->Render(ctx);
-        EndDrawing();
-    }
+void runNetwork(cen::NetworkManager* networkManager) {
+    networkManager->Run();
+};
+
+void runRendering(cen::RenderingEngine2D* renderingEngine) {
+    renderingEngine->Run();
 }
 
 int main() {
@@ -165,17 +28,7 @@ int main() {
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "super pong");
-    EnableCursor();
     SetTargetFPS(FPS);
-
-    cen::Debugger debugger;
-
-    // # Camera
-    Camera2D camera = { 0 };
-    camera.target = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
 
     // # Audio
     InitAudioDevice();
@@ -198,35 +51,181 @@ int main() {
         )
     };
 
-    // # Scene
-    cen::CollisionEngine collisionEngine;
+    // # Camera
+    Camera2D camera = { 0 };
+    camera.target = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
 
-    cen::Scene scene = cen::Scene(
-        &camera,
-        &collisionEngine
+    // # Rendering Engine
+    cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D();
+
+    // # Event Bus
+    cen::EventBus eventBus = cen::EventBus(
+        nullptr
     );
 
-    // # Game Context
-    cen::GameContext ctx = {
-        &scene,
-        screenWidth,
-        screenHeight
+    // # Network Manager
+    cen::NetworkManager networkManager = cen::NetworkManager(
+        120
+    );
+
+    // # Main Udp Transport
+    cen::UdpTransport* mainTransport = networkManager.AddTransport(
+        "main",
+        std::make_unique<cen::UdpTransport>()
+    );
+
+    // # SPC Multiplayer
+    SpcMultiplayer scpMultiplayer = SpcMultiplayer(
+        mainTransport,
+        &eventBus
+    );
+
+    // # Scenes
+    cen::SceneManager sceneManager = cen::SceneManager(
+       &eventBus
+    );
+
+    // ## Storage
+    CrossSceneStorage crossSceneStorage = {
+        false
     };
 
-    // # Game Loop Thread
-    std::thread gameLoopThread(gameLoopPipeline, &ctx, &gameAudio);
+    // ## Main Menu Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            MainMenuSceneName,
+            [
+                &scpMultiplayer,
+                &crossSceneStorage,
+                &gameAudio,
+                &sceneManager,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MainMenuScene>(
+                    &scpMultiplayer,
+                    &sceneManager,
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
 
-    // # Render Loop Thread
-    renderingPipeline(&ctx, &debugger);
+    // ## Match End Menu Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            MatchEndMenuSceneName,
+            [
+                &crossSceneStorage,
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchEndScene>(
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
 
-    gameLoopThread.join();
+    // ## Local Match Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            LocalMatchSceneName,
+            [
+                &crossSceneStorage,
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<LocalMatchScene>(
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
 
+    // ## Lock Step Match Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            LockStepMatchSceneName,
+            [
+                &scpMultiplayer,
+                &crossSceneStorage,
+                &gameAudio,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<MatchLockStepScene>(
+                    &scpMultiplayer,
+                    &crossSceneStorage,
+                    &gameAudio,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
+
+    // ## Set first scene
+    sceneManager.SetFirstScene(MainMenuSceneName);
+
+    // # Threads
+    std::vector<std::thread> gameThreads;
+
+    // ## Simulation thread
+    gameThreads.push_back(std::thread(runSimulation, &sceneManager));
+
+    // ## Network thread
+    gameThreads.push_back(std::thread(runNetwork, &networkManager));
+
+    // ## Rendering (main thread)
+    runRendering(&renderingEngine);
+
+    // # Exit
+    // ## Stop signal
+    networkManager.Stop();
+    std::cout << "Stopping NetworkManager" << std::endl;
+    sceneManager.Stop();
+    std::cout << "Stopping SceneManager" << std::endl;
+
+    // ## Join gameThreads after stop signal
+    for (auto& thread: gameThreads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+
+    // ## Audio
     CloseAudioDevice();
 
-    // ## De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    // ## Close window
+    CloseWindow();
 
+    // ## Success
     return 0;
 }

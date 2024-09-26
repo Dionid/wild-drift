@@ -1,8 +1,6 @@
 #ifndef CENGINE_VIEW_H_
 #define CENGINE_VIEW_H_
 
-#include <raylib.h>
-#include "node.h"
 #include "node_2d.h"
 
 // # Views

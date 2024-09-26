@@ -3,50 +3,17 @@
 
 #include <memory>
 #include <mutex>
+#include <map>
 #include <raylib.h>
 #include <raymath.h>
 
 namespace cen {
 
-// # Shared pointers
+// # Id Types
+typedef uint64_t node_id_t;
+typedef uint64_t player_id_t;
 
-class MultipleInheritableEnableSharedFromThis: public std::enable_shared_from_this<MultipleInheritableEnableSharedFromThis>
-{
-public:
-  virtual ~MultipleInheritableEnableSharedFromThis()
-  {}
-};
-
-template <typename T>
-class enable_shared_from_base
-  : public MultipleInheritableEnableSharedFromThis
-{
-public:
-    std::shared_ptr<T> shared_from_this() {
-        return std::dynamic_pointer_cast<T>(MultipleInheritableEnableSharedFromThis::shared_from_this());
-    }
-
-    template <class Down>
-    std::shared_ptr<Down> downcasted_shared_from_this() {
-        return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::shared_from_this());
-    }
-
-    std::weak_ptr<T> weak_from_this() {
-        if (auto shared = MultipleInheritableEnableSharedFromThis::shared_from_this()) {
-            return std::dynamic_pointer_cast<T>(shared);
-        }
-
-        return std::weak_ptr<T>();
-    }
-
-    template <class Down>
-    std::weak_ptr<Down> downcasted_weak_from_this() {
-        return std::dynamic_pointer_cast<Down>(MultipleInheritableEnableSharedFromThis::weak_from_this());
-    }
-};
-
-// # Constants
-
+// # Math
 constexpr Vector2 Vector2Up {0, -1};
 constexpr Vector2 Vector2Down {0, 1};
 constexpr Vector2 Vector2Left {-1, 0};
@@ -56,15 +23,19 @@ inline Vector2 Vector2Abs(Vector2 v) {
     return { fabs(v.x), fabs(v.y) };
 };
 
-// # Structs
-
 struct Size {
     float width;
     float height;
 };
 
-// # Custom RTTI
+// # World
 
+struct ScreenResolution {
+    int width;
+    int height;
+};
+
+// # Custom RTTI
 typedef uint64_t type_id_t;
 
 class TypeIdGenerator {
@@ -108,6 +79,80 @@ template<typename T>
 static int getTypeId(T* value) {
     return TypeTag<T>::id;
 }
+
+// TODO: move this away to game logic
+// # Input
+struct PlayerInput {
+    bool up;
+    bool down;
+    bool left;
+    bool right;
+
+    bool compare(const PlayerInput& other) const {
+        return this->up == other.up &&
+            this->down == other.down &&
+            this->left == other.left &&
+            this->right == other.right;
+    }
+
+    std::vector<uint8_t> Serialize() const {
+        std::vector<uint8_t> buffer;
+
+        buffer.push_back(this->up);
+        buffer.push_back(this->down);
+        buffer.push_back(this->left);
+        buffer.push_back(this->right);
+
+        return buffer;
+    }
+
+    void Serialize(std::vector<uint8_t>& buffer) const {
+        buffer.push_back(this->up);
+        buffer.push_back(this->down);
+        buffer.push_back(this->left);
+        buffer.push_back(this->right);
+    }
+};
+
+class PlayerInputManager {
+    public:
+        player_id_t localPlayerId;
+        PlayerInput localPlayerInput;
+        std::map<player_id_t, PlayerInput> playerInputs;
+};
+
+// # Listeners
+
+template <typename T>
+struct Listener {
+    std::function<void(T)> trigger;
+    int id;
+
+    Listener(
+        std::function<void(T)> trigger,
+        int id = 0
+    ): trigger(trigger), id(id) {}
+};
+
+template <typename T>
+struct ScopedListener {
+    std::function<void(int)> off;
+    int listenerId;
+
+    ScopedListener(
+        std::function<int(std::unique_ptr<T>)> on,
+        std::function<void(int)> off,
+        std::unique_ptr<T> listener
+    ) {
+        this->listenerId = on(
+            std::move(listener)
+        );
+    }
+
+    ~ScopedListener() {
+        this->off(listenerId);
+    }
+};
 
 }
 

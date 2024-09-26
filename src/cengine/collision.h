@@ -2,15 +2,12 @@
 #define CENGINE_COLLISION_H
 
 #include <memory>
-#include <raymath.h>
-#include "core.h"
-#include "node.h"
 #include "node_2d.h"
+#include "node_storage.h"
 
 namespace cen {
 
 // # Collision
-
 struct CollisionHit {
     float penetration;
     Vector2 normal;
@@ -209,12 +206,12 @@ class CollisionEngine {
         }
 
         void NarrowCollisionCheckNaive(
-            cen::GameContext* ctx
+            cen::NodeStorage* nodeStorage
         ) {
             std::vector<CollisionEvent> currentCollisions;
 
-            for (auto i = 0; i < ctx->scene->node_storage->flatNodes.size(); i++) {
-                auto node = ctx->scene->node_storage->flatNodes[i];
+            for (auto i = 0; i < nodeStorage->flatNodes.size(); i++) {
+                auto node = nodeStorage->flatNodes[i];
 
                 const auto& co = dynamic_cast<CollisionObject2D*>(node);
                 if (co == nullptr) {
@@ -228,8 +225,8 @@ class CollisionEngine {
                         continue;
                     }
 
-                    for (auto j = i + 1; j < ctx->scene->node_storage->flatNodes.size(); j++) {
-                        auto otherNode = ctx->scene->node_storage->flatNodes[j];
+                    for (auto j = i + 1; j < nodeStorage->flatNodes.size(); j++) {
+                        auto otherNode = nodeStorage->flatNodes[j];
 
                         const auto& otherCo = dynamic_cast<CollisionObject2D*>(otherNode);
                         if (otherCo == nullptr) {

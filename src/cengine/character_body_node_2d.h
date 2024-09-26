@@ -1,9 +1,7 @@
 #ifndef CENGINE_CHARACTER_BODY_NODE_H
 #define CENGINE_CHARACTER_BODY_NODE_H
 
-#include "core.h"
 #include "scene.h"
-#include "node_2d.h"
 #include "collision.h"
 
 namespace cen {
@@ -47,9 +45,7 @@ class CharacterBody2D: public CollisionObject2D {
             this->position.y += this->velocity.y;
         }
 
-        void MoveAndSlide(
-            cen::GameContext* ctx
-        ) {
+        void MoveAndSlide() {
             if (this->velocity.x == 0 && this->velocity.y == 0) {
                 return;
             }
@@ -76,7 +72,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
+                for (const auto& otherNode: this->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }
@@ -149,7 +145,7 @@ class CharacterBody2D: public CollisionObject2D {
         }
 
         std::vector<Collision> MoveAndCollide(
-            cen::GameContext* ctx
+            
         ) {
             std::vector<Collision> collisions;
 
@@ -175,7 +171,7 @@ class CharacterBody2D: public CollisionObject2D {
                     continue;
                 }
 
-                for (const auto& otherNode: ctx->scene->node_storage->nodes) {
+                for (const auto& otherNode: this->scene->nodeStorage->rootNodes) {
                     if (this == otherNode.get()) {
                         continue;
                     }

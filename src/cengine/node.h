@@ -4,13 +4,10 @@
 #include <vector>
 #include <iostream>
 #include "core.h"
-#include "game_context.h"
 
 namespace cen {
 
-// # Node Id Manager
-
-typedef uint64_t node_id_t;
+class Scene;
 
 class NodeIdGenerator {
 public:
@@ -45,8 +42,10 @@ class NodeStorage;
 
 class Node: public cen::WithType {
     public:
+        bool isInitialized = false;
         NodeStorage* storage;
         Node* parent;
+        Scene* scene;
         std::vector<std::unique_ptr<Node>> children;
         node_id_t id;
         bool activated = true;
@@ -63,6 +62,8 @@ class Node: public cen::WithType {
         ) {
             this->parent = parent;
         }
+
+        virtual ~Node() {}
 
         void Deactivate() {
             this->activated = false;
@@ -85,9 +86,9 @@ class Node: public cen::WithType {
             return false;
         }
 
-        virtual void Init(cen::GameContext* ctx) {};
-        virtual void FixedUpdate(cen::GameContext* ctx) {};
-        virtual void Update(cen::GameContext* ctx) {};
+        virtual void Init() {};
+        virtual void FixedUpdate() {};
+        virtual void Update() {};
 
         virtual void InvalidatePrevious() {};
 
@@ -183,32 +184,36 @@ class Node: public cen::WithType {
             return this;
         };
 
-        void TraverseInit(cen::GameContext* ctx) {
-            this->Init(ctx);
+        void TraverseInit() {
+            if (!this->isInitialized) {
+                this->Init();
+                this->isInitialized = true;
+            }
+
             for (const auto& node: this->children) {
-                node->TraverseInit(ctx);
+                node->TraverseInit();
             }
         }
 
-        void TraverseUpdate(cen::GameContext* ctx) {
+        void TraverseUpdate() {
             if (this->activated == false) {
                 return;
             }
 
-            this->Update(ctx);
+            this->Update();
             for (const auto& node: this->children) {
-                node->TraverseUpdate(ctx);
+                node->TraverseUpdate();
             }
         };
 
-        void TraverseFixedUpdate(cen::GameContext* ctx) {
+        void TraverseFixedUpdate() {
             if (this->activated == false) {
                 return;
             }
 
-            this->FixedUpdate(ctx);
+            this->FixedUpdate();
             for (const auto& node: this->children) {
-                node->TraverseFixedUpdate(ctx);
+                node->TraverseFixedUpdate();
             }
         };
 

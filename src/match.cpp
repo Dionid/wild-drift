@@ -1,22 +1,24 @@
 #include "match.h"
+#include "events.h"
 
 LaunchBallTimer::LaunchBallTimer(
     cen::node_id_t ballId,
-    int duration,
-    cen::node_id_t id = 0,
-    cen::Node* parent = nullptr
-): Timer(duration, id, parent) {
+    int duration
+): Timer(
+    duration,
+    cen::TimerMode::FRAMES
+) {
     this->ballId = ballId;
 }
 
-void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+void LaunchBallTimer::OnTimerEnd() {
+    auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
 
     if (ball == nullptr) {
         return;
     }
 
-    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
+    float randomAngle = (this->scene->frameTick % 100 / 100.0f) * 2 * PI;
     ball->velocity.x = cos(randomAngle) * 5;
     ball->velocity.y = sin(randomAngle) * 5;
 }
@@ -25,67 +27,24 @@ void LaunchBallTimer::OnTimerEnd(cen::GameContext* ctx) {
 
 MatchManager::MatchManager(
     SpcAudio* gameAudio,
-    std::function<void(cen::GameContext*)> onEnd,
+    bool mirror,
     int winScore,
     int playerScore,
     int enemyScore
 ): cen::Node2D(Vector2{}) {
     this->gameAudio = gameAudio;
-    this->onEnd = onEnd;
     this->winScore = winScore;
     this->playerScore = playerScore;
     this->enemyScore = enemyScore;
+    this->mirror = mirror;
 };
 
-void MatchManager::Init(cen::GameContext* ctx) {
+void MatchManager::Init() {
     // # Player
-    const float sixthScreen = ctx->worldWidth/6.0f;
-
-    Player* player = this->AddNode(
-        std::make_unique<Player>(
-            (Vector2){ sixthScreen, ctx->worldHeight/2.0f },
-            (cen::Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.5f,
-            10.0f
-        )
-    );
-
-    player->zOrder = 1;
-    this->playerId = player->id;
-
-    float ballRadius = 15.0f;
-    float randomAngle = (GetRandomValue(0, 100) / 100.0f) * 2 * PI;
-    Ball* ball = this->AddNode(
-        std::make_unique<Ball>(
-            this->gameAudio,
-            ballRadius,
-            (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
-            (cen::Size){ ballRadius*2, ballRadius*2 },
-            (Vector2){ cos(randomAngle) * 6, sin(randomAngle) * 6 },
-            10.0f
-        )
-    );
-
-    ball->zOrder = 1;
-    this->ballId = ball->id;
-
-    Enemy* enemy = this->AddNode(
-        std::make_unique<Enemy>(
-            ball->id,
-            (Vector2){ ctx->worldWidth - sixthScreen, ctx->worldHeight/2.0f },
-            (cen::Size){ 40.0f, 120.0f },
-            (Vector2){ 0.0f, 0.0f },
-            1.5f,
-            10.0f
-        )
-    );
-
-    enemy->zOrder = 1;
-    this->enemyId = enemy->id;
+    const float sixthScreen = this->scene->screen.width/6.0f;
 
     // # Goals
-    cen::Size goalSize = { 10, (float)ctx->worldHeight - 20 };
+    cen::Size goalSize = { 10, (float)this->scene->screen.height - 20 };
 
     Goal* lGoal = this->AddNode(
         std::make_unique<Goal>(
@@ -100,7 +59,7 @@ void MatchManager::Init(cen::GameContext* ctx) {
     Goal* rGoal = this->AddNode(
         std::make_unique<Goal>(
             false,
-            (Vector2){ ctx->worldWidth - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
+            (Vector2){ this->scene->screen.width - goalSize.width / 2 - 5, goalSize.height / 2 + 15 },
             goalSize
         )
     );
@@ -110,8 +69,8 @@ void MatchManager::Init(cen::GameContext* ctx) {
     // # Field
     this->AddNode(
         std::make_unique<cen::LineView>(
-            (Vector2){ ctx->worldWidth/2.0f, 80 },
-            ctx->worldHeight - 160,
+            (Vector2){ this->scene->screen.width/2.0f, 80 },
+            this->scene->screen.height - 160,
             WHITE,
             0.5f
         )
@@ -120,29 +79,30 @@ void MatchManager::Init(cen::GameContext* ctx) {
     this->AddNode(
         std::make_unique<cen::CircleView>(
             80,
-            (Vector2){ ctx->worldWidth/2.0f, ctx->worldHeight/2.0f },
+            (Vector2){ this->scene->screen.width/2.0f, this->scene->screen.height/2.0f },
             WHITE,
             0.5f,
             false
         )
     );
 
+    // # Timer
     this->launchBallTimer = this->AddNode(
         std::make_unique<LaunchBallTimer>(
             this->ballId,
-            500
+            30
         )
     );
 
     // # GUI
-    auto screenWidthQuoter = ctx->worldWidth / 2 / 2;
+    auto screenWidthQuoter = this->scene->screen.width / 2 / 2;
     auto fontSize = 50;
 
     this->playerScoreText = this->AddNode(
         std::make_unique<cen::TextView>(
             (Vector2){
-                screenWidthQuoter - fontSize / 2,
-                ctx->worldHeight / 2 - fontSize / 2
+                screenWidthQuoter - fontSize / 2.0f,
+                this->scene->screen.height / 2.0f - fontSize / 2.0f
             },
             "0",
             fontSize,
@@ -153,8 +113,8 @@ void MatchManager::Init(cen::GameContext* ctx) {
     this->enemyScoreText = this->AddNode(
         std::make_unique<cen::TextView>(
             (Vector2){
-                ctx->worldWidth / 2 + screenWidthQuoter - fontSize / 2,
-                ctx->worldHeight / 2 - fontSize / 2
+                this->scene->screen.width / 2.0f + screenWidthQuoter - fontSize / 2.0f,
+                this->scene->screen.height / 2.0f - fontSize / 2.0f
             },
             "0",
             fontSize,
@@ -163,54 +123,49 @@ void MatchManager::Init(cen::GameContext* ctx) {
     );
 };
 
-void MatchManager::ResetEntities(cen::GameContext* ctx) {
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
-    auto player = ctx->scene->node_storage->GetById<Player>(this->playerId);
-    auto enemy = ctx->scene->node_storage->GetById<Enemy>(this->enemyId);
+void MatchManager::ResetEntities() {
+    auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
+    auto player = this->scene->nodeStorage->GetById<Player>(this->playerId);
+    auto enemy = this->scene->nodeStorage->GetById<Player>(this->enemyId);
 
     if (ball == nullptr || player == nullptr || enemy == nullptr) {
         return;
     }
 
-    ball->position = (Vector2){ ctx->worldWidth/2, ctx->worldHeight/2 };
+    ball->position = (Vector2){ this->scene->screen.width/2.0f, this->scene->screen.height/2.0f };
     ball->previousPosition = ball->position;
     ball->velocity = (Vector2){ 0.0f, 0.0f };
 
-    player->position = (Vector2){ ctx->worldWidth/6, ctx->worldHeight/2 };
-    player->previousPosition = player->position;
-    player->velocity = (Vector2){ 0.0f, 0.0f };
-
-    enemy->position = (Vector2){ ctx->worldWidth - ctx->worldWidth/6, ctx->worldHeight/2 };
-    enemy->previousPosition = enemy->position;
-    enemy->velocity = (Vector2){ 0.0f, 0.0f };
+    player->Reset();
+    enemy->Reset();
 
     this->launchBallTimer->Reset();
 }
 
-void MatchManager::Reset(cen::GameContext* ctx) {
+void MatchManager::Reset() {
     this->playerScore = 0;
     this->enemyScore = 0;
 
-    this->ResetEntities(ctx);
+    this->ResetEntities();
 
     this->playerScoreText->text = std::to_string(this->playerScore);
     this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
-void MatchManager::PlayerScored(cen::GameContext* ctx) {
+void MatchManager::PlayerScored() {
     this->playerScore++;
-    this->ResetEntities(ctx);
+    this->ResetEntities();
     this->playerScoreText->text = std::to_string(this->playerScore);
 }
 
-void MatchManager::EnemyScored(cen::GameContext* ctx) {
+void MatchManager::EnemyScored() {
     this->enemyScore++;
-    this->ResetEntities(ctx);
+    this->ResetEntities();
     this->enemyScoreText->text = std::to_string(this->enemyScore);
 }
 
-void MatchManager::FixedUpdate(cen::GameContext* ctx) {
-    for (const auto& collision: ctx->scene->collisionEngine->startedCollisions) {
+void MatchManager::FixedUpdate() {
+    for (const auto& collision: this->scene->collisionEngine->startedCollisions) {
         bool predicate = (
             collision.collisionObjectA->TypeId() == Ball::_tid &&
             collision.collisionObjectB->TypeId() == Goal::_tid
@@ -237,22 +192,23 @@ void MatchManager::FixedUpdate(cen::GameContext* ctx) {
         }
 
         if (goal->isLeft) {
-            this->EnemyScored(ctx);
+            this->EnemyScored();
         } else {
-            this->PlayerScored(ctx);
+            this->PlayerScored();
         }
 
+        std::cout << "Score frame: " << this->scene->frameTick << std::endl;
+
         if (this->playerScore >= this->winScore || this->enemyScore >= this->winScore) {
-            this->onEnd(ctx);
-            if (this->playerScore > this->enemyScore) {
-                PlaySound(this->gameAudio->win);
-            } else {
-                PlaySound(this->gameAudio->lost);
-            }
+            this->scene->eventBus.Emit(std::make_unique<MatchEndEvent>(
+                this->playerScore >= this->winScore
+            ));
+            this->Deactivate();
 
             return;
         }
 
+        // TODO: SoundManager (that will do nothing on server)
         SetSoundPitch(this->gameAudio->score, GetRandomValue(80, 120) / 100.0f);
         PlaySound(this->gameAudio->score);
     }

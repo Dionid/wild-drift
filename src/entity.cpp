@@ -16,7 +16,8 @@ Paddle::Paddle(
     this->maxVelocity = maxVelocity;
 }
 
-// TODO: Move constants to props
+const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+
 void Paddle::ApplyFriction() {
     this->velocity.y *= .80f;
     this->velocity.x *= .80f;
@@ -30,7 +31,6 @@ void Paddle::ApplyFriction() {
     }
 }
 
-// TODO: Move constants to props
 void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     if (this->position.x - this->size.width/2 < 0) {
         this->position.x = this->size.width/2;
@@ -49,10 +49,40 @@ void Paddle::ApplyWorldBoundaries(float worldWidth, float worldHeight) {
     }
 };
 
-const uint64_t Paddle::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+void Paddle::Move(
+    int directionX,
+    int directionY
+) {
+    Vector2 newSpeed = Vector2Scale(
+        Vector2Normalize({
+            this->speed * directionX,
+            this->speed * directionY,
+        }),
+        this->speed
+    );
+
+    this->velocity.y += newSpeed.y;
+    this->velocity.x += newSpeed.x;
+    if (Vector2Length(this->velocity) > this->maxVelocity) {
+        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
+    }
+    // # Friction
+    this->ApplyFriction();
+
+    // # Field boundaries
+    this->ApplyFieldBoundaries();
+
+    // # World Boundaries
+    this->ApplyWorldBoundaries(this->scene->screen.width, this->scene->screen.height);
+
+    // # Velocity -> Position
+    this->ApplyVelocityToPosition();
+}
 
 // # Player
 Player::Player(
+    bool leftSide,
+    cen::player_id_t playerId,
     Vector2 position,
     cen::Size size,
     Vector2 velocity = Vector2{},
@@ -60,11 +90,13 @@ Player::Player(
     float maxVelocity = 10.0f
 ) : Paddle(position, size, velocity, speed, maxVelocity)
 { 
+    this->leftSide = leftSide;
+    this->playerId = playerId;
 };
 
 const uint64_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Player::Init(cen::GameContext* ctx) {
+void Player::Init() {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
@@ -81,42 +113,46 @@ void Player::Init(cen::GameContext* ctx) {
     );
 };
 
+void Player::Reset() {
+    this->velocity = (Vector2){ 0.0f, 0.0f };
+
+    if (this->leftSide) {
+        this->position = (Vector2){ this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
+        this->previousPosition = this->position;
+    } else {
+        this->position = (Vector2){ this->scene->screen.width - this->scene->screen.width/6.0f, this->scene->screen.height/2.0f };
+        this->previousPosition = this->position;
+    }
+}
+
+void Player::ApplyFieldBoundaries() {
+    if (this->leftSide) {
+        if (this->position.x + this->size.width/2 > this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 - this->size.width/2;
+            this->velocity.x = 0;
+        }
+    } else {
+        if (this->position.x - this->size.width/2 < this->scene->screen.width/2) {
+            this->position.x = this->scene->screen.width/2 + this->size.width/2;
+            this->velocity.x = 0;
+        }
+    }
+}
+
 // # Player Update function
-void Player::FixedUpdate(cen::GameContext* ctx) {
-    // # Calc velocity
-    auto directionY = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
-    auto directionX = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
-
-    Vector2 newSpeed = Vector2Scale(
-        Vector2Normalize({
-            this->speed * directionX,
-            this->speed * directionY,
-        }),
-        this->speed
+void Player::FixedUpdate() {
+    this->Move(
+        directionX,
+        directionY
     );
-
-    this->velocity.y += newSpeed.y;
-    this->velocity.x += newSpeed.x;
-
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
-
-    // # Friction
-    this->ApplyFriction();
-
-    // # Field boundaries
-    if (this->position.x + this->size.width/2 > ctx->worldWidth/2) {
-        this->position.x = ctx->worldWidth/2 - this->size.width/2;
-        this->velocity.x = 0;
-    }
-
-    // # World Boundaries
-    this->ApplyWorldBoundaries(ctx->worldWidth, ctx->worldHeight);
-
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
 };
+
+void Player::Update() {
+    const auto& currentPlayerInput = this->scene->playerInputManager.playerInputs[this->playerId];
+
+    directionY = currentPlayerInput.down - currentPlayerInput.up;
+    directionX = currentPlayerInput.right - currentPlayerInput.left;
+}
 
 // # Ball
 Ball::Ball(
@@ -135,7 +171,7 @@ Ball::Ball(
 
 const uint64_t Ball::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-void Ball::Init(cen::GameContext* ctx) {
+void Ball::Init() {
     this->AddNode(
         std::make_unique<cen::CircleView>(
             this->radius
@@ -152,18 +188,14 @@ void Ball::Init(cen::GameContext* ctx) {
 }
 
 void Ball::OnCollisionStarted(cen::Collision collision) {
-    if (collision.other->TypeId() != Player::_tid && collision.other->TypeId() != Enemy::_tid) {
-        return;
-    }
-
-    SetSoundPitch(this->gameAudio->hit, GetRandomValue(80, 120) / 100.0f);
-    PlaySound(this->gameAudio->hit);
-
     auto other = dynamic_cast<Paddle*>(collision.other);
 
     if (other == nullptr) {
         return;
     }
+
+    SetSoundPitch(this->gameAudio->hit, GetRandomValue(80, 120) / 100.0f);
+    PlaySound(this->gameAudio->hit);
 
     // # Resolve velocity
     // ## Calculate velocity separation
@@ -191,9 +223,9 @@ void Ball::OnCollision(cen::Collision collision) {
     );
 };
 
-void Ball::FixedUpdate(cen::GameContext* ctx) {
-    auto worldWidth = ctx->worldWidth;
-    auto worldHeight = ctx->worldHeight;
+void Ball::FixedUpdate() {
+    auto worldWidth = this->scene->screen.width;
+    auto worldHeight = this->scene->screen.height;
 
     // # World Boundaries
     if (this->position.x - this->radius < 0) {
@@ -222,44 +254,25 @@ void Ball::FixedUpdate(cen::GameContext* ctx) {
 
 // # Enemy
 
-const uint64_t Enemy::_tid = cen::TypeIdGenerator::getInstance().getNextId();
+const uint64_t AiOpponent::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
-Enemy::Enemy(
+AiOpponent::AiOpponent(
     cen::node_id_t ballId,
     Vector2 position,
     cen::Size size,
     Vector2 velocity = Vector2{},
     float speed = 5.0f,
     float maxVelocity = 10.0f
-) : Paddle(position, size, velocity, speed, maxVelocity)
+) : Player(false, -1, position, size, velocity, speed, maxVelocity)
 {
     this->ballId = ballId;
 };
 
-void Enemy::Init(cen::GameContext* ctx) {
-    this->AddNode(
-        std::make_unique<cen::RectangleView>(
-            this->size,
-            WHITE
-        )
-    );
-    this->AddNode(
-        std::make_unique<cen::Collider>(
-            cen::ColliderType::Solid,
-            cen::Shape::Rectangle(this->size),
-            (Vector2){ 0.0f, 0.0f }
-        )
-    );
-}
+void AiOpponent::Update() {
+    auto worldWidth = this->scene->screen.width;
+    auto worldHeight = this->scene->screen.height;
 
-void Enemy::FixedUpdate(cen::GameContext* ctx) {
-    auto worldWidth = ctx->worldWidth;
-    auto worldHeight = ctx->worldHeight;
-
-    float directionX = 0;
-    float directionY = 0;
-
-    auto ball = ctx->scene->node_storage->GetById<Ball>(this->ballId);
+    auto ball = this->scene->nodeStorage->GetById<Ball>(this->ballId);
 
     // # AI
     if (ball != nullptr) {
@@ -280,41 +293,9 @@ void Enemy::FixedUpdate(cen::GameContext* ctx) {
             directionX = 1;
         }
     }
-
-    // # Calc velocity
-    Vector2 newSpeed = Vector2Scale(
-        Vector2Normalize({
-            this->speed * directionX,
-            this->speed * directionY,
-        }),
-        this->speed
-    );
-
-    this->velocity.y += newSpeed.y;
-    this->velocity.x += newSpeed.x;
-
-    if (Vector2Length(this->velocity) > this->maxVelocity) {
-        this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
-    }
-
-    // # Friction
-    this->ApplyFriction();
-
-    // # Field boundaries
-    if (this->position.x - this->size.width/2 < worldWidth/2) {
-        this->position.x = worldWidth/2 + this->size.width/2;
-        this->velocity.x = 0;
-    }
-
-    // # World Boundaries
-    this->ApplyWorldBoundaries(worldWidth, worldHeight);
-
-    // # Velocity -> Position
-    this->ApplyVelocityToPosition();
 }
 
 // # Goal
-
 const uint64_t Goal::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 Goal::Goal(
@@ -328,7 +309,7 @@ Goal::Goal(
     this->position = position;
 };
 
-void Goal::Init(cen::GameContext* ctx) {
+void Goal::Init() {
     this->AddNode(
         std::make_unique<cen::RectangleView>(
             this->size,
@@ -344,6 +325,3 @@ void Goal::Init(cen::GameContext* ctx) {
         )
     );
 }
-
-const std::string StartEvent::type = "StartEvent";
-const std::string RestartEvent::type = "RestartEvent";

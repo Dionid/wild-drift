@@ -23,6 +23,8 @@ class Node2D: public Node {
             this->zOrder = zOrder;
         }
 
+        virtual ~Node2D() {};
+
         Node2D* ClosestNode2DParent(Node* targetParent = nullptr) {
             auto currentParent = targetParent == nullptr ? this->parent : targetParent;
             if (currentParent == nullptr) {

@@ -1,40 +1,81 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "raylib.h"
 #include "node.h"
 
 namespace cen {
 
+enum class TimerMode {
+    MILLISECONDS,
+    FRAMES,
+    FIXED_FRAMES
+};
+
 class Timer: public Node {
     public:
         float createdAt;
-        int duration;
+        int triggerAfter;
+        TimerMode mode;
 
         Timer(
-            int duration,
+            int triggerAfter,
+            TimerMode mode,
             node_id_t id = 0,
             Node* parent = nullptr
         ): Node(id, parent) {
             this->createdAt = 0;
-            this->duration = duration;
+            this->mode = mode;
+            this->triggerAfter = triggerAfter;
         }
 
-        void Init(cen::GameContext* ctx) override {
-            this->createdAt = GetTime();
+        void SetCreatedAt() {
+            switch(this->mode) {
+                case TimerMode::MILLISECONDS:
+                    this->createdAt = GetTime();
+                    break;
+                case TimerMode::FRAMES:
+                    this->createdAt = this->scene->frameTick;
+                    break;
+                case TimerMode::FIXED_FRAMES:
+                    this->createdAt = this->scene->fixedFrameTick;
+                    break;
+            }
+        }
+
+        void Init() override {
+            this->SetCreatedAt();
         }
 
         void Reset() {
-            this->createdAt = GetTime();
+            this->SetCreatedAt();
             this->Activate();
         }
 
-        virtual void OnTimerEnd(cen::GameContext* ctx) = 0;
+        virtual void OnTimerEnd() = 0;
 
-        void Update(cen::GameContext* ctx) override {
-            if (GetTime() - this->createdAt >= this->duration / 1000.0f) {
-                this->OnTimerEnd(ctx);
-                this->Deactivate();
+        void Update() override {
+            switch(this->mode) {
+                case TimerMode::MILLISECONDS:
+                    if (GetTime() - this->createdAt >= this->triggerAfter / 1000.0f) {
+                        this->OnTimerEnd();
+                        this->Deactivate();
+                    }
+                    break;
+                case TimerMode::FRAMES:
+                    if (this->scene->frameTick - this->createdAt >= this->triggerAfter) {
+                        this->OnTimerEnd();
+                        this->Deactivate();
+                    }
+                    break;
+                case TimerMode::FIXED_FRAMES:
+                    if (this->scene->fixedFrameTick - this->createdAt >= this->triggerAfter) {
+                        this->OnTimerEnd();
+                        this->Deactivate();
+                    }
+                    break;
+                default:
+                    std::cerr << "Timer::Update: Unknown mode" << std::endl;
+                    break;
             }
         }
 };

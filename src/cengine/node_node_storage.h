@@ -7,18 +7,19 @@
 namespace cen {
 
 template <typename T>
-T* Node::AddNode(std::unique_ptr<T> node) {
+T* Node::AddNode(std::unique_ptr<T> newNode) {
     static_assert(std::is_base_of<Node, T>::value, "T must inherit from Node");
     if (this->storage == nullptr) {
         throw std::runtime_error("Node storage is not set");
     }
-    node->storage = this->storage;
-    node->parent = this;
-    auto nodePtr = node.get();
+    newNode->storage = this->storage;
+    newNode->parent = this;
+    newNode->scene = this->scene;
+    auto nodePtr = newNode.get();
     if (nodePtr->id == 0) {
         nodePtr->id = NodeIdGenerator::GetInstance().GetNextId();
     }
-    this->children.push_back(std::move(node));
+    this->children.push_back(std::move(newNode));
     this->storage->OnNestedNodeCreated(nodePtr);
     return nodePtr;
 }

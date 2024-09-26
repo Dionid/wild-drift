@@ -12,16 +12,15 @@ class LaunchBallTimer: public cen::Timer {
 
         LaunchBallTimer(
             cen::node_id_t ballId,
-            int duration,
-            cen::node_id_t id,
-            cen::Node* parent
+            int duration
         );
 
-        void OnTimerEnd(cen::GameContext* ctx) override;
+        void OnTimerEnd() override;
 };
 
 class MatchManager: public cen::Node2D {
     public:
+        bool mirror;
         SpcAudio* gameAudio;
         cen::node_id_t ballId;
         cen::node_id_t playerId;
@@ -29,27 +28,26 @@ class MatchManager: public cen::Node2D {
         int playerScore;
         int enemyScore;
         int winScore;
-        std::function<void(cen::GameContext*)> onEnd;
         LaunchBallTimer* launchBallTimer;
         cen::TextView* playerScoreText;
         cen::TextView* enemyScoreText;
 
         MatchManager(
             SpcAudio* gameAudio,
-            std::function<void(cen::GameContext*)> onEnd,
-            int winScore = 3,
+            bool mirror = false,
+            int winScore = 100,
             int playerScore = 0,
             int enemyScore = 0
         );
 
-        void Reset(cen::GameContext* ctx);
+        void Reset();
 
-        void PlayerScored(cen::GameContext* ctx);
-        void EnemyScored(cen::GameContext* ctx);
-        void ResetEntities(cen::GameContext* ctx);
+        void PlayerScored();
+        void EnemyScored();
+        void ResetEntities();
 
-        void Init(cen::GameContext* ctx) override;
-        void FixedUpdate(cen::GameContext* ctx) override;
+        void Init() override;
+        void FixedUpdate() override;
 };
 
 #endif // CSP_MATCH_H_
