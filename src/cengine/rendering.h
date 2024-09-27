@@ -1,5 +1,5 @@
-#ifndef SPC_RENDERING_H
-#define SPC_RENDERING_H
+#ifndef CENGINE_RENDERING_H
+#define CENGINE_RENDERING_H
 
 #include <memory>
 #include <vector>
@@ -364,4 +364,4 @@ class RenderingEngine2D {
 
 }
 
-#endif // SPC_RENDERING_H
+#endif // CENGINE_RENDERING_H

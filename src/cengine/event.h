@@ -1,6 +1,6 @@
 
-#ifndef CEN_EVENT_H
-#define CEN_EVENT_H
+#ifndef CENGINE_EVENT_H
+#define CENGINE_EVENT_H
 
 #include <map>
 #include <vector>
@@ -141,4 +141,4 @@ namespace cen {
 
 };
 
-#endif // CEN_EVENT_H
+#endif // CENGINE_EVENT_H

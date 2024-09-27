@@ -1,3 +1,6 @@
+#ifndef CENGINE_NETWORK_H
+#define CENGINE_NETWORK_H
+
 #include <map>
 #include <vector>
 #include <iostream>
@@ -7,9 +10,6 @@
 #include <functional>
 #include "enet/enet.h"
 #include "node_storage.h"
-
-#ifndef CEN_NETWORK_H
-#define CEN_NETWORK_H
 
 namespace cen {
 
@@ -515,4 +515,4 @@ class NetworkManager {
 
 }
 
-#endif // CEN_NETWORK_H
+#endif // CENGINE_NETWORK_H

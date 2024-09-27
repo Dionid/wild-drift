@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef CENGINE_TIMER_H
+#define CENGINE_TIMER_H
 
 #include "node.h"
 
@@ -82,4 +82,4 @@ class Timer: public Node {
 
 } // namespace cen
 
-#endif // TIMER_H
+#endif // CENGINE_TIMER_H

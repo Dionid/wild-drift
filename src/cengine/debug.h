@@ -6,9 +6,9 @@
 
 namespace cen {
 
-#ifndef CEN_DEBUG
-#define CEN_DEBUG = 0
-#endif // CEN_DEBUG
+#ifndef CENGINE_DEBUG
+#define CENGINE_DEBUG = 0
+#endif // CENGINE_DEBUG
 
 static long get_mem_usage() {
     struct rusage usage;

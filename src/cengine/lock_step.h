@@ -1,10 +1,10 @@
+#ifndef CENGINE_LOCK_STEP_SCENE_H
+#define CENGINE_LOCK_STEP_SCENE_H
+
 #include <mutex>
 #include <atomic>
 #include "scene.h"
 #include "network.h"
-
-#ifndef CENGINE_LOCK_STEP_SCENE_H
-#define CENGINE_LOCK_STEP_SCENE_H
 
 namespace cen {
 

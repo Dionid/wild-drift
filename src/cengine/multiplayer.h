@@ -1,9 +1,8 @@
+#ifndef CENGINE_MULTIPLAYER_H
+#define CENGINE_MULTIPLAYER_H
 
 #include <string>
 #include "network.h"
-
-#ifndef CEN_MULTIPLAYER_H
-#define CEN_MULTIPLAYER_H
 
 namespace cen {
 
@@ -297,4 +296,4 @@ struct WrappedOnMultiplayerMessageReceivedListener {
 
 }
 
-#endif // CEN_MULTIPLAYER_H
+#endif // CENGINE_MULTIPLAYER_H
