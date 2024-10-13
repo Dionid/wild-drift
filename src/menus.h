@@ -19,38 +19,4 @@ class MainMenu: public cen::Node2D {
         void Init() override;
 };
 
-class MatchEndMenu: public cen::Node2D {
-    public:
-        const int titleFontSize = defaultTitleFontSize;
-        const int btnFontSize = defaultBtnFontSize;
-        bool playerWon = false;
-        cen::TextView* titleView;
-
-        MatchEndMenu(
-            bool playerWon = false
-        );
-
-        void Init() override;
-};
-
-class ServerLobbyMenu: public cen::Node2D {
-    public:
-        const int titleFontSize = defaultTitleFontSize;
-        const int btnFontSize = defaultBtnFontSize;
-
-        ServerLobbyMenu();
-
-        void Init() override;
-};
-
-class ClientLobbyMenu: public cen::Node2D {
-    public:
-        const int titleFontSize = defaultTitleFontSize;
-        const int btnFontSize = defaultBtnFontSize;
-
-        ClientLobbyMenu();
-
-        void Init() override;
-};
-
 #endif // CENGINE_MENUS_H_

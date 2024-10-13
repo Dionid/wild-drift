@@ -33,24 +33,6 @@ int main() {
     // # Audio
     InitAudioDevice();
 
-    SpcAudio gameAudio = {
-        Sound(
-            LoadSound(cen::GetResourcePath("audio/start.wav").c_str())
-        ),
-        Sound(
-            LoadSound(cen::GetResourcePath("audio/hit.wav").c_str())
-        ),
-        Sound(
-            LoadSound(cen::GetResourcePath("audio/score.wav").c_str())
-        ),
-        Sound(
-            LoadSound(cen::GetResourcePath("audio/lost.wav").c_str())
-        ),
-        Sound(
-            LoadSound(cen::GetResourcePath("audio/win.wav").c_str())
-        )
-    };
-
     // # Camera
     Camera2D camera = { 0 };
     camera.target = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
@@ -77,111 +59,28 @@ int main() {
         std::make_unique<cen::UdpTransport>()
     );
 
-    // # SPC Multiplayer
-    SpcMultiplayer scpMultiplayer = SpcMultiplayer(
-        mainTransport,
-        &eventBus
-    );
-
     // # Scenes
     cen::SceneManager sceneManager = cen::SceneManager(
        &eventBus
     );
 
     // ## Storage
-    CrossSceneStorage crossSceneStorage = {
-        false
-    };
+    CrossSceneStorage crossSceneStorage = {};
 
     // ## Main Menu Scene
     sceneManager.AddSceneConstructor(
         std::make_unique<cen::SceneConstructor>(
             MainMenuSceneName,
             [
-                &scpMultiplayer,
                 &crossSceneStorage,
-                &gameAudio,
                 &sceneManager,
                 &camera,
                 &renderingEngine,
                 &eventBus
             ](){
                 return std::make_unique<MainMenuScene>(
-                    &scpMultiplayer,
                     &sceneManager,
                     &crossSceneStorage,
-                    &gameAudio,
-                    cen::ScreenResolution{screenWidth, screenHeight},
-                    &camera,
-                    &renderingEngine,
-                    &eventBus
-                );
-            }
-        )
-    );
-
-    // ## Match End Menu Scene
-    sceneManager.AddSceneConstructor(
-        std::make_unique<cen::SceneConstructor>(
-            MatchEndMenuSceneName,
-            [
-                &crossSceneStorage,
-                &gameAudio,
-                &camera,
-                &renderingEngine,
-                &eventBus
-            ](){
-                return std::make_unique<MatchEndScene>(
-                    &crossSceneStorage,
-                    &gameAudio,
-                    cen::ScreenResolution{screenWidth, screenHeight},
-                    &camera,
-                    &renderingEngine,
-                    &eventBus
-                );
-            }
-        )
-    );
-
-    // ## Local Match Scene
-    sceneManager.AddSceneConstructor(
-        std::make_unique<cen::SceneConstructor>(
-            LocalMatchSceneName,
-            [
-                &crossSceneStorage,
-                &gameAudio,
-                &camera,
-                &renderingEngine,
-                &eventBus
-            ](){
-                return std::make_unique<LocalMatchScene>(
-                    &crossSceneStorage,
-                    &gameAudio,
-                    cen::ScreenResolution{screenWidth, screenHeight},
-                    &camera,
-                    &renderingEngine,
-                    &eventBus
-                );
-            }
-        )
-    );
-
-    // ## Lock Step Match Scene
-    sceneManager.AddSceneConstructor(
-        std::make_unique<cen::SceneConstructor>(
-            LockStepMatchSceneName,
-            [
-                &scpMultiplayer,
-                &crossSceneStorage,
-                &gameAudio,
-                &camera,
-                &renderingEngine,
-                &eventBus
-            ](){
-                return std::make_unique<MatchLockStepScene>(
-                    &scpMultiplayer,
-                    &crossSceneStorage,
-                    &gameAudio,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
                     &renderingEngine,
