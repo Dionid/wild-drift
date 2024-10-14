@@ -41,11 +41,9 @@ target_include_directories(cengine PUBLIC ${enet_SOURCE_DIR}/include)
 if (APPLE)
     # Icon
     set(MACOSX_BUNDLE_ICON_FILE spc)
+
     set(APPLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/assets/spc.icns)
     set_source_files_properties(${APPLE_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-
-    # Executable
-    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${APPLE_ICON} ${game_audio} src/main.cpp)
 
     # Game audio
     file(GLOB_RECURSE game_audio "${CMAKE_SOURCE_DIR}/assets/audio/*.wav")
@@ -57,6 +55,20 @@ if (APPLE)
                 MACOSX_PACKAGE_LOCATION "Resources/audio/${NEW_FILE_PATH}"
         )
     endforeach()
+
+    # Game map
+    file(GLOB_RECURSE game_map "${CMAKE_SOURCE_DIR}/assets/map/*")
+    foreach (FILE ${game_map})
+        file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets/map" ${FILE})
+        get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+        set_source_files_properties(${FILE}
+            PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources/map/${NEW_FILE_PATH}"
+        )
+    endforeach()
+
+    # Executable
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${APPLE_ICON} ${game_audio} ${game_map} src/main.cpp)
 
     # Adding our source files
     file(GLOB PROJECT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")

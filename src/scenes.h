@@ -37,4 +37,30 @@ class MainMenuScene: public cen::LocalScene {
         void Init() override;
 };
 
+class LocalMatchScene: public cen::LocalScene {
+    public:
+        cen::SceneManager* sceneManager;
+        CrossSceneStorage* crossSceneStorage;
+
+        LocalMatchScene(
+            cen::SceneManager* sceneManager,
+            CrossSceneStorage* crossSceneStorage,
+            cen::ScreenResolution screen,
+            Camera2D* camera,
+            cen::RenderingEngine2D* renderingEngine,
+            cen::EventBus* eventBus
+        ): cen::LocalScene(
+            LocalMatchSceneName,
+            screen,
+            camera,
+            renderingEngine,
+            eventBus
+        ) {
+            this->sceneManager = sceneManager;
+            this->crossSceneStorage = crossSceneStorage;
+        }
+
+        void Init() override;
+};
+
 #endif // MAIN_SCENE_H

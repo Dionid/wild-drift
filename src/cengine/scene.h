@@ -111,6 +111,11 @@ namespace cen {
                 // # Collision
                 this->collisionEngine->NarrowCollisionCheckNaive(this->nodeStorage.get());
             }
+
+            template <typename T>
+            T* AddNode(std::unique_ptr<T> newNode) {
+                return this->nodeStorage->AddNode(std::move(newNode));
+            }
     };
 
     class LocalScene: public Scene {

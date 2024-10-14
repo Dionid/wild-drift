@@ -90,6 +90,29 @@ int main() {
         )
     );
 
+    // ## Local Match Scene
+    sceneManager.AddSceneConstructor(
+        std::make_unique<cen::SceneConstructor>(
+            LocalMatchSceneName,
+            [
+                &crossSceneStorage,
+                &sceneManager,
+                &camera,
+                &renderingEngine,
+                &eventBus
+            ](){
+                return std::make_unique<LocalMatchScene>(
+                    &sceneManager,
+                    &crossSceneStorage,
+                    cen::ScreenResolution{screenWidth, screenHeight},
+                    &camera,
+                    &renderingEngine,
+                    &eventBus
+                );
+            }
+        )
+    );
+
     // ## Set first scene
     sceneManager.SetFirstScene(MainMenuSceneName);
 

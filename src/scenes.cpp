@@ -1,77 +1,41 @@
 #include "scenes.h"
+#include "entity.h"
 
 // # MainMenuScene
 
 void MainMenuScene::Init() {
     EnableCursor();
 
-    // this->scpMultiplayer->Deinit();
-
     // ## MainMenu
-    MainMenu* mainMenu = this->nodeStorage->AddNode(std::make_unique<MainMenu>());
-
-    // # Events
-    // ## StartEvent
-    auto onStartEvent = [
-        this
-    ](const cen::Event* event) {
-        // this->eventBus.Emit(
-        //     std::make_unique<cen::SceneChangeRequested>(
-        //         LocalMatchSceneName
-        //     )
-        // );
-    };
+    MainMenu* mainMenu = this->AddNode(std::make_unique<MainMenu>());
 
     this->eventBus.On(
         StartEvent{},
         std::make_unique<cen::EventListener>(
-            onStartEvent
+            [
+                this
+            ](const cen::Event* event) {
+                this->eventBus.Emit(
+                    std::make_unique<cen::SceneChangeRequested>(
+                        LocalMatchSceneName
+                    )
+                );
+            }
         )
     );
+}
 
-    // ## HostEvent
-    auto onHostEvent = [
-        this
-    ](const cen::Event* event) {
-        // this->sceneManager->ChangeScene(
-        //     std::make_unique<ServerLobbyScene>(
-        //         this->scpMultiplayer,
-        //         this->gameAudio,
-        //         this->screen,
-        //         this->camera,
-        //         this->renderingEngine,
-        //         this->eventBus.parent
-        //     )
-        // );
-    };
+// # LocalMatchScene
 
-    // this->eventBus.On(
-    //     HostEvent{},
-    //     std::make_unique<cen::EventListener>(
-    //         onHostEvent
-    //     )
-    // );
+void LocalMatchScene::Init() {
+    DisableCursor();
 
-    // ## JoinEvent
-    // auto onJoinEvent = [
-    //     this
-    // ](const cen::Event* event) {
-    //     this->sceneManager->ChangeScene(
-    //         std::make_unique<ClientLobbyScene>(
-    //             this->scpMultiplayer,
-    //             this->gameAudio,
-    //             this->screen,
-    //             this->camera,
-    //             this->renderingEngine,
-    //             this->eventBus.parent
-    //         )
-    //     );
-    // };
-
-    // this->eventBus.On(
-    //     JoinEvent{},
-    //     std::make_unique<cen::EventListener>(
-    //         onJoinEvent
-    //     )
-    // );
+    this->AddNode(
+        std::make_unique<Map>(
+            "main",
+            "main map",
+            "",
+            Vector2{ 0, 0 }
+        )
+    );
 }
