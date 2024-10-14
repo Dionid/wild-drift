@@ -1,6 +1,6 @@
 
-#ifndef SPC_MAC_H_
-#define SPC_MAC_H_
+#ifndef CEN_MAC_H_
+#define CEN_MAC_H_
 
 namespace cen {
 
@@ -22,4 +22,4 @@ namespace macutils {
 
 }
 
-#endif // SPC_MAC_H_
+#endif // CEN_MAC_H_

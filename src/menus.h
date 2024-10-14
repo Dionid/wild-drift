@@ -11,7 +11,7 @@ class MainMenu: public cen::Node2D {
     public:
         const int titleFontSize = defaultTitleFontSize;
         const int btnFontSize = defaultBtnFontSize;
-        const char* title = "Super Pong";
+        const char* title = "Wild Drift";
         const char* start = "Start";
 
         MainMenu();

@@ -2,7 +2,6 @@
 #include <thread>
 #include <chrono>
 #include "cengine/cengine.h"
-#include "cengine/loader.h"
 #include "utils.h"
 #include "audio.h"
 #include "entity.h"

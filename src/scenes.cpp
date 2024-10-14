@@ -38,19 +38,4 @@ void LocalMatchScene::Init() {
             Vector2{ 0, 0 }
         )
     );
-
-    auto yStart = this->screen.height / 2.0f - 50.0f / 2.0f - 30.0f;
-    const char* title = "MATCH";
-
-    this->AddNode(
-        std::make_unique<cen::TextView>(
-            Vector2{
-                this->screen.width / 2.0f - MeasureText(title, 50.0f) / 2.0f,
-                yStart
-            },
-            title,
-            50.0f,
-            WHITE
-        )
-    );
 }

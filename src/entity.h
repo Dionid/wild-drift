@@ -20,6 +20,8 @@ class Map: public cen::Node2D {
         uint16_t id = 0,
         Node* parent = nullptr
     );
+
+    void Init() override;
 };
 
 // // # Characters & Players

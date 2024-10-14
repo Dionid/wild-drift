@@ -31,6 +31,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(enet)
 
+# Adding JSON
+FetchContent_Declare(
+    json
+    URL
+    https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+
+FetchContent_MakeAvailable(json)
+
 # Config CEngine
 file(GLOB CENGINE_SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/cengine/*.cpp")
 add_library(cengine ${CENGINE_SOURCES})
@@ -99,7 +108,7 @@ else()
 endif()
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
-target_link_libraries(${PROJECT_NAME} cengine)
+target_link_libraries(${PROJECT_NAME} cengine nlohmann_json::nlohmann_json)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
 
 # Checks if OSX and links appropriate frameworks (only required on MacOS)
