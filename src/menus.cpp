@@ -36,49 +36,7 @@ void MainMenu::Init() {
                 nullptr,
                 nullptr,
                 [this](cen::Btn* btn) {
-                    // this->scene->eventBus.Emit(std::make_unique<StartEvent>());
-                }
-            )
-        )
-    );
-
-    this->AddNode(
-        std::make_unique<cen::Btn>(
-            "Host",
-            btnFontSize,
-            Vector2{
-                this->scene->screen.width / 2.0f,
-                btnStart + 50.0f
-            },
-            cen::Size{ 0, 0 },
-            Vector2{ 0.5, 0.5 },
-            cen::Callbacks(
-                nullptr,
-                nullptr,
-                nullptr,
-                [this](cen::Btn* btn) {
-                    // this->scene->eventBus.Emit(std::make_unique<HostEvent>());
-                }
-            )
-        )
-    );
-
-    this->AddNode(
-        std::make_unique<cen::Btn>(
-            "Join",
-            btnFontSize,
-            Vector2{
-                this->scene->screen.width / 2.0f,
-                btnStart + 100.0f
-            },
-            cen::Size{ 0, 0 },
-            Vector2{ 0.5, 0.5 },
-            cen::Callbacks(
-                nullptr,
-                nullptr,
-                nullptr,
-                [this](cen::Btn* btn) {
-                    // this->scene->eventBus.Emit(std::make_unique<JoinEvent>());
+                    this->scene->eventBus.Emit(std::make_unique<StartEvent>());
                 }
             )
         )
