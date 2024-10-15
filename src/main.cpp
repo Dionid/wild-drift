@@ -26,7 +26,7 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "super pong");
+    InitWindow(screenWidth, screenHeight, "wild drift");
     SetTargetFPS(FPS);
 
     // # Audio

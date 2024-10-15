@@ -2,6 +2,7 @@
 #define CENGINE_VIEW_H_
 
 #include "node_2d.h"
+#include "tilemap.h"
 
 // # Views
 
@@ -63,6 +64,21 @@ class RectangleView: public cen::Node2D {
             this->size = size;
             this->color = color;
             this->alpha = alpha;
+        }
+};
+
+class TileMapView: public cen::Node2D {
+    public:
+        TileMap* map;
+
+        TileMapView(
+            TileMap* map,
+            Vector2 position = Vector2{},
+            int zOrder = 0,
+            uint16_t id = 0,
+            Node* parent = nullptr
+        ): cen::Node2D(position, zOrder, id, parent) {
+            this->map = map;
         }
 };
 

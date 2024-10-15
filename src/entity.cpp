@@ -22,41 +22,6 @@ Map::Map(
     this->path = path;
 }
 
-struct TileSet {
-    std::string name;
-    std::string imagePath;
-
-    int columns;
-
-    int tileCount;
-    int tileHeight;
-
-    int imageHeight;
-    int imageWidth;
-
-    Image image;
-
-    ~TileSet() {
-        // std::cout << "TileSet destructor" << std::endl;
-        UnloadImage(this->image);
-    }
-};
-
-struct TileMap {
-    std::string path;
-
-    int width;
-    int height;
-
-    int tileWidth;
-    int tileHeight;
-
-    std::string orientation;
-    std::string renderOrder;
-
-    std::vector<std::unique_ptr<TileSet>> tileSets;
-};
-
 void Map::Init() {
     this->AddNode(
         std::make_unique<cen::TextView>(
@@ -73,7 +38,7 @@ void Map::Init() {
     std::ifstream f(cen::GetResourcePath("map/wild-drift-first.json"));
     json data = json::parse(f);
 
-    TileMap tileMap;
+    cen::TileMap tileMap;
 
     tileMap.path = this->path;
     tileMap.width = data["width"];
@@ -84,7 +49,7 @@ void Map::Init() {
     tileMap.renderOrder = data["renderorder"];
 
     for (auto& tileSet : data["tilesets"]) {
-        auto ts = std::make_unique<TileSet>();
+        auto ts = std::make_unique<cen::TileSet>();
 
         ts->name = tileSet["name"];
         ts->imagePath = tileSet["image"];
@@ -94,8 +59,24 @@ void Map::Init() {
         ts->imageHeight = tileSet["imageheight"];
         ts->imageWidth = tileSet["imagewidth"];
 
-        ts->image = LoadImage(cen::GetResourcePath("map/" + ts->imagePath).c_str());
+        tileMap.tileSets[ts->name] = std::move(ts);
+    }
 
-        tileMap.tileSets.push_back(std::move(ts));
+    for (auto& layer : data["layers"]) {
+        if (layer["type"] == "tilelayer") {
+            cen::TileMapLayer tileMapLayer;
+
+            tileMapLayer.id = layer["id"];
+            tileMapLayer.name = layer["name"];
+            tileMapLayer.width = layer["width"];
+            tileMapLayer.height = layer["height"];
+            tileMapLayer.visible = layer["visible"];
+            tileMapLayer.type = layer["type"];
+            tileMapLayer.opacity = layer["opacity"];
+
+            for (auto& tile : layer["data"]) {
+                tileMapLayer.data.push_back(tile);
+            }
+        }
     }
 }

@@ -14,6 +14,8 @@
 
 namespace cen {
 
+#define render_buffer std::vector<std::unique_ptr<CanvasItem2D>>
+
 class CanvasItem2D {
     public:
         node_id_t id;
@@ -80,7 +82,6 @@ class CircleCanvasItem2D: public CanvasItem2D {
             uint16_t id = 0
         ): CanvasItem2D(position, alpha, zOrder, id) {
             this->radius = radius;
-            this->alpha = alpha;
             this->color = color;
             this->fill = fill;
         }
@@ -219,7 +220,26 @@ class TextCanvasItem2D: public CanvasItem2D {
         }
 };
 
-#define render_buffer std::vector<std::unique_ptr<CanvasItem2D>>
+// # TileMapLayer
+
+class TileMapLayerCanvasItem2D: public CanvasItem2D {
+    public:
+        
+
+        TileMapLayerCanvasItem2D(
+            Vector2 position,
+            float alpha = 1.0f,
+            int zOrder = 0,
+            uint16_t id = 0
+        ): CanvasItem2D(position, alpha, zOrder, id) {
+        }
+
+        void Render() override {
+            
+        }
+};
+
+// # Rendering Engine
 
 class RenderingEngine2D {
     private:
@@ -297,6 +317,10 @@ class RenderingEngine2D {
                         textView->color
                     )
                 );
+            } else if (auto tileMapView = dynamic_cast<cen::TileMapView*>(node2D)) {
+                for (auto layer : tileMapView->map->layers) {
+                    
+                }
             }
         }
 

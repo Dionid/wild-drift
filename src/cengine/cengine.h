@@ -18,5 +18,6 @@
 #include "network.h"
 #include "multiplayer.h"
 #include "lock_step.h"
+#include "tilemap.h"
 
 #endif // CENGINE_H_
