@@ -445,8 +445,8 @@ class RenderingEngine2D {
                     ClearBackground(BLACK);
                     BeginMode2D(*camera);
                     this->Render();
+                    EndMode2D();
                     debugger.Render();
-                     EndMode2D();
                 EndDrawing();
             }
 

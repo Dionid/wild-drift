@@ -34,10 +34,10 @@ int main() {
 
     // # Camera
     Camera2D camera = { 0 };
-    camera.target = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.target = (Vector2){ 0.0f, 0.0f };
+    camera.offset = (Vector2){ 0.0f, 0.0f };
     camera.rotation = 0.0f;
-    camera.zoom = 2.0f;
+    camera.zoom = 1.0f;
 
     // # Rendering Engine
     cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D(

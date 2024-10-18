@@ -26,6 +26,7 @@ class Map: public cen::Node2D {
     );
 
     void Init() override;
+    void Update() override;
 };
 
 // // # Characters & Players

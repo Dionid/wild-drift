@@ -80,3 +80,35 @@ void Map::Init() {
         )
     );
 }
+
+void Map::Update() {
+    // # Move by dragging
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)){
+        auto& camera = this->scene->camera;
+        const auto& screen = this->scene->screen;
+
+        Vector2 delta = GetMouseDelta();
+        delta = Vector2Scale(delta, -1.0f/camera->zoom);
+
+        Vector2 newTarget = Vector2Add(camera->target, delta);
+
+        if (newTarget.x < 0) {
+            newTarget.x = 0;
+        }
+
+        if (newTarget.y < 0) {
+            newTarget.y = 0;
+        }
+
+        // # check if it is more than screen with zoom
+        if (newTarget.x > tileMap->width * tileMap->tileWidth - screen.width / camera->zoom) {
+            newTarget.x = tileMap->width * tileMap->tileWidth - screen.width / camera->zoom;
+        }
+
+        if (newTarget.y > tileMap->height * tileMap->tileHeight - screen.height / camera->zoom) {
+            newTarget.y = tileMap->height * tileMap->tileHeight - screen.height / camera->zoom;
+        }
+
+        camera->target = newTarget;
+    }
+}
