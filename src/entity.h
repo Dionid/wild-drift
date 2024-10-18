@@ -12,6 +12,8 @@ class Map: public cen::Node2D {
     std::string path;
     cen::TextureStorage* textureStorage;
     std::unique_ptr<cen::TileMap> tileMap;
+    uint16_t width;
+    uint16_t height;
 
     static const uint64_t _tid;
 
@@ -30,7 +32,6 @@ class Map: public cen::Node2D {
     );
 
     void Init() override;
-    void Update() override;
 };
 
 // // # Characters & Players

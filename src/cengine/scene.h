@@ -128,7 +128,7 @@ namespace cen {
                 RenderingEngine2D* renderingEngine,
                 cen::EventBus* eventBus,
                 int simulationFrameRate = 60,
-                int simulationFixedFrameRate = 40,
+                int simulationFixedFrameRate = 50,
                 int fixedSimulationFrameCyclesLimit = 10,
                 cen::PlayerInputManager playerInputManager = cen::PlayerInputManager{},
                 std::unique_ptr<cen::CollisionEngine> collisionEngine = std::make_unique<cen::CollisionEngine>(),

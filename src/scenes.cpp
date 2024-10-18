@@ -46,8 +46,8 @@ void LocalMatchScene::Init() {
             0,
             "Player 1",
             Vector2{
-                (float)map->tileMap->widthInPixels / 2,
-                (float)map->tileMap->heightInPixels / 2
+                (float)map->width / 2,
+                (float)map->height / 2
             },
             cen::Size{ 32, 32 },
             2.0f,

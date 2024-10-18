@@ -51,7 +51,7 @@ int main() {
 
     // # Network Manager
     cen::NetworkManager networkManager = cen::NetworkManager(
-        120
+        10
     );
 
     // # Main Udp Transport

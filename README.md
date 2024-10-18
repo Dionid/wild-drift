@@ -14,6 +14,8 @@
 
 # CEngine Roadmap
 
+1. Node.id to Node._node_id
+1. Map as part of Scene
 1. ...
 
 # Features

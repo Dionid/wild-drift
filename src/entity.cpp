@@ -43,6 +43,7 @@ void WDCamera::Update() {
     //     camera->target = newTarget;
     // }
 
+    // # Move by keyboard
     if (IsKeyDown(KEY_RIGHT)) {
         camera->target.x += 2;
     }
@@ -60,7 +61,7 @@ void WDCamera::Update() {
     }
 
     // # Move by following player
-    camera->target = Vector2Lerp(camera->target, player->position, 0.1f);
+    camera->target = Vector2Lerp(camera->target, player->position, 0.2f);
 
     // # Apply bounds
     if (camera->target.x < camera->offset.x / 2) {
@@ -142,6 +143,9 @@ Map::Map(
             tileMap->layers.push_back(tileMapLayer);
         }
     }
+
+    this->width = tileMap->widthInPixels;
+    this->height = tileMap->heightInPixels;
 }
 
 const cen::type_id_t Map::_tid = cen::TypeIdGenerator::getInstance().getNextId();
@@ -153,10 +157,6 @@ void Map::Init() {
             this->textureStorage
         )
     );
-}
-
-void Map::Update() {
-    
 }
 
 // # Player
@@ -176,8 +176,6 @@ Player::Player(
     this->name = name;
     this->speed = speed;
     this->maxVelocity = maxVelocity;
-
-    std::cout << "Player " << this->id << std::endl;
 }
 
 const cen::type_id_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
@@ -198,8 +196,8 @@ void Player::Update() {
 }
 
 void Player::ApplyFriction() {
-    this->velocity.y *= .80f;
-    this->velocity.x *= .80f;
+    this->velocity.y *= .60f;
+    this->velocity.x *= .60f;
 
     if (this->velocity.x < 0.01 && this->velocity.x > -0.01) {
         this->velocity.x = 0;
@@ -224,6 +222,7 @@ void Player::FixedUpdate() {
     if (Vector2Length(this->velocity) > this->maxVelocity) {
         this->velocity = Vector2Scale(Vector2Normalize(this->velocity), this->maxVelocity);
     }
+
     // # Friction
     this->ApplyFriction();
 
@@ -231,5 +230,5 @@ void Player::FixedUpdate() {
     // this->ApplyMapBoundaries(this->scene->screen.width, this->scene->screen.height);
 
     // # Velocity -> Position
-    this->ApplyVelocityToPosition();
+    this->MoveAndSlide();
 }
