@@ -41,7 +41,8 @@ int main() {
 
     // # Rendering Engine
     cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D(
-        &camera
+        &camera,
+        true
     );
 
     // # Event Bus

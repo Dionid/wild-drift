@@ -5,9 +5,11 @@
 1. ~~Render tilemap~~
 1. ~~Zoom~~
 1. ~~Move camera~~
-1. Player
-1. Player Movement
+1. ~~Player~~
+1. ~~Player Movement~~
 1. y-sorting
+    1. Change zOrder based on y position ONLY for some nodes
+    1. ...
 1. Collisions
 1. AnimatedSprite
 1. ...

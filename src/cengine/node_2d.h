@@ -10,6 +10,7 @@ class Node2D: public Node {
         Vector2 previousPosition;
         Vector2 position;
         int zOrder = 0;
+        bool ySort = false;
 
         static const uint64_t _tid;
 
@@ -17,7 +18,7 @@ class Node2D: public Node {
             return Node2D::_tid;
         }
 
-        Node2D(Vector2 position, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node(id, parent) {
+        Node2D(Vector2 position, bool ySort = false, int zOrder = 0, uint16_t id = 0, Node* parent = nullptr): Node(id, parent) {
             this->position = position;
             this->previousPosition = position;
             this->zOrder = zOrder;

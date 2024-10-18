@@ -20,6 +20,7 @@ class CanvasItem2D {
     public:
         node_id_t id;
         int zOrder;
+        bool ySort;
         Vector2 position;
         float alpha;
 
@@ -27,12 +28,14 @@ class CanvasItem2D {
             Vector2 position,
             float alpha,
             int zOrder,
+            bool ySort = false,
             uint16_t id = 0
         ) {
             this->position = position;
             this->zOrder = zOrder;
             this->alpha = alpha;
             this->id = id;
+            this->ySort = ySort;
         }
 
         virtual ~CanvasItem2D() {}
@@ -51,8 +54,9 @@ class LineCanvasItem2D: public CanvasItem2D {
             Color color = WHITE,
             float alpha = 1.0f,
             int zOrder = 0,
+            bool ySort = false,
             uint16_t id = 0
-        ): CanvasItem2D(position, alpha, zOrder, id) {
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->length = length;
             this->alpha = alpha;
             this->color = color;
@@ -79,8 +83,9 @@ class CircleCanvasItem2D: public CanvasItem2D {
             float alpha = 1.0f,
             bool fill = true,
             int zOrder = 0,
+            bool ySort = false,
             uint16_t id = 0
-        ): CanvasItem2D(position, alpha, zOrder, id) {
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->radius = radius;
             this->color = color;
             this->fill = fill;
@@ -107,8 +112,9 @@ class RectangleCanvasItem2D: public CanvasItem2D {
             Color color = WHITE,
             float alpha = 1.0f,
             int zOrder = 0,
+            bool ySort = false,
             uint16_t id = 0
-        ): CanvasItem2D(position, alpha, zOrder, id) {
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->size = size;
             this->color = color;
         }
@@ -135,8 +141,9 @@ class ButtonCanvasItem2D: public CanvasItem2D {
             Vector2 anchor,
             float alpha = 1.0f,
             int zOrder = 0,
+            bool ySort = false,
             node_id_t id = 0
-        ): CanvasItem2D(position, alpha, zOrder, id) {
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->state = state;
             this->text = btnText;
             this->fontSize = btnTextFontSize;
@@ -203,8 +210,10 @@ class TextCanvasItem2D: public CanvasItem2D {
             int fontSize,
             Color color,
             float alpha = 1.0f,
-            int zOrder = 0
-        ): CanvasItem2D(position, alpha, zOrder) {
+            int zOrder = 0,
+            bool ySort = false,
+            uint16_t id = 0
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->text = text;
             this->fontSize = fontSize;
             this->color = color;
@@ -270,8 +279,9 @@ class TileCanvasItem2D: public CanvasItem2D {
             Size size,
             float alpha = 1.0f,
             int zOrder = 0,
+            bool ySort = false,
             uint16_t id = 0
-        ): CanvasItem2D(position, alpha, zOrder, id) {
+        ): CanvasItem2D(position, alpha, zOrder, ySort, id) {
             this->texturePosition = texturePosition;
             this->size = size;
             this->texture = texture;
@@ -304,10 +314,12 @@ class RenderingEngine2D {
         render_buffer firstBuffer;
         render_buffer secondBuffer;
         Camera2D* camera;
+        bool ySort = false;
 
-        RenderingEngine2D(Camera2D* camera) {
+        RenderingEngine2D(Camera2D* camera, bool ySort = false) {
             this->camera = camera;
             this->activeRenderBufferInd.store(0, std::memory_order_release);
+            this->ySort = ySort;
         }
 
         void MapNode2D(
@@ -366,7 +378,10 @@ class RenderingEngine2D {
                         buttonView->text,
                         buttonView->fontSize,
                         buttonView->size,
-                        buttonView->anchor
+                        buttonView->anchor,
+                        1.0f,
+                        buttonView->zOrder,
+                        buttonView->id
                     )
                 );
             } else if (auto textView = dynamic_cast<cen::TextView*>(node2D)) {
@@ -375,7 +390,11 @@ class RenderingEngine2D {
                         newGlobalPosition,
                         std::string(textView->text).c_str(),
                         textView->fontSize,
-                        textView->color
+                        textView->color,
+                        1.0f,
+                        textView->zOrder,
+                        textView->ySort,
+                        textView->id
                     )
                 );
             } else if (auto tileView = dynamic_cast<cen::TileView*>(node2D)) {
@@ -384,7 +403,11 @@ class RenderingEngine2D {
                         tileView->texture,
                         tileView->texturePosition,
                         newGlobalPosition,
-                        tileView->size
+                        tileView->size,
+                        1.0f,
+                        tileView->zOrder,
+                        tileView->ySort,
+                        tileView->id
                     )
                 );
             }
@@ -409,7 +432,7 @@ class RenderingEngine2D {
                 );
             }
 
-            std::sort(writeBuffer.begin(),writeBuffer.end(), [](const std::unique_ptr<cen::CanvasItem2D>& a, const std::unique_ptr<cen::CanvasItem2D>& b) {
+            std::sort(writeBuffer.begin(), writeBuffer.end(), [](const std::unique_ptr<cen::CanvasItem2D>& a, const std::unique_ptr<cen::CanvasItem2D>& b) {
                 return a->zOrder < b->zOrder;
             });
 

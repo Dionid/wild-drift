@@ -6,6 +6,8 @@
 #include <map>
 #include <raylib.h>
 #include <raymath.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
 
 namespace cen {
 

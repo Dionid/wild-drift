@@ -32,10 +32,11 @@ class CharacterBody2D: public CollisionObject2D {
             MotionMode motionMode = MotionMode::Floating,
             Vector2 up = cen::Vector2Up,
             float skinWidth = 0.1f,
+            bool ySort = false,
             int zOrder = 0,
             uint16_t id = 0,
             Node* parent = nullptr
-        ) : CollisionObject2D(position, zOrder, id, parent) {
+        ) : CollisionObject2D(position, ySort, zOrder, id, parent) {
             this->size = size;
             this->velocity = velocity;
         }

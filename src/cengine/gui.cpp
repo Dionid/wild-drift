@@ -11,7 +11,7 @@ Btn::Btn(
     cen::Size size = cen::Size{ 0, 0 },
     Vector2 anchor = Vector2{ 1, 1 },
     Callbacks callbacks = Callbacks()
-): cen::Node2D(position) {
+): cen::Node2D(position, false) {
     this->callbacks = callbacks;
     this->text = btnText;
     this->fontSize = btnTextFontSize;

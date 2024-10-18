@@ -1,9 +1,9 @@
-#include <fstream>
-#include <nlohmann/json.hpp>
+// #include <fstream>
+// #include <nlohmann/json.hpp>
 #include "entity.h"
 #include "utils.h"
 
-using json = nlohmann::json;
+// using json = nlohmann::json;
 
 // # Camera
 
@@ -86,63 +86,18 @@ Map::Map(
     int zOrder,
     uint16_t id,
     Node* parent
-): Node2D(position, zOrder, id, parent) {
+): Node2D(position, false, zOrder, id, parent) {
     this->name = name;
     this->path = path;
     this->textureStorage = textureStorage;
 
-    std::string jsonPath = "map/" + this->path + ".json";
-    std::ifstream f(cen::GetResourcePath(jsonPath));
-    json data = json::parse(f);
+    this->tileMap = std::make_unique<cen::TileMap>(
+        this->path
+    );
 
-    this->tileMap = std::make_unique<cen::TileMap>();
+    this->tileMap->Load();
 
-    tileMap->path = this->path;
-    tileMap->width = data["width"];
-    tileMap->height = data["height"];
-    tileMap->tileWidth = data["tilewidth"];
-    tileMap->tileHeight = data["tileheight"];
-    tileMap->orientation = data["orientation"];
-    tileMap->renderOrder = data["renderorder"];
-
-    tileMap->widthInPixels = tileMap->width * tileMap->tileWidth;
-    tileMap->heightInPixels = tileMap->height * tileMap->tileHeight;
-
-    for (auto& tileSet : data["tilesets"]) {
-        auto ts = std::make_unique<cen::TileSet>();
-
-        ts->name = tileSet["name"];
-        ts->imagePath = tileSet["image"];
-        ts->columns = tileSet["columns"];
-        ts->tileCount = tileSet["tilecount"];
-        ts->tileHeight = tileSet["tileheight"];
-        ts->imageHeight = tileSet["imageheight"];
-        ts->imageWidth = tileSet["imagewidth"];
-        ts->firstGID = tileSet["firstgid"];
-        ts->lastGID = ts->firstGID + ts->tileCount - 1;
-
-        tileMap->tileSets[ts->name] = std::move(ts);
-    }
-
-    for (auto& layer : data["layers"]) {
-        if (layer["type"] == "tilelayer") {
-            cen::TileMapLayer tileMapLayer;
-
-            tileMapLayer.id = layer["id"];
-            tileMapLayer.name = layer["name"];
-            tileMapLayer.width = layer["width"];
-            tileMapLayer.height = layer["height"];
-            tileMapLayer.visible = layer["visible"];
-            tileMapLayer.type = layer["type"];
-            tileMapLayer.opacity = layer["opacity"];
-
-            for (auto& tile : layer["data"]) {
-                tileMapLayer.data.push_back(tile);
-            }
-
-            tileMap->layers.push_back(tileMapLayer);
-        }
-    }
+    // this->tileMap->layersByName["holes"]->ySort = true;
 
     this->width = tileMap->widthInPixels;
     this->height = tileMap->heightInPixels;
@@ -170,7 +125,12 @@ Player::Player(
     float maxVelocity
 ): cen::CharacterBody2D(
     position,
-    size
+    size,
+    Vector2{},
+    cen::MotionMode::Floating,
+    cen::Vector2Up,
+    0.1f,
+    true
 ) {
     this->playerId = playerId;
     this->name = name;
