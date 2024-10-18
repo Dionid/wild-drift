@@ -1,4 +1,5 @@
 #include "cengine/cengine.h"
+#include "cengine/loader.h"
 
 #ifndef CSP_ENTITY_H_
 #define CSP_ENTITY_H_
@@ -10,11 +11,14 @@ class Map: public cen::Node2D {
     std::string name;
     std::string description;
     std::string path;
+    cen::TextureStorage* textureStorage;
+    std::unique_ptr<cen::TileMap> tileMap;
 
     Map(
         std::string name,
         std::string description,
         std::string path,
+        cen::TextureStorage* textureStorage,
         Vector2 position,
         int zOrder = 0,
         uint16_t id = 0,

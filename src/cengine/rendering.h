@@ -220,22 +220,76 @@ class TextCanvasItem2D: public CanvasItem2D {
         }
 };
 
+class TextureCanvasItem2D: public CanvasItem2D {
+    public:
+        Texture* texture;
+        int tileGID;
+        int tilesetColumns;
+        int tileWidth;
+        int tileHeight;
+        int x;
+        int y;
+
+        TextureCanvasItem2D(
+            Texture* texture,
+            Vector2 position,
+            int tileGID,
+            int tilesetColumns,
+            int tileWidth,
+            int tileHeight,
+            float alpha = 1.0f,
+            int zOrder = 0
+        ): CanvasItem2D(position, alpha, zOrder) {
+            this->texture = texture;
+        }
+
+        void Render() override {
+            int tileIndex = tileGID - 1;  // Tiled GIDs start at 1
+            int tilesetX = (tileIndex % tilesetColumns) * tileWidth;
+            int tilesetY = (tileIndex / tilesetColumns) * tileHeight;
+
+            Rectangle sourceRec = { (float)tilesetX, (float)tilesetY, (float)tileWidth, (float)tileHeight };
+            Rectangle destRec = { (float)(position.x * tileWidth), (float)(position.y * tileHeight), (float)tileWidth, (float)tileHeight };
+            DrawTexturePro(*texture, sourceRec, destRec, Vector2{0, 0}, 0.0f, WHITE);
+        }
+};
+
 // # TileMapLayer
 
-class TileMapLayerCanvasItem2D: public CanvasItem2D {
+class TileCanvasItem2D: public CanvasItem2D {
     public:
-        
+        Rectangle texturePosition;
+        Size size;
+        Texture texture;
 
-        TileMapLayerCanvasItem2D(
+        TileCanvasItem2D(
+            Texture texture,
+            Rectangle texturePosition,
             Vector2 position,
+            Size size,
             float alpha = 1.0f,
             int zOrder = 0,
             uint16_t id = 0
         ): CanvasItem2D(position, alpha, zOrder, id) {
+            this->texturePosition = texturePosition;
+            this->size = size;
+            this->texture = texture;
         }
 
         void Render() override {
-            
+            DrawTexturePro(
+                texture,
+                texturePosition,
+                Rectangle{
+                    position.x,
+                    position.y,
+                    size.width,
+                    size.height
+                },
+                Vector2{0, 0},
+                0.0f,
+                WHITE
+            );
         }
 };
 
@@ -317,10 +371,15 @@ class RenderingEngine2D {
                         textView->color
                     )
                 );
-            } else if (auto tileMapView = dynamic_cast<cen::TileMapView*>(node2D)) {
-                for (auto layer : tileMapView->map->layers) {
-                    
-                }
+            } else if (auto tileView = dynamic_cast<cen::TileView*>(node2D)) {
+                activeRenderBuffer.push_back(
+                    std::make_unique<TileCanvasItem2D>(
+                        tileView->texture,
+                        tileView->texturePosition,
+                        newGlobalPosition,
+                        tileView->size
+                    )
+                );
             }
         }
 

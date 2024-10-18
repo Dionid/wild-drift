@@ -35,6 +35,7 @@ void LocalMatchScene::Init() {
             "main",
             "main map",
             "",
+            textureStorage,
             Vector2{ 0, 0 }
         )
     );

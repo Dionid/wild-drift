@@ -2,6 +2,7 @@
 #define CENGINE_H_
 
 #include "core.h"
+#include "texture.h"
 #include "scene.h"
 #include "event.h"
 #include "node.h"

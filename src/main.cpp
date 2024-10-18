@@ -63,6 +63,13 @@ int main() {
        &eventBus
     );
 
+    // # Textures
+    cen::TextureStorage textureStorage = {
+        "map/"
+    };
+
+    textureStorage.AddTexture("top-down-test", "tileset_gray.png");
+
     // ## Storage
     CrossSceneStorage crossSceneStorage = {};
 
@@ -96,6 +103,7 @@ int main() {
             [
                 &crossSceneStorage,
                 &sceneManager,
+                &textureStorage,
                 &camera,
                 &renderingEngine,
                 &eventBus
@@ -103,6 +111,7 @@ int main() {
                 return std::make_unique<LocalMatchScene>(
                     &sceneManager,
                     &crossSceneStorage,
+                    &textureStorage,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
                     &renderingEngine,

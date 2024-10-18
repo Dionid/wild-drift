@@ -10,7 +10,7 @@
 
 namespace cen {
 
-std::string GetResourcePath(const std::string& resource) {
+static std::string GetResourcePath(const std::string& resource) {
     if (__APPLE__) {
         return cen::macutils::GetResourcePath(resource);
     } else {

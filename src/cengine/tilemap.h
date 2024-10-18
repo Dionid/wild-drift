@@ -15,6 +15,9 @@ namespace cen {
 
         int imageHeight;
         int imageWidth;
+
+        int firstGID;
+        int lastGID;
     };
 
     struct TileMapLayer {

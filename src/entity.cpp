@@ -1,6 +1,5 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "cengine/loader.h"
 #include "entity.h"
 #include "utils.h"
 
@@ -12,6 +11,7 @@ Map::Map(
     std::string name,
     std::string description,
     std::string path,
+    cen::TextureStorage* textureStorage,
     Vector2 position,
     int zOrder,
     uint16_t id,
@@ -20,6 +20,7 @@ Map::Map(
     this->name = name;
     this->description = description;
     this->path = path;
+    this->textureStorage = textureStorage;
 }
 
 void Map::Init() {
@@ -38,15 +39,17 @@ void Map::Init() {
     std::ifstream f(cen::GetResourcePath("map/wild-drift-first.json"));
     json data = json::parse(f);
 
-    cen::TileMap tileMap;
+    // cen::TileMap tileMap;
 
-    tileMap.path = this->path;
-    tileMap.width = data["width"];
-    tileMap.height = data["height"];
-    tileMap.tileWidth = data["tilewidth"];
-    tileMap.tileHeight = data["tileheight"];
-    tileMap.orientation = data["orientation"];
-    tileMap.renderOrder = data["renderorder"];
+    this->tileMap = std::make_unique<cen::TileMap>();
+
+    tileMap->path = this->path;
+    tileMap->width = data["width"];
+    tileMap->height = data["height"];
+    tileMap->tileWidth = data["tilewidth"];
+    tileMap->tileHeight = data["tileheight"];
+    tileMap->orientation = data["orientation"];
+    tileMap->renderOrder = data["renderorder"];
 
     for (auto& tileSet : data["tilesets"]) {
         auto ts = std::make_unique<cen::TileSet>();
@@ -58,8 +61,10 @@ void Map::Init() {
         ts->tileHeight = tileSet["tileheight"];
         ts->imageHeight = tileSet["imageheight"];
         ts->imageWidth = tileSet["imagewidth"];
+        ts->firstGID = tileSet["firstgid"];
+        ts->lastGID = ts->firstGID + ts->tileCount - 1;
 
-        tileMap.tileSets[ts->name] = std::move(ts);
+        tileMap->tileSets[ts->name] = std::move(ts);
     }
 
     for (auto& layer : data["layers"]) {
@@ -77,6 +82,15 @@ void Map::Init() {
             for (auto& tile : layer["data"]) {
                 tileMapLayer.data.push_back(tile);
             }
+
+            tileMap->layers.push_back(tileMapLayer);
         }
     }
+
+    this->AddNode(
+        std::make_unique<cen::TileMapView>(
+            tileMap.get(),
+            this->textureStorage
+        )
+    );
 }

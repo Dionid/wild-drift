@@ -8,7 +8,7 @@ namespace macutils {
     #include <string>
     #include <CoreFoundation/CoreFoundation.h>
 
-    std::string GetResourcePath(const std::string& resource) {
+    static std::string GetResourcePath(const std::string& resource) {
         CFBundleRef bundle = CFBundleGetMainBundle();
         CFURLRef resourceURL = CFBundleCopyResourceURL(bundle, CFStringCreateWithCString(nullptr, resource.c_str(), kCFStringEncodingUTF8), nullptr, nullptr);
         

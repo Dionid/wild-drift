@@ -41,10 +41,12 @@ class LocalMatchScene: public cen::LocalScene {
     public:
         cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
+        cen::TextureStorage* textureStorage;
 
         LocalMatchScene(
             cen::SceneManager* sceneManager,
             CrossSceneStorage* crossSceneStorage,
+            cen::TextureStorage* textureStorage,
             cen::ScreenResolution screen,
             Camera2D* camera,
             cen::RenderingEngine2D* renderingEngine,
@@ -58,6 +60,7 @@ class LocalMatchScene: public cen::LocalScene {
         ) {
             this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
+            this->textureStorage = textureStorage;
         }
 
         void Init() override;
