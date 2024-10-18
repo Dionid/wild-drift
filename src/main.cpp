@@ -40,7 +40,9 @@ int main() {
     camera.zoom = 1.0f;
 
     // # Rendering Engine
-    cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D();
+    cen::RenderingEngine2D renderingEngine = cen::RenderingEngine2D(
+        &camera
+    );
 
     // # Event Bus
     cen::EventBus eventBus = cen::EventBus(

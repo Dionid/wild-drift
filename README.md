@@ -1,48 +1,12 @@
-# Raylib Pong
+# Wild-drift
 
 # Roadmap
 
-1. Multiplayer
-    1. Thread results
-    1. On disconnect
-    1. cen::PlayerInputManager to parent class
-    1. Loop throw received messages (or index somehow)
-    1. Remove coping of network messages
-    1. Check Float Precision
-    1. (optional) Broadcast from host to clients
-    1. P2P
-1. Errors
-1. uint64_t -> smaller types
-1. Move SPC logic from .h to .cpp
-1. More private / protected members
-1. Managers as Actors
-1. Signals to send stopping messages down the tree
-1. Event bus Thread safety
-1. Logger
-1. EventBus is now flushing only while scene is working
-1. Debug as flag
-1. ? pThreads
-1. World
-1. Remove raylib
-1. (RTTI) Node.id on BitMask
-    1. NodeStorage index by class
-1. Remove CharacterNode2D.size
-1. Release web
-1. Name convention (https://google.github.io/styleguide/cppguide.html#General_Naming_Rules)
-1. New features
-    1. Capsule Collider
-    1. AssetsLoader threads
-    1. Settings
-    1. Animations
-    1. Game Speed
-    1. Sprites
-1. Improvements
-    1. Node2D position -> transform
-    1. SAT
-    1. Add units (meters, seconds, etc.)
-    1. CollisionEngine pair.id
-    1. NodeGenerator id graveyard
-    1. Change Vector2Add to mutable where possible (like GlobalPosition)
+1. Scale tileset
+1. Move camera
+1. Player
+1. y-sorting
+1. ...
 
 # Features
 

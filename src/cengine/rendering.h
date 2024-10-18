@@ -302,6 +302,12 @@ class RenderingEngine2D {
     public:
         render_buffer firstBuffer;
         render_buffer secondBuffer;
+        Camera2D* camera;
+
+        RenderingEngine2D(Camera2D* camera) {
+            this->camera = camera;
+            this->activeRenderBufferInd.store(0, std::memory_order_release);
+        }
 
         void MapNode2D(
             render_buffer& activeRenderBuffer,
@@ -436,8 +442,10 @@ class RenderingEngine2D {
             {
                 BeginDrawing();
                     ClearBackground(BLACK);
+                    BeginMode2D(*camera);
                     this->Render();
                     debugger.Render();
+                     EndMode2D();
                 EndDrawing();
             }
 

@@ -29,6 +29,7 @@ void MainMenuScene::Init() {
 
 void LocalMatchScene::Init() {
     DisableCursor();
+    this->camera->zoom = 2.0f;
 
     this->AddNode(
         std::make_unique<Map>(
@@ -39,4 +40,9 @@ void LocalMatchScene::Init() {
             Vector2{ 0, 0 }
         )
     );
+}
+
+void LocalMatchScene::BeforeStop() {
+    EnableCursor();
+    this->camera->zoom = 1.0f;
 }

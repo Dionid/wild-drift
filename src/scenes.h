@@ -58,6 +58,7 @@ class LocalMatchScene: public cen::LocalScene {
         }
 
         void Init() override;
+        void BeforeStop() override;
 };
 
 #endif // MAIN_SCENE_H
