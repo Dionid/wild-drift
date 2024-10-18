@@ -9,14 +9,18 @@
 class Map: public cen::Node2D {
     public:
     std::string name;
-    std::string description;
     std::string path;
     cen::TextureStorage* textureStorage;
     std::unique_ptr<cen::TileMap> tileMap;
 
+    static const uint64_t _tid;
+
+    cen::type_id_t TypeId() const override {
+        return Map::_tid;
+    }
+
     Map(
         std::string name,
-        std::string description,
         std::string path,
         cen::TextureStorage* textureStorage,
         Vector2 position,
@@ -96,26 +100,62 @@ class Map: public cen::Node2D {
 //     uint16_t movementSpeed;
 // };
 
-// class Player: public cen::CharacterBody2D {
-//     public:
-//     static const uint64_t _tid;
+class Player: public cen::CharacterBody2D {
+    public:
+    static const uint64_t _tid;
+    int directionY;
+    int directionX;
 
-//     cen::type_id_t TypeId() const override {
-//         return Player::_tid;
-//     }
+    cen::type_id_t TypeId() const override {
+        return Player::_tid;
+    }
 
-//     uint64_t id;
-//     std::string name;
-//     Champion champion;
-//     PlayerStats stats;
+    uint64_t playerId;
+    std::string name;
+    float speed;
+    float maxVelocity;
+    // Champion champion;
+    // PlayerStats stats;
 
-//     Player(
-//         uint64_t id,
-//         std::string name,
-//         Champion champion,
-//         PlayerStats stats,
-//         Vector2 position
-//     );
-// };
+    Player(
+        uint64_t playerId,
+        std::string name,
+        // Champion champion,
+        // PlayerStats stats,
+        Vector2 position,
+        cen::Size size,
+        float speed,
+        float maxVelocity
+    );
+
+    void Init() override;
+    void Update() override;
+    void FixedUpdate() override;
+
+    void ApplyFriction();
+};
+
+// # Camera
+
+class WDCamera: public cen::Node {
+    public:
+
+    static const uint64_t _tid;
+
+    cen::type_id_t TypeId() const override {
+        return WDCamera::_tid;
+    }
+
+    Map* map;
+    Player* player;
+
+    WDCamera(
+        Map* map,
+        Player* player
+    );
+
+    void Init() override;
+    void Update() override;
+};
 
 #endif // CSP_ENTITY_H_

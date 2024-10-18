@@ -29,15 +29,36 @@ void MainMenuScene::Init() {
 
 void LocalMatchScene::Init() {
     DisableCursor();
+
     this->camera->zoom = 2.0f;
 
-    this->AddNode(
+    auto map = this->AddNode(
         std::make_unique<Map>(
             "main",
-            "main map",
-            "",
+            "wild-drift-first",
             textureStorage,
             Vector2{ 0, 0 }
+        )
+    );
+
+    auto player = this->AddNode(
+        std::make_unique<Player>(
+            0,
+            "Player 1",
+            Vector2{
+                (float)map->tileMap->widthInPixels / 2,
+                (float)map->tileMap->heightInPixels / 2
+            },
+            cen::Size{ 32, 32 },
+            2.0f,
+            4.0f
+        )
+    );
+
+    this->AddNode(
+        std::make_unique<WDCamera>(
+            map,
+            player
         )
     );
 }
