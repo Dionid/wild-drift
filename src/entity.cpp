@@ -37,6 +37,9 @@ void Map::Init() {
     tileMap->orientation = data["orientation"];
     tileMap->renderOrder = data["renderorder"];
 
+    tileMap->widthInPixels = tileMap->width * tileMap->tileWidth;
+    tileMap->heightInPixels = tileMap->height * tileMap->tileHeight;
+
     for (auto& tileSet : data["tilesets"]) {
         auto ts = std::make_unique<cen::TileSet>();
 
@@ -79,36 +82,58 @@ void Map::Init() {
             this->textureStorage
         )
     );
+
+    this->scene->camera->target = Vector2{
+        (float)tileMap->widthInPixels / 2,
+        (float)tileMap->heightInPixels / 2
+    };
+
+    this->scene->camera->offset = Vector2{
+        (float)this->scene->screen.width / 2,
+        (float)this->scene->screen.height / 2
+    };
 }
 
 void Map::Update() {
+    auto& camera = this->scene->camera;
+    const auto& screen = this->scene->screen;
+
     // # Move by dragging
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)){
-        auto& camera = this->scene->camera;
-        const auto& screen = this->scene->screen;
-
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f/camera->zoom);
 
         Vector2 newTarget = Vector2Add(camera->target, delta);
 
-        if (newTarget.x < 0) {
-            newTarget.x = 0;
-        }
-
-        if (newTarget.y < 0) {
-            newTarget.y = 0;
-        }
-
-        // # check if it is more than screen with zoom
-        if (newTarget.x > tileMap->width * tileMap->tileWidth - screen.width / camera->zoom) {
-            newTarget.x = tileMap->width * tileMap->tileWidth - screen.width / camera->zoom;
-        }
-
-        if (newTarget.y > tileMap->height * tileMap->tileHeight - screen.height / camera->zoom) {
-            newTarget.y = tileMap->height * tileMap->tileHeight - screen.height / camera->zoom;
-        }
-
         camera->target = newTarget;
+    }
+
+    if (IsKeyDown(KEY_RIGHT)) {
+        camera->target.x += 2;
+    }
+
+    if (IsKeyDown(KEY_LEFT)) {
+        camera->target.x -= 2;
+    }
+
+    if (IsKeyDown(KEY_UP)) {
+        camera->target.y -= 2;
+    }
+
+    if (IsKeyDown(KEY_DOWN)) {
+        camera->target.y += 2;
+    }
+
+     // # Apply bounds
+    if (camera->target.x < camera->offset.x / 2) {
+        camera->target.x = camera->offset.x / 2;
+    } else if (camera->target.x > tileMap->widthInPixels - camera->offset.x / 2) {
+        camera->target.x = tileMap->widthInPixels - camera->offset.x / 2;
+    }
+
+    if (camera->target.y < camera->offset.y / 2) {
+        camera->target.y = camera->offset.y / 2;
+    } else if (camera->target.y > tileMap->heightInPixels - camera->offset.y / 2) {
+        camera->target.y = tileMap->heightInPixels - camera->offset.y / 2;
     }
 }

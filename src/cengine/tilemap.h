@@ -39,6 +39,9 @@ namespace cen {
         int width;
         int height;
 
+        int widthInPixels;
+        int heightInPixels;
+
         int tileWidth;
         int tileHeight;
 
