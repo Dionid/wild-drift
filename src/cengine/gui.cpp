@@ -1,5 +1,6 @@
 
 #include "gui.h"
+#include "scene.h"
 
 namespace cen {
 
@@ -36,7 +37,7 @@ Btn::Btn(
 void Btn::Update() {
     state = BtnState::Normal;
 
-    Vector2 mousePoint = GetMousePosition();
+    Vector2 mousePoint = GetScreenToWorld2D(GetMousePosition(), *this->scene->camera);
 
     // Check button state
     if (CheckCollisionPointRec(mousePoint, btnRect))

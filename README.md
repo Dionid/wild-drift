@@ -2,7 +2,6 @@
 
 # Roadmap
 
-1. Scale tileset
 1. Move camera
 1. Player
 1. y-sorting

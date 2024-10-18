@@ -158,7 +158,8 @@ class ButtonCanvasItem2D: public CanvasItem2D {
             };
         }
 
-        void Render() override {            switch (state) {
+        void Render() override {
+            switch (state) {
                 case BtnState::Normal:
                     DrawRectangleRec(
                         btnRect,
