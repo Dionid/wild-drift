@@ -79,13 +79,11 @@ int main() {
             MainMenuSceneName,
             [
                 &crossSceneStorage,
-                &sceneManager,
                 &camera,
                 &renderingEngine,
                 &eventBus
             ](){
                 return std::make_unique<MainMenuScene>(
-                    &sceneManager,
                     &crossSceneStorage,
                     cen::ScreenResolution{screenWidth, screenHeight},
                     &camera,
@@ -102,14 +100,12 @@ int main() {
             LocalMatchSceneName,
             [
                 &crossSceneStorage,
-                &sceneManager,
                 &textureStorage,
                 &camera,
                 &renderingEngine,
                 &eventBus
             ](){
                 return std::make_unique<LocalMatchScene>(
-                    &sceneManager,
                     &crossSceneStorage,
                     &textureStorage,
                     cen::ScreenResolution{screenWidth, screenHeight},

@@ -111,11 +111,7 @@ class TileMapView: public cen::Node2D {
         }
 
         void Init() override {
-            printf("TileMapView %d %d %zu\n", map->height, map->width, map->layers.size());
-
             for (const auto& layer: map->layers) {
-                std::cout << "Layer: " << layer.name << std::endl;
-
                 for (int y = 0; y < map->height; ++y) {
                     for (int x = 0; x < map->width; ++x) {
                         int tileGID = layer.data[y * map->width + x];
@@ -128,8 +124,6 @@ class TileMapView: public cen::Node2D {
                             if (tileGID >= tileSet->firstGID && tileGID <= tileSet->lastGID) {
                                 int tileX = (tileGID - tileSet->firstGID) % tileSet->columns;
                                 int tileY = (tileGID - tileSet->firstGID) / tileSet->columns;
-
-                                std::cout << "Tile: " << tileX << ", " << tileY << std::endl;
 
                                 this->AddNode(
                                     std::make_unique<TileView>(

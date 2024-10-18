@@ -13,11 +13,9 @@ struct CrossSceneStorage {
 
 class MainMenuScene: public cen::LocalScene {
     public:
-        cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
 
         MainMenuScene(
-            cen::SceneManager* sceneManager,
             CrossSceneStorage* crossSceneStorage,
             cen::ScreenResolution screen,
             Camera2D* camera,
@@ -30,7 +28,6 @@ class MainMenuScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
         }
 
@@ -39,12 +36,10 @@ class MainMenuScene: public cen::LocalScene {
 
 class LocalMatchScene: public cen::LocalScene {
     public:
-        cen::SceneManager* sceneManager;
         CrossSceneStorage* crossSceneStorage;
         cen::TextureStorage* textureStorage;
 
         LocalMatchScene(
-            cen::SceneManager* sceneManager,
             CrossSceneStorage* crossSceneStorage,
             cen::TextureStorage* textureStorage,
             cen::ScreenResolution screen,
@@ -58,7 +53,6 @@ class LocalMatchScene: public cen::LocalScene {
             renderingEngine,
             eventBus
         ) {
-            this->sceneManager = sceneManager;
             this->crossSceneStorage = crossSceneStorage;
             this->textureStorage = textureStorage;
         }
