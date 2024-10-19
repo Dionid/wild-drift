@@ -9,6 +9,7 @@
 1. ~~Player Movement~~
 1. y-sorting
     1. Change zOrder based on y position ONLY for some nodes
+    1. ? Layers
     1. ...
 1. Collisions
 1. AnimatedSprite
@@ -18,6 +19,7 @@
 
 1. Node.id to Node._node_id
 1. Map as part of Scene
+1. ? zOrder from parent
 1. ...
 
 # Features

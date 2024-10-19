@@ -113,7 +113,8 @@ class TileMapView: public cen::Node2D {
         }
 
         void Init() override {
-            for (const auto& layer: map->layers) {
+            for (int layerIndex = 0; layerIndex < map->layers.size(); ++layerIndex) {
+                auto& layer = map->layers[layerIndex];
                 for (int y = 0; y < map->height; ++y) {
                     for (int x = 0; x < map->width; ++x) {
                         int tileGID = layer.data[y * map->width + x];
@@ -127,7 +128,7 @@ class TileMapView: public cen::Node2D {
                                 int tileX = (tileGID - tileSet->firstGID) % tileSet->columns;
                                 int tileY = (tileGID - tileSet->firstGID) / tileSet->columns;
 
-                                this->AddNode(
+                                auto ttt = this->AddNode(
                                     std::make_unique<TileView>(
                                         map,
                                         *this->textureStorage->data[tileSet->name],
@@ -145,7 +146,8 @@ class TileMapView: public cen::Node2D {
                                             (float)map->tileWidth,
                                             (float)map->tileHeight
                                         },
-                                        layer.ySort
+                                        layer.ySort,
+                                        layer.ySort ? (y + 1) * map->tileHeight : 0
                                     )
                                 );
                             }

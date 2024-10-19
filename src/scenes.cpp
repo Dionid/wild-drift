@@ -51,7 +51,8 @@ void LocalMatchScene::Init() {
             },
             cen::Size{ 32, 32 },
             2.0f,
-            4.0f
+            4.0f,
+            map
         )
     );
 

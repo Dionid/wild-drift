@@ -97,8 +97,6 @@ Map::Map(
 
     this->tileMap->Load();
 
-    // this->tileMap->layersByName["holes"]->ySort = true;
-
     this->width = tileMap->widthInPixels;
     this->height = tileMap->heightInPixels;
 }
@@ -122,7 +120,8 @@ Player::Player(
     Vector2 position,
     cen::Size size,
     float speed,
-    float maxVelocity
+    float maxVelocity,
+    Map* map
 ): cen::CharacterBody2D(
     position,
     size,
@@ -130,20 +129,27 @@ Player::Player(
     cen::MotionMode::Floating,
     cen::Vector2Up,
     0.1f,
-    true
+    true,
+    20
 ) {
     this->playerId = playerId;
     this->name = name;
     this->speed = speed;
     this->maxVelocity = maxVelocity;
+    this->map = map;
 }
 
 const cen::type_id_t Player::_tid = cen::TypeIdGenerator::getInstance().getNextId();
 
 void Player::Init() {
-    this->AddNode(
+    view = this->AddNode(
         std::make_unique<cen::RectangleView>(
-            this->size
+            this->size,
+            WHITE,
+            1.0f,
+            Vector2{},
+            true,
+            this->zOrder
         )
     );
 }
@@ -191,4 +197,6 @@ void Player::FixedUpdate() {
 
     // # Velocity -> Position
     this->MoveAndSlide();
+
+    this->view->zOrder = this->position.y + this->size.height / 2;
 }

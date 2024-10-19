@@ -103,11 +103,14 @@ namespace cen {
                     tileMapLayer.visible = layer["visible"];
                     tileMapLayer.type = layer["type"];
                     tileMapLayer.opacity = layer["opacity"];
+                    // # array of properties
                     auto properties = layer["properties"];
 
                     if (properties != nullptr) {
-                        if (properties.contains("ySort")) {
-                            tileMapLayer.ySort = properties["ySort"];
+                        for (auto& property : properties) {
+                            if (property["name"] == "ySort") {
+                                tileMapLayer.ySort = property["value"];
+                            }
                         }
                     }
 

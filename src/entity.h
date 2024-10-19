@@ -115,6 +115,9 @@ class Player: public cen::CharacterBody2D {
     std::string name;
     float speed;
     float maxVelocity;
+    cen::RectangleView* view;
+    Map* map;
+
     // Champion champion;
     // PlayerStats stats;
 
@@ -126,7 +129,8 @@ class Player: public cen::CharacterBody2D {
         Vector2 position,
         cen::Size size,
         float speed,
-        float maxVelocity
+        float maxVelocity,
+        Map* map
     );
 
     void Init() override;
