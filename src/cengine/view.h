@@ -4,6 +4,7 @@
 #include "texture.h"
 #include "tilemap.h"
 #include "node_2d.h"
+#include "collision.h"
 
 // # Views
 
@@ -68,16 +69,13 @@ class RectangleView: public cen::Node2D {
         }
 };
 
-
-class TileView: public cen::Node2D {
+class TextureView: public cen::Node2D {
     public:
-        TileMap* map;
-        Size size;
-        Rectangle texturePosition;
         Texture texture;
+        Rectangle texturePosition;
+        Size size;
 
-        TileView(
-            TileMap* map,
+        TextureView(
             Texture texture,
             Rectangle texturePosition,
             Vector2 position,
@@ -87,7 +85,6 @@ class TileView: public cen::Node2D {
             uint16_t id = 0,
             Node* parent = nullptr
         ): cen::Node2D(position, ySort, zOrder, id, parent) {
-            this->map = map;
             this->size = size;
             this->texturePosition = texturePosition;
             this->texture = texture;
@@ -128,9 +125,8 @@ class TileMapView: public cen::Node2D {
                                 int tileX = (tileGID - tileSet->firstGID) % tileSet->columns;
                                 int tileY = (tileGID - tileSet->firstGID) / tileSet->columns;
 
-                                auto ttt = this->AddNode(
-                                    std::make_unique<TileView>(
-                                        map,
+                                this->AddNode(
+                                    std::make_unique<TextureView>(
                                         *this->textureStorage->data[tileSet->name],
                                         Rectangle{
                                             (float)tileX * map->tileWidth,
@@ -150,6 +146,23 @@ class TileMapView: public cen::Node2D {
                                         layer.ySort ? (y + 1) * map->tileHeight : 0
                                     )
                                 );
+
+                                // if (layer.solid || layer.sensor) {
+                                //     std::cout << "Adding collision object" << std::endl;
+                                //     this->AddNode(
+                                //         std::make_unique<RectangleCollisionObject2D>(
+                                //             Vector2{
+                                //                 (float)x * map->tileWidth,
+                                //                 (float)y * map->tileHeight
+                                //             },
+                                //             layer.solid ? ColliderType::Solid : ColliderType::Sensor,
+                                //             Size{
+                                //                 (float)map->tileWidth,
+                                //                 (float)map->tileHeight
+                                //             }
+                                //         )
+                                //     );
+                                // }
                             }
                         }
                     }

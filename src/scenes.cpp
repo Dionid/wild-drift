@@ -41,6 +41,35 @@ void LocalMatchScene::Init() {
         )
     );
 
+    for (int layerIndex = 0; layerIndex < map->tileMap->layers.size(); ++layerIndex) {
+        auto& layer = map->tileMap->layers[layerIndex];
+        if (layer.solid == true || layer.sensor == true) {
+            for (int y = 0; y < map->tileMap->height; ++y) {
+                for (int x = 0; x < map->tileMap->width; ++x) {
+                    int tileGID = layer.data[y * map->tileMap->width + x];
+
+                    if (tileGID <= 0) {
+                        continue;
+                    }
+
+                    this->AddNode(
+                        std::make_unique<cen::RectangleCollisionObject2D>(
+                            Vector2{
+                                (float)x * map->tileMap->tileWidth + (float)map->tileMap->tileWidth / 2,
+                                (float)y * map->tileMap->tileHeight + (float)map->tileMap->tileHeight / 2
+                            },
+                            layer.solid ? cen::ColliderType::Solid : cen::ColliderType::Sensor,
+                            cen::Size{
+                                (float)map->tileMap->tileWidth,
+                                (float)map->tileMap->tileHeight
+                            }
+                        )
+                    );
+                }
+            }
+        }
+    }
+
     auto player = this->AddNode(
         std::make_unique<Player>(
             0,

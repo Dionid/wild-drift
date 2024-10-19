@@ -152,6 +152,13 @@ void Player::Init() {
             this->zOrder
         )
     );
+
+    this->AddNode(
+        std::make_unique<cen::Collider>(
+            cen::ColliderType::Solid,
+            cen::Shape::Rectangle(this->size)
+        )
+    );
 }
 
 void Player::Update() {

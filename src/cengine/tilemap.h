@@ -1,6 +1,7 @@
 #ifndef CEN_TILEMAP_H
 #define CEN_TILEMAP_H
 
+#include <iostream>
 #include "core.h"
 
 using json = nlohmann::json;
@@ -31,6 +32,9 @@ namespace cen {
         bool visible;
         float opacity;
         bool ySort;
+
+        bool solid = false;
+        bool sensor = false;
 
         std::string type;
         std::vector<int> data;
@@ -110,6 +114,14 @@ namespace cen {
                         for (auto& property : properties) {
                             if (property["name"] == "ySort") {
                                 tileMapLayer.ySort = property["value"];
+                            }
+
+                            if (property["name"] == "solid") {
+                                tileMapLayer.solid = property["value"];
+                            }
+
+                            if (property["name"] == "sensor") {
+                                tileMapLayer.sensor = property["value"];
                             }
                         }
                     }

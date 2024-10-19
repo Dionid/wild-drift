@@ -101,6 +101,12 @@ class CharacterBody2D: public CollisionObject2D {
                             case Shape::Type::RECTANGLE:
                                 switch (otherCollider->shape.type) {
                                     case Shape::Type::RECTANGLE:
+                                        collision = RectangleRectangleCollision(
+                                            otherCollider->GlobalPosition(),
+                                            otherCollider->shape.rect.size,
+                                            newPosition,
+                                            collider->shape.rect.size
+                                        );
                                         break;
                                     case Shape::Type::CIRCLE:
                                         collision = CircleRectangleCollision(
